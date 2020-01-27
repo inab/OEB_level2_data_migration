@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_TreeFam-A_A_TreeFam-A_TPR_OrthoFinder_2_BLAST__MSA",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_TreeFam-A"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.0057800593,
+            "value": 0.68954521
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:TreeFam-A_TPR",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:OrthoFinder_2_BLAST__MSA"
+    },
+    "description": "Assessment dataset for applying Metric 'TreeFam-A_TPR' to OrthoFinder_2_BLAST__MSA predictions in QfO:2018-07-07_TreeFam-A",
+    "name": "Assesment of TreeFam-A_TPR in OrthoFinder_2_BLAST__MSA",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

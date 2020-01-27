@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_G_STD_Fungi_A_RF_DISTANCE_BBH",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_G_STD_Fungi"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.013376362,
+            "value": 0.286
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:RF_DISTANCE",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:BBH"
+    },
+    "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to BBH predictions in QfO:2018-07-07_G_STD_Fungi",
+    "name": "Assesment of RF_DISTANCE in BBH",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

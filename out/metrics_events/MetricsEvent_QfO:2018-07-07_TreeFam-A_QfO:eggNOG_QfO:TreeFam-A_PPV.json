@@ -1,0 +1,25 @@
+{
+    "_id": "QfO:2018-07-07_TreeFam-A_metricsEvent_eggNOG_TreeFam-A_PPV",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+    "action_type": "MetricsEvent",
+    "challenge_id": "OEBX002000000N",
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "reception": "2018-07-07T00:00:00Z"
+    },
+    "involved_datasets": [
+        {
+            "dataset_id": "QfO:2018-07-07_P_eggNOG",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001G7",
+            "role": "outgoing"
+        }
+    ],
+    "test_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "tool_id": "OEBT0020000004"
+}

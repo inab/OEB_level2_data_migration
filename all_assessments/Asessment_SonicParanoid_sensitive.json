@@ -1,0 +1,1058 @@
+[
+    {
+        "_id": "QfO:SwissTrees-APP_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.065929502,
+            "value": 0.78333333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-APP_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.016470147,
+            "value": 0.99156118
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.056514453,
+            "value": 0.37699115
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.018147557,
+            "value": 0.99069767
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.12181922,
+            "value": 0.75789474
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.052252219,
+            "value": 0.97297297
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.045147676,
+            "value": 0.70037927
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.037748917,
+            "value": 0.86158631
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.18847169,
+            "value": 0.51851852
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.12623599,
+            "value": 0.93333333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.099884319,
+            "value": 0.45549738
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.095304334,
+            "value": 0.86138614
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.1255663,
+            "value": 0.75555556
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.055194203,
+            "value": 0.97142857
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.40008332,
+            "value": 0.5
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.42435245,
+            "value": 0.75
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.10241259,
+            "value": 0.4863388
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.064159252,
+            "value": 0.94680851
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.16435305,
+            "value": 0.68852459
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.087042568,
+            "value": 0.95454545
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.058076893,
+            "value": 0.71002132
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.032633884,
+            "value": 0.94871795
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.031943278,
+            "value": 0.96902655
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.017657114,
+            "value": 0.99095023
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.040117866,
+            "value": 0.83208396
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.016083822,
+            "value": 0.98056537
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.16884607,
+            "value": 0.53731343
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.10040652,
+            "value": 0.94736842
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.04249531,
+            "value": 0.75637755
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0065771533,
+            "value": 0.99663866
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.07255333,
+            "value": 0.96226415
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.07255333,
+            "value": 0.96226415
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.047942096,
+            "value": 0.94086022
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.022021414,
+            "value": 0.98870056
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.042044013,
+            "value": 0.90858726
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.011842737,
+            "value": 0.99393939
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_SwissTree",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.031860945,
+            "value": 0.70219821
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_SwissTree",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.027343148,
+            "value": 0.94685916
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_TPR_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.0059140098,
+            "value": 0.66090471
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_PPV_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0036088995,
+            "value": 0.93720656
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 18629
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 60.714167,
+            "value": 1077
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.017401414,
+            "value": 0.58495822
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.015953181,
+            "value": 0.92293408
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_ECtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 207822
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_avg Schlicker_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_ECtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.00084402244,
+            "value": 0.91461834
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_GOtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 164967
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_avg Schlicker_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_GOtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.0011150718,
+            "value": 0.4841653
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 14189929
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 78.130306,
+            "value": 1643
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0088538855,
+            "value": 0.26223807
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017357024,
+            "value": 0.84844796
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 14189929
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 122.16005,
+            "value": 4245
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.01476553,
+            "value": 0.35702033
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.01789946,
+            "value": 0.49133333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 1851185
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 212.04888,
+            "value": 18694
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0057607518,
+            "value": 0.1686
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.01597508,
+            "value": 0.72566667
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 1851185
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 214.20108,
+            "value": 19725
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0057421199,
+            "value": 0.234
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.01074129,
+            "value": 0.9
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 11975480
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 127.00463,
+            "value": 4627
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0061984144,
+            "value": 0.23085714
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.013979636,
+            "value": 0.81233333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 11975480
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 123.72493,
+            "value": 4366
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0089940053,
+            "value": 0.18250904
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017827325,
+            "value": 0.45433333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 269314
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 202.49788,
+            "value": 15445
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.013294203,
+            "value": 0.297
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017820612,
+            "value": 0.45233333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 269314
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 186.65178,
+            "value": 11902
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0084276474,
+            "value": 0.26258333
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.016800811,
+            "value": 0.67266667
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 114959
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 167.72271,
+            "value": 9629
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0055210927,
+            "value": 0.32531935
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0094951705,
+            "value": 0.65520823
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_ORTHOLOGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 415850
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 138.33912,
+            "value": 12867
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_RF_DISTANCE_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0022227598,
+            "value": 0.036242584
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_FRAC_INCORRECT_TREES_SonicParanoid_sensitive_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0047328907,
+            "value": 0.081681822
+        },
+        "participant_id": "SonicParanoid_sensitive",
+        "type": "assessment"
+    }
+]

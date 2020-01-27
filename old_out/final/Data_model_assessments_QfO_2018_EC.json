@@ -1,0 +1,1370 @@
+[
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OMA_Groups",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 96947
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000E"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OMA_Groups predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OMA_Groups",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_RSD",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 139053
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000P"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to RSD predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in RSD",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OMA_GETHOGs_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 492301
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000007"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OMA_GETHOGs_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OMA_GETHOGs_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_SonicParanoid_most",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00085472159,
+                "value": 0.91150524
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000U"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to SonicParanoid_most predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in SonicParanoid_most",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_PANTHER_14.1_all",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 200000
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000L"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to PANTHER_14.1_all predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in PANTHER_14.1_all",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OMA_Groups",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00067887735,
+                "value": 0.97510924
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000E"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OMA_Groups predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OMA_Groups",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_SonicParanoid_default",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 189541
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000R"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to SonicParanoid_default predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in SonicParanoid_default",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OMA_Pairs_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00070726088,
+                "value": 0.95718778
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000F"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OMA_Pairs_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OMA_Pairs_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_PANTHER_14.1_LDO_only",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 112068
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000M"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to PANTHER_14.1_LDO_only predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in PANTHER_14.1_LDO_only",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OMA_Pairs_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 149980
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000F"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OMA_Pairs_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OMA_Pairs_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OrthoFinder_2_Defaults_DIAMOND__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00078603179,
+                "value": 0.9379142
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000I"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OrthoFinder_2_Defaults_DIAMOND__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OrthoFinder_2_Defaults_DIAMOND__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OMA_Groups_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 96947
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000D"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OMA_Groups_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OMA_Groups_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_RSD",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00084800033,
+                "value": 0.94502771
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000P"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to RSD predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in RSD",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OrthoFinder_2_BLAST__DendroBLAST_",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00081065986,
+                "value": 0.93011836
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000H"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OrthoFinder_2_BLAST__DendroBLAST_ predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OrthoFinder_2_BLAST__DendroBLAST_",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OrthoInspector_3.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 204100
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000K"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OrthoInspector_3.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OrthoInspector_3.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OrthoFinder_2_BLAST__DendroBLAST_",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 187870
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000H"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OrthoFinder_2_BLAST__DendroBLAST_ predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OrthoFinder_2_BLAST__DendroBLAST_",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OrthoFinder_2_BLAST__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 178820
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000J"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OrthoFinder_2_BLAST__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OrthoFinder_2_BLAST__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_PANTHER_14.1_all",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00081987094,
+                "value": 0.92841604
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000L"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to PANTHER_14.1_all predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in PANTHER_14.1_all",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_Hieranoid2",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0007600168,
+                "value": 0.94602088
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000008"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to Hieranoid2 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in Hieranoid2",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OrthoInspector_3.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00080460043,
+                "value": 0.92526244
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000K"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OrthoInspector_3.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OrthoInspector_3.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_Ensembl_Compara",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00093877419,
+                "value": 0.85597426
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000005"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to Ensembl_Compara predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in Ensembl_Compara",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OrthoFinder_2_DIAMOND__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 182653
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000T"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OrthoFinder_2_DIAMOND__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OrthoFinder_2_DIAMOND__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OMA_Groups_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00067887735,
+                "value": 0.97510924
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000D"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OMA_Groups_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OMA_Groups_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OMA_GETHOGs_2.0",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00082106262,
+                "value": 0.75773848
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000007"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OMA_GETHOGs_2.0 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OMA_GETHOGs_2.0",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_InParanoid",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 203148
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000A"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to InParanoid predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in InParanoid",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_Ensembl_Compara",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 298884
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000005"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to Ensembl_Compara predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in Ensembl_Compara",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_BBH",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 146109
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000O"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to BBH predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in BBH",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OrthoFinder_2_DIAMOND__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00076457935,
+                "value": 0.94156656
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000T"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OrthoFinder_2_DIAMOND__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OrthoFinder_2_DIAMOND__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_SonicParanoid_most",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 212649
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000U"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to SonicParanoid_most predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in SonicParanoid_most",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_Hieranoid2",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 162184
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT0020000008"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to Hieranoid2 predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in Hieranoid2",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_PANTHER_14.1_LDO_only",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00073329875,
+                "value": 0.966009
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000M"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to PANTHER_14.1_LDO_only predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in PANTHER_14.1_LDO_only",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_OrthoFinder_2_BLAST__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00085674402,
+                "value": 0.93312896
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000J"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to OrthoFinder_2_BLAST__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in OrthoFinder_2_BLAST__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_SonicParanoid_default",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00085496083,
+                "value": 0.91999452
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000R"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to SonicParanoid_default predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in SonicParanoid_default",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_BBH",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00078022644,
+                "value": 0.95032495
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000O"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to BBH predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in BBH",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_OrthoFinder_2_Defaults_DIAMOND__MSA",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 184194
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000I"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to OrthoFinder_2_Defaults_DIAMOND__MSA predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in OrthoFinder_2_Defaults_DIAMOND__MSA",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_InParanoid",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00086208237,
+                "value": 0.91339292
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "OEBD0020000000"
+                }
+            ],
+            "tool_id": "OEBT002000000A"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to InParanoid predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in InParanoid",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    }
+]

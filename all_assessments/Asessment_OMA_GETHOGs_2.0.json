@@ -1,0 +1,1058 @@
+[
+    {
+        "_id": "QfO:EC_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_ECtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 492301
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_avg Schlicker_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_ECtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.00082106262,
+            "value": 0.75773848
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 48871
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 68.222361,
+            "value": 1414
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.015933305,
+            "value": 0.62393918
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.014093351,
+            "value": 0.92079208
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_GOtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 936482
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_avg Schlicker_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_GOtest",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.0004233331,
+            "value": 0.41161343
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 198154959
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 64.172438,
+            "value": 1096
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.010526177,
+            "value": 0.25130344
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.022162417,
+            "value": 0.83211679
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 6894900
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 211.2157,
+            "value": 18340
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.006171037,
+            "value": 0.24
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.010804649,
+            "value": 0.89866667
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 979210
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 140.59142,
+            "value": 9022
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0029769514,
+            "value": 0.04402202
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.006070159,
+            "value": 0.095655065
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 205433
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 165.84991,
+            "value": 8660
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.01287577,
+            "value": 0.25811111
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017520692,
+            "value": 0.39733333
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-APP_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.067347228,
+            "value": 0.77
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-APP_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.020385149,
+            "value": 0.98717949
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.051048365,
+            "value": 0.25840708
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.026306915,
+            "value": 0.98648649
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.13932046,
+            "value": 0.6
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.065304856,
+            "value": 0.96610169
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.049277933,
+            "value": 0.50063211
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0098244682,
+            "value": 0.99497487
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.11854321,
+            "value": 0.88888889
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.153632,
+            "value": 0.64
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.097944633,
+            "value": 0.39267016
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.050243584,
+            "value": 0.97402597
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.11687182,
+            "value": 0.8
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.052252219,
+            "value": 0.97297297
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.40008332,
+            "value": 0.5
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.42435245,
+            "value": 0.75
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.098060051,
+            "value": 0.35519126
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.057627601,
+            "value": 0.97014925
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.17337353,
+            "value": 0.60655738
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.097901652,
+            "value": 0.94871795
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.048847743,
+            "value": 0.82302772
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.026265991,
+            "value": 0.96259352
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.066705112,
+            "value": 0.84513274
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.020205369,
+            "value": 0.98963731
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.038782918,
+            "value": 0.84557721
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0084449418,
+            "value": 0.99470899
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.16078633,
+            "value": 0.34328358
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.15039728,
+            "value": 0.92
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.028228974,
+            "value": 0.91071429
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.01739862,
+            "value": 0.9701087
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.12890958,
+            "value": 0.86792453
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.079947176,
+            "value": 0.95833333
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.049930613,
+            "value": 0.93548387
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.022145816,
+            "value": 0.98863636
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.045792334,
+            "value": 0.88919668
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.012098591,
+            "value": 0.99380805
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_SwissTree",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.031535898,
+            "value": 0.67403819
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_SwissTree",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.02824206,
+            "value": 0.94269083
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_TPR_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.0059859448,
+            "value": 0.64284699
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_PPV_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0052803245,
+            "value": 0.83545841
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 6894900
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 207.87096,
+            "value": 17088
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0061157166,
+            "value": 0.1726
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.01597508,
+            "value": 0.72566667
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 198154959
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 121.25449,
+            "value": 4176
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.013927745,
+            "value": 0.36163307
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_LUCA",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017857394,
+            "value": 0.53533333
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 86840
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 134.62399,
+            "value": 5459
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.007508709,
+            "value": 0.30255847
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.012962111,
+            "value": 0.60670452
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 205433
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 144.54542,
+            "value": 6210
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0082434079,
+            "value": 0.24133333
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017247269,
+            "value": 0.634
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 190903972
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 120.47236,
+            "value": 4117
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0087449196,
+            "value": 0.19982847
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017902133,
+            "value": 0.50066667
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_ORTHOLOGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 190903972
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 112.08859,
+            "value": 3518
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_RF_DISTANCE_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0065048442,
+            "value": 0.24285714
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_FRAC_INCORRECT_TREES_OMA_GETHOGs_2.0_A",
+        "challenge_id": "QfO:2018-07-07_G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.013675471,
+            "value": 0.82266667
+        },
+        "participant_id": "OMA_GETHOGs_2.0",
+        "type": "assessment"
+    }
+]

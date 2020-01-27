@@ -1,0 +1,173 @@
+{
+    "_id": "QfO:2018-07-07_TreeFam-A_AggregationEvent",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+    "action_type": "AggregationEvent",
+    "challenge_id": "OEBX002000000N",
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "reception": "2018-07-07T00:00:00Z"
+    },
+    "involved_datasets": [
+        {
+            "dataset_id": "OEBD00200000QP",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000013K",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000R7",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000R3",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001BK",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000X2",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000WB",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000TN",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DH",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000104",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000019V",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000ZT",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DA",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000010B",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000SN",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000011E",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000019M",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000013M",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000100",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000PQ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000015Q",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000VK",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000SU",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000014H",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001FJ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001G7",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000QI",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000PH",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000013P",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000136",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000125",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DS",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000129",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000010F",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000YP",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000015Z",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001AK",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000183",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "QfO:2018-07-07_TreeFam-A_Aggregation",
+            "role": "outgoing"
+        }
+    ],
+    "test_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "tool_id": "OEBT0020000002"
+}

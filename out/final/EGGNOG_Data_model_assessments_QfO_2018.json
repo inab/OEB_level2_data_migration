@@ -1,0 +1,1978 @@
+[
+    {
+        "_id": "QfO:2018-07-07_G_STD2_LUCA_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000E"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.016986407,
+                "value": 0.28129927
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD2_LUCA",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_LUCA_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000I"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.020086005,
+                "value": 0.47751156
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD_LUCA",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Bacteria_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000O"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.021720062,
+                "value": 0.90264256
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_STD_Bacteria",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Eukaryota_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000K"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0060877229,
+                "value": 0.11451398
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_STD_Eukaryota",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_LUCA_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000I"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 7813959
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD_LUCA",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Bacteria_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000O"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 13761
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_STD_Bacteria",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_TreeFam-A_A_TreeFam-A_TPR_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000N"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0061517439,
+                "value": 0.58666288
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM002000000C",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'TreeFam-A_TPR' to eggNOG predictions in QfO:2018-07-07_TreeFam-A",
+        "name": "Assesment of TreeFam-A_TPR in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_GOtest_A_GOTest_ortholog_relations_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000B"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 102266
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000004",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'GOTest_ortholog_relations' to eggNOG predictions in QfO:2018-07-07_GOtest",
+        "name": "Assesment of GOTest_ortholog_relations in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Fungi_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000D"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0087371898,
+                "value": 0.27608333
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD2_Fungi",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Fungi_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000L"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 167.0011,
+                "value": 9509
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_STD_Fungi",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Eukaryota_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000C"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0062149882,
+                "value": 0.23461905
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD2_Eukaryota",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_LUCA_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000I"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.015778866,
+                "value": 0.33035719
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD_LUCA",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_SwissTree_A_SwissTree_TPR_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000M"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.03000871,
+                "value": 0.64613553
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM002000000A",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'SwissTree_TPR' to eggNOG predictions in QfO:2018-07-07_SwissTree",
+        "name": "Assesment of SwissTree_TPR in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Fungi_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000H"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 203.69802,
+                "value": 15783
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD_Fungi",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Vertebrata_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000J"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0055952904,
+                "value": 0.16626667
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD_Vertebrata",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Vertebrata_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000J"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 216.47805,
+                "value": 21119
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD_Vertebrata",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_LUCA_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000E"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 41.526837,
+                "value": 453
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD2_LUCA",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_LUCA_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000I"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 93.296971,
+                "value": 2379
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD_LUCA",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Fungi_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000D"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 187.73464,
+                "value": 12105
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD2_Fungi",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Bacteria_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000O"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 50.606533,
+                "value": 719
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_STD_Bacteria",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Fungi_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000D"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 264869
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD2_Fungi",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Eukaryota_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000G"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 118.34126,
+                "value": 3959
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD_Eukaryota",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Vertebrata_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000J"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.016116756,
+                "value": 0.71766667
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD_Vertebrata",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Vertebrata_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000F"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 1401165
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD2_Vertebrata",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Eukaryota_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000G"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.017862322,
+                "value": 0.46666667
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD_Eukaryota",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Bacteria_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000O"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.021067764,
+                "value": 0.53592953
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_STD_Bacteria",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Fungi_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000L"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0095264429,
+                "value": 0.65948049
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_STD_Fungi",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Eukaryota_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000C"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 118.68208,
+                "value": 3984
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD2_Eukaryota",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Eukaryota_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000C"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.013960509,
+                "value": 0.813
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD2_Eukaryota",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Eukaryota_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000K"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 309229
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_STD_Eukaryota",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_TreeFam-A_A_TreeFam-A_PPV_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000N"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0033966075,
+                "value": 0.95216431
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM002000000B",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'TreeFam-A_PPV' to eggNOG predictions in QfO:2018-07-07_TreeFam-A",
+        "name": "Assesment of TreeFam-A_PPV in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Fungi_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000H"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 264869
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD_Fungi",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Fungi_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000L"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0055825074,
+                "value": 0.32863603
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_STD_Fungi",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Eukaryota_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000G"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0089893595,
+                "value": 0.1882705
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD_Eukaryota",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Eukaryota_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000C"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 7023813
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD2_Eukaryota",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_GOtest_A_GOTest_schlicker_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000B"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.001430809,
+                "value": 0.50094782
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000003",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'GOTest_schlicker' to eggNOG predictions in QfO:2018-07-07_GOtest",
+        "name": "Assesment of GOTest_schlicker in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_LUCA_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000E"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 7813959
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD2_LUCA",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Fungi_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000D"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.016715623,
+                "value": 0.679
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD2_Fungi",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_ECtest_A_ECTest_schlicker_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.00073483222,
+                "value": 0.95945213
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000001",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to eggNOG predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_schlicker in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_LUCA_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000E"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.028710044,
+                "value": 0.89183223
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD2_LUCA",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Vertebrata_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000F"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.011097863,
+                "value": 0.89233333
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD2_Vertebrata",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_ECtest_A_ECTest_ortholog_relations_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000A"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 135421
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000002",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'ECTest_ortholog_relations' to eggNOG predictions in QfO:2018-07-07_ECtest",
+        "name": "Assesment of ECTest_ortholog_relations in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Eukaryota_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000K"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0030890345,
+                "value": 0.054054911
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_STD_Eukaryota",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Fungi_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000H"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.01315091,
+                "value": 0.28572222
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD_Fungi",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Fungi_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000L"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 112392
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_STD_Fungi",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Vertebrata_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000J"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 1401165
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD_Vertebrata",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_SwissTree_A_SwissTree_PPV_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000M"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.037027066,
+                "value": 0.94601137
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000009",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'SwissTree_PPV' to eggNOG predictions in QfO:2018-07-07_SwissTree",
+        "name": "Assesment of SwissTree_PPV in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Vertebrata_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000F"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 217.93534,
+                "value": 22388
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_G_STD2_Vertebrata",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Eukaryota_A_STD_num_orthologs_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000G"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0,
+                "value": 7023813
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000008",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to eggNOG predictions in QfO:2018-07-07_G_STD_Eukaryota",
+        "name": "Assesment of STD_num_orthologs in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD_Fungi_A_FRAC_INCORRECT_TREES_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000H"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.017769885,
+                "value": 0.43933333
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000005",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to eggNOG predictions in QfO:2018-07-07_G_STD_Fungi",
+        "name": "Assesment of FRAC_INCORRECT_TREES in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_G_STD2_Vertebrata_A_RF_DISTANCE_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000F"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 0.0055552615,
+                "value": 0.23142857
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000007",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to eggNOG predictions in QfO:2018-07-07_G_STD2_Vertebrata",
+        "name": "Assesment of RF_DISTANCE in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    },
+    {
+        "_id": "QfO:2018-07-07_STD_Eukaryota_A_NR_COMPLETED_TREE_SAMPLINGS_eggNOG",
+        "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+        "challenge_ids": [
+            "OEBX002000000K"
+        ],
+        "community_ids": [
+            "OEBC002"
+        ],
+        "datalink": {
+            "inline_data": {
+                "error": 142.0018,
+                "value": 10514
+            }
+        },
+        "dataset_contact_ids": [
+            "Christophe.Dessimoz",
+            "Adrian.Altenhoff"
+        ],
+        "dates": {
+            "creation": "2018-07-07T00:00:00Z",
+            "modification": "2018-07-07T14:00:00Z"
+        },
+        "depends_on": {
+            "metrics_id": "OEBM0020000006",
+            "rel_dataset_ids": [
+                {
+                    "dataset_id": "QfO:2018-04-01_I"
+                }
+            ],
+            "tool_id": "OEBT0020000004"
+        },
+        "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to eggNOG predictions in QfO:2018-07-07_STD_Eukaryota",
+        "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in eggNOG",
+        "type": "assessment",
+        "version": "1",
+        "visibility": "public"
+    }
+]

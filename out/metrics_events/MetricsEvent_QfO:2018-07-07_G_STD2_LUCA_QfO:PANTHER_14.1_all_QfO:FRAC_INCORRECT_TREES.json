@@ -1,0 +1,25 @@
+{
+    "_id": "QfO:2018-07-07_G_STD2_LUCA_metricsEvent_PANTHER_14.1_all_FRAC_INCORRECT_TREES",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+    "action_type": "MetricsEvent",
+    "challenge_id": "OEBX002000000E",
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "reception": "2018-07-07T00:00:00Z"
+    },
+    "involved_datasets": [
+        {
+            "dataset_id": "QfO:2018-07-07_P_PANTHER_14.1_all",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000019E",
+            "role": "outgoing"
+        }
+    ],
+    "test_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "tool_id": "OEBT002000000L"
+}

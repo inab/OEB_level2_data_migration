@@ -1,0 +1,53 @@
+{
+    "_id": "QfO:2018-07-07_P_OrthoFinder_2_DIAMOND__MSA",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "OEBX002000000A",
+        "OEBX002000000B",
+        "OEBX002000000C",
+        "OEBX002000000D",
+        "OEBX002000000E",
+        "OEBX002000000F",
+        "OEBX002000000G",
+        "OEBX002000000H",
+        "OEBX002000000I",
+        "OEBX002000000J",
+        "OEBX002000000O",
+        "OEBX002000000K",
+        "OEBX002000000L",
+        "OEBX002000000M",
+        "OEBX002000000N"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "attrs": [
+            "archive"
+        ],
+        "status": "ok",
+        "uri": "https://orthology.benchmarkservice.org/raw/OrthoFinder_2_DIAMOND__MSA-20190917-1206.807.rels.raw.gz",
+        "validation_date": "2018-07-07T00:00:00Z"
+    },
+    "dataset_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD00200001FC"
+            }
+        ],
+        "tool_id": "OEBT002000000T"
+    },
+    "description": "List of orthologs pairs predicted by OrthoFinder_2_DIAMOND__MSA using the Quest for Orthologs reference proteome",
+    "name": "Orthologs predicted by OrthoFinder_2_DIAMOND__MSA",
+    "type": "participant",
+    "version": "unknown",
+    "visibility": "public"
+}

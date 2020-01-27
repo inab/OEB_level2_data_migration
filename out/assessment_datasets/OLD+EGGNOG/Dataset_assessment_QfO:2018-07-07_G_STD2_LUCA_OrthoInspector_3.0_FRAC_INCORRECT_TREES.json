@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_G_STD2_LUCA_A_FRAC_INCORRECT_TREES_OrthoInspector_3.0",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_G_STD2_LUCA"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.015031675,
+            "value": 0.86295929
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:FRAC_INCORRECT_TREES",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:OrthoInspector_3.0"
+    },
+    "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to OrthoInspector_3.0 predictions in QfO:2018-07-07_G_STD2_LUCA",
+    "name": "Assesment of FRAC_INCORRECT_TREES in OrthoInspector_3.0",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

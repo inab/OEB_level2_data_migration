@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_STD_Fungi_A_RF_DISTANCE_SonicParanoid_most",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_STD_Fungi"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.0055061502,
+            "value": 0.33167999
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:RF_DISTANCE",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:SonicParanoid_most"
+    },
+    "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to SonicParanoid_most predictions in QfO:2018-07-07_STD_Fungi",
+    "name": "Assesment of RF_DISTANCE in SonicParanoid_most",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

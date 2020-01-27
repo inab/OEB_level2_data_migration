@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_G_STD2_LUCA_A_NR_COMPLETED_TREE_SAMPLINGS_Hieranoid2",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_G_STD2_LUCA"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 54.311172,
+            "value": 780
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:NR_COMPLETED_TREE_SAMPLINGS",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:Hieranoid2"
+    },
+    "description": "Assessment dataset for applying Metric 'NR_COMPLETED_TREE_SAMPLINGS' to Hieranoid2 predictions in QfO:2018-07-07_G_STD2_LUCA",
+    "name": "Assesment of NR_COMPLETED_TREE_SAMPLINGS in Hieranoid2",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

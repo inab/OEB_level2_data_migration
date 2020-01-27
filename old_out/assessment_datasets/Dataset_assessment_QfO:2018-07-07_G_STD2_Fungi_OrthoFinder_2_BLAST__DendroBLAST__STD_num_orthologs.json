@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_G_STD2_Fungi_A_STD_num_orthologs_OrthoFinder_2_BLAST__DendroBLAST_",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_G_STD2_Fungi"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0,
+            "value": 335774
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:STD_num_orthologs",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:OrthoFinder_2_BLAST__DendroBLAST_"
+    },
+    "description": "Assessment dataset for applying Metric 'STD_num_orthologs' to OrthoFinder_2_BLAST__DendroBLAST_ predictions in QfO:2018-07-07_G_STD2_Fungi",
+    "name": "Assesment of STD_num_orthologs in OrthoFinder_2_BLAST__DendroBLAST_",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

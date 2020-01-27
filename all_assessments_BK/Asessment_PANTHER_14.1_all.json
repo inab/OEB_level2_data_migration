@@ -1,0 +1,1058 @@
+[
+    {
+        "_id": "QfO:SwissTrees-APP_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.059640901,
+            "value": 0.83333333
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-APP_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.018863441,
+            "value": 0.98814229
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.057870052,
+            "value": 0.56106195
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.012249819,
+            "value": 0.99373041
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.12826909,
+            "value": 0.71578947
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.055194203,
+            "value": 0.97142857
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.03571471,
+            "value": 0.84450063
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0058420073,
+            "value": 0.99701493
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.13399986,
+            "value": 0.85185185
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.12890958,
+            "value": 0.86792453
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.089275048,
+            "value": 0.72774869
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.033450806,
+            "value": 0.97887324
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.11687182,
+            "value": 0.8
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.06272,
+            "value": 0.96
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.40008332,
+            "value": 0.5
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.42941449,
+            "value": 0.6
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.1021061,
+            "value": 0.45901639
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.088149313,
+            "value": 0.89361702
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.17337353,
+            "value": 0.60655738
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.097901652,
+            "value": 0.94871795
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.0083403686,
+            "value": 0.99573561
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.023194549,
+            "value": 0.96487603
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.057833096,
+            "value": 0.88938053
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.057833096,
+            "value": 0.88938053
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.043707065,
+            "value": 0.79010495
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0073961867,
+            "value": 0.99621928
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.14437897,
+            "value": 0.76119403
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.07255333,
+            "value": 0.96226415
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.031859865,
+            "value": 0.88265306
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.014044689,
+            "value": 0.98156028
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.07255333,
+            "value": 0.96226415
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.07255333,
+            "value": 0.96226415
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.020961655,
+            "value": 0.98924731
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.059647259,
+            "value": 0.89320388
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.039653206,
+            "value": 0.91966759
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.011701335,
+            "value": 0.99401198
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.030389997,
+            "value": 0.78278372
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "SwissTrees",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.027519128,
+            "value": 0.93573496
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "EC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 200000
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_avg Schlicker_PANTHER_14.1_all_A",
+        "challenge_id": "EC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.00081987094,
+            "value": 0.92841604
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "GO",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 189576
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_avg Schlicker_PANTHER_14.1_all_A",
+        "challenge_id": "GO",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.0010360055,
+            "value": 0.47613713
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 16419904
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 77.042105,
+            "value": 1596
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.009444306,
+            "value": 0.28714644
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.016084254,
+            "value": 0.87781955
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_TPR_PANTHER_14.1_all_A",
+        "challenge_id": "TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.0057483921,
+            "value": 0.69561861
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_PPV_PANTHER_14.1_all_A",
+        "challenge_id": "TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0045382248,
+            "value": 0.88199238
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 16419904
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 120.21893,
+            "value": 4098
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.014831037,
+            "value": 0.4038544
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017777078,
+            "value": 0.559
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 27609
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 62.712359,
+            "value": 1160
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.017040274,
+            "value": 0.61781609
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.014687754,
+            "value": 0.93017241
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 354368
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 209.25766,
+            "value": 17579
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.013496794,
+            "value": 0.308
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017853947,
+            "value": 0.46333333
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 2327051
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 216.27735,
+            "value": 20976
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0059794904,
+            "value": 0.2462381
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.010883034,
+            "value": 0.897
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 14206583
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 146.75248,
+            "value": 6434
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.010348384,
+            "value": 0.24209331
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017872012,
+            "value": 0.529
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 2327051
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 214.06195,
+            "value": 19652
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0062456941,
+            "value": 0.19114167
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.015291412,
+            "value": 0.76
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 354368
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 194.38265,
+            "value": 13458
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0092996448,
+            "value": 0.31658333
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.015920298,
+            "value": 0.72866667
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 14206583
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 138.76363,
+            "value": 5651
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0068186197,
+            "value": 0.26395238
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.013103895,
+            "value": 0.84066667
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 154677
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 178.07084,
+            "value": 11603
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0055422133,
+            "value": 0.37763222
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0083510886,
+            "value": 0.69852624
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_ORTHOLOGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 503821
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 130.52831,
+            "value": 14632
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_RF_DISTANCE_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0025470057,
+            "value": 0.053809003
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_FRAC_INCORRECT_TREES_PANTHER_14.1_all_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0052687733,
+            "value": 0.12014762
+        },
+        "participant_id": "PANTHER_14.1_all",
+        "type": "assessment"
+    }
+]

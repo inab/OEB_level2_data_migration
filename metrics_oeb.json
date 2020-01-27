@@ -1,0 +1,74 @@
+[
+    {
+      "_id": "OEBM0010000000",
+      "orig_id": "TCGA:aggregation"
+    },
+    {
+      "_id": "OEBM0010000002",
+      "orig_id": "TCGA:TPR"
+    },
+    {
+      "_id": "OEBM0010000001",
+      "orig_id": "TCGA:precision"
+    },
+    {
+      "_id": "OEBM0020000004",
+      "orig_id": "QfO:GOTest_ortholog_relations"
+    },
+    {
+      "_id": "OEBM0020000000",
+      "orig_id": "QfO:aggregation"
+    },
+    {
+      "_id": "OEBM0020000003",
+      "orig_id": "QfO:GOTest_schlicker"
+    },
+    {
+      "_id": "OEBM0020000006",
+      "orig_id": "QfO:NR_COMPLETED_TREE_SAMPLINGS"
+    },
+    {
+      "_id": "OEBM0020000002",
+      "orig_id": "QfO:ECTest_ortholog_relations"
+    },
+    {
+      "_id": "OEBM0020000007",
+      "orig_id": "QfO:RF_DISTANCE"
+    },
+    {
+      "_id": "OEBM002000000C",
+      "orig_id": "QfO:TreeFam-A_TPR"
+    },
+    {
+      "_id": "OEBM0020000009",
+      "orig_id": "QfO:SwissTree_PPV"
+    },
+    {
+      "_id": "OEBM0020000001",
+      "orig_id": "QfO:ECTest_schlicker"
+    },
+    {
+      "_id": "OEBM002000000B",
+      "orig_id": "QfO:TreeFam-A_PPV"
+    },
+    {
+      "_id": "OEBM0020000005",
+      "orig_id": "QfO:FRAC_INCORRECT_TREES"
+    },
+    {
+      "_id": "OEBM002000000A",
+      "orig_id": "QfO:SwissTree_TPR"
+    },
+    {
+      "_id": "OEBM0020000008",
+      "orig_id": "QfO:STD_num_orthologs"
+    },
+    {
+      "_id": "OEBM0030000001",
+      "orig_id": "DREAM:WPC-i"
+    },
+    {
+      "_id": "OEBM0030000000",
+      "orig_id": "DREAM:aggregation"
+    }
+  ]

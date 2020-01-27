@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_G_STD2_Vertebrata_A_FRAC_INCORRECT_TREES_RSD",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_G_STD2_Vertebrata"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.010381984,
+            "value": 0.90733333
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:FRAC_INCORRECT_TREES",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:RSD"
+    },
+    "description": "Assessment dataset for applying Metric 'FRAC_INCORRECT_TREES' to RSD predictions in QfO:2018-07-07_G_STD2_Vertebrata",
+    "name": "Assesment of FRAC_INCORRECT_TREES in RSD",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

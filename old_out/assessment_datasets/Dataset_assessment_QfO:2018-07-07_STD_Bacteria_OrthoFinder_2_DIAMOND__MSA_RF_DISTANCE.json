@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_STD_Bacteria_A_RF_DISTANCE_OrthoFinder_2_DIAMOND__MSA",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_STD_Bacteria"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.01762717,
+            "value": 0.57163324
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:RF_DISTANCE",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:OrthoFinder_2_DIAMOND__MSA"
+    },
+    "description": "Assessment dataset for applying Metric 'RF_DISTANCE' to OrthoFinder_2_DIAMOND__MSA predictions in QfO:2018-07-07_STD_Bacteria",
+    "name": "Assesment of RF_DISTANCE in OrthoFinder_2_DIAMOND__MSA",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

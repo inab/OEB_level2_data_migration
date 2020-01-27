@@ -1,0 +1,38 @@
+{
+    "_id": "QfO:2018-07-07_QfO:2018-07-07_ECtest_A_ECTest_schlicker_SonicParanoid_most",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "QfO:2018-07-07_ECtest"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "error": 0.00085472159,
+            "value": 0.91150524
+        }
+    },
+    "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T14:00:00Z"
+    },
+    "depends_on": {
+        "metrics_id": "QfO:ECTest_schlicker",
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD0020000000"
+            }
+        ],
+        "tool_id": "QfO:SonicParanoid_most"
+    },
+    "description": "Assessment dataset for applying Metric 'ECTest_schlicker' to SonicParanoid_most predictions in QfO:2018-07-07_ECtest",
+    "name": "Assesment of ECTest_schlicker in SonicParanoid_most",
+    "type": "assessment",
+    "version": "1",
+    "visibility": "public"
+}

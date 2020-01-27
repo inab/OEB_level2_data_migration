@@ -1,0 +1,1058 @@
+[
+    {
+        "_id": "QfO:SwissTrees-APP_TPR_RSD_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.075440435,
+            "value": 0.33333333
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-APP_PPV_RSD_A",
+        "challenge_id": "SwissTrees-APP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.038052729,
+            "value": 0.98039216
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_TPR_RSD_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.058266195,
+            "value": 0.48141593
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-ASTER_PPV_RSD_A",
+        "challenge_id": "SwissTrees-ASTER",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.01425426,
+            "value": 0.99270073
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_TPR_RSD_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.083282958,
+            "value": 0.90526316
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAMBI_PPV_RSD_A",
+        "challenge_id": "SwissTrees-BAMBI",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.044036347,
+            "value": 0.97727273
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_TPR_RSD_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.049276043,
+            "value": 0.50442478
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-BAR_PPV_RSD_A",
+        "challenge_id": "SwissTrees-BAR",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.043831435,
+            "value": 0.8673913
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_TPR_RSD_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.17223929,
+            "value": 0.2962963
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CASP_PPV_RSD_A",
+        "challenge_id": "SwissTrees-CASP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.20532286,
+            "value": 0.88888889
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_TPR_RSD_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.098584251,
+            "value": 0.40837696
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-CITE_PPV_RSD_A",
+        "challenge_id": "SwissTrees-CITE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.11566454,
+            "value": 0.77227723
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_TPR_RSD_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.13389349,
+            "value": 0.7
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-Clusterin_PPV_RSD_A",
+        "challenge_id": "SwissTrees-Clusterin",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.059372633,
+            "value": 0.96923077
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_TPR_RSD_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.37720218,
+            "value": 0.33333333
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-GH14_PPV_RSD_A",
+        "challenge_id": "SwissTrees-GH14",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.53344443,
+            "value": 0.66666667
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_TPR_RSD_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.082294673,
+            "value": 0.20218579
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-HOX_PPV_RSD_A",
+        "challenge_id": "SwissTrees-HOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.17321308,
+            "value": 0.7254902
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_TPR_RSD_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.17723533,
+            "value": 0.52459016
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-MAPT_PPV_RSD_A",
+        "challenge_id": "SwissTrees-MAPT",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.13116097,
+            "value": 0.91428571
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_TPR_RSD_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.06387381,
+            "value": 0.46908316
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-NOX_PPV_RSD_A",
+        "challenge_id": "SwissTrees-NOX",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.024526771,
+            "value": 0.98214286
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_TPR_RSD_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.061665254,
+            "value": 0.87168142
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-POP_PPV_RSD_A",
+        "challenge_id": "SwissTrees-POP",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.037490254,
+            "value": 0.96097561
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_TPR_RSD_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.053656098,
+            "value": 0.49175412
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-PSEN_PPV_RSD_A",
+        "challenge_id": "SwissTrees-PSEN",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.018472541,
+            "value": 0.98498498
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_TPR_RSD_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.16929935,
+            "value": 0.50746269
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-RPS_PPV_RSD_A",
+        "challenge_id": "SwissTrees-RPS",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.10582098,
+            "value": 0.94444444
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_TPR_RSD_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.045885387,
+            "value": 0.3125
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SERC_PPV_RSD_A",
+        "challenge_id": "SwissTrees-SERC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.015806062,
+            "value": 0.99190283
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_TPR_RSD_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.11129173,
+            "value": 0.90566038
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-SUMF_PPV_RSD_A",
+        "challenge_id": "SwissTrees-SUMF",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.09132655,
+            "value": 0.94117647
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_TPR_RSD_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.083504153,
+            "value": 0.78494624
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-TRFE_PPV_RSD_A",
+        "challenge_id": "SwissTrees-TRFE",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.031895449,
+            "value": 0.97986577
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_TPR_RSD_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.072880651,
+            "value": 0.47922438
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees-VATB_PPV_RSD_A",
+        "challenge_id": "SwissTrees-VATB",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.022271632,
+            "value": 0.98857143
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_TPR_RSD_A",
+        "challenge_id": "SwissTrees",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.031546013,
+            "value": 0.52841845
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:SwissTrees_PPV_RSD_A",
+        "challenge_id": "SwissTrees",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.036003751,
+            "value": 0.91825893
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_TPR_RSD_A",
+        "challenge_id": "TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "TPR",
+            "stderr": 0.0061679775,
+            "value": 0.42107615
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:TreeFam-A_PPV_RSD_A",
+        "challenge_id": "TreeFam-A",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "PPV",
+            "stderr": 0.0040958722,
+            "value": 0.94982818
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "EC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 139053
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:EC_avg Schlicker_RSD_A",
+        "challenge_id": "EC",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.00084800033,
+            "value": 0.94502771
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "GO",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 78139
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:GO_avg Schlicker_RSD_A",
+        "challenge_id": "GO",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "avg Schlicker",
+            "stderr": 0.0016415068,
+            "value": 0.50522715
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 15373
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 59.558504,
+            "value": 1031
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_RF_DISTANCE_RSD_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.018001821,
+            "value": 0.58430327
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Bacteria_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "STD_Bacteria",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.016450752,
+            "value": 0.9214355
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 5770391
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 59.025766,
+            "value": 924
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.012010024,
+            "value": 0.28107607
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Luca_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD2_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.020919615,
+            "value": 0.88095238
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 4620140
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 86.29326,
+            "value": 2020
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.012053226,
+            "value": 0.22674192
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Eukaryota_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.021821725,
+            "value": 0.5049505
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 5770391
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 112.85077,
+            "value": 3570
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.014678067,
+            "value": 0.36956202
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Luca_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD_Luca",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017898568,
+            "value": 0.51
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 228556
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 190.16426,
+            "value": 12577
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.01316147,
+            "value": 0.27861111
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Fungi_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.017699604,
+            "value": 0.425
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 1083390
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 189.90253,
+            "value": 12525
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0064204591,
+            "value": 0.186675
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD_Vertebrata_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.015845828,
+            "value": 0.73266667
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 4620140
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 89.945334,
+            "value": 2203
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0080033989,
+            "value": 0.25050256
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Eukaryota_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD2_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.015837944,
+            "value": 0.82614616
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 1083390
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 194.10342,
+            "value": 13397
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0063496207,
+            "value": 0.25704762
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Vertebrata_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD2_Vertebrata",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.010055839,
+            "value": 0.91366667
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 228556
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 167.34042,
+            "value": 8859
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_RF_DISTANCE_RSD_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0088419201,
+            "value": 0.27983333
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:G_STD2_Fungi_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "G_STD2_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.016588483,
+            "value": 0.688
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 98374
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 164.96373,
+            "value": 9180
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_RF_DISTANCE_RSD_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0058651326,
+            "value": 0.33485839
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Fungi_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "STD_Fungi",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0097172461,
+            "value": 0.65631808
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_ORTHOLOGS_RSD_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_ORTHOLOGS",
+            "stderr": 0,
+            "value": 250748
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_NR_COMPLETED_TREE_SAMPLINGS_RSD_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "NR_COMPLETED_TREE_SAMPLINGS",
+            "stderr": 141.1637,
+            "value": 11637
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_RF_DISTANCE_RSD_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "RF_DISTANCE",
+            "stderr": 0.0033626881,
+            "value": 0.071653634
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    },
+    {
+        "_id": "QfO:STD_Eukaryota_FRAC_INCORRECT_TREES_RSD_A",
+        "challenge_id": "STD_Eukaryota",
+        "community_id": "QfO",
+        "metrics": {
+            "metric_id": "FRAC_INCORRECT_TREES",
+            "stderr": 0.0064907514,
+            "value": 0.1501246
+        },
+        "participant_id": "RSD",
+        "type": "assessment"
+    }
+]

@@ -1,0 +1,291 @@
+{
+    "_id": "QfO:2018-07-07_G_STD2_Luca_Aggregation",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "OEBX002000000E"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "challenge_participants": [
+                {
+                    "metric_x": 1181,
+                    "metric_y": 0.2684166,
+                    "participant_id": "BBH",
+                    "stderr_x": 66.556497,
+                    "stderr_y": 0.0099597229
+                },
+                {
+                    "metric_x": 2386,
+                    "metric_y": 0.33900132,
+                    "participant_id": "Ensembl_Compara",
+                    "stderr_x": 93.427262,
+                    "stderr_y": 0.0086678325
+                },
+                {
+                    "metric_x": 711,
+                    "metric_y": 0.26019691,
+                    "participant_id": "Hieranoid2",
+                    "stderr_x": 51.889666,
+                    "stderr_y": 0.013330286
+                },
+                {
+                    "metric_x": 1403,
+                    "metric_y": 0.25272376,
+                    "participant_id": "InParanoid",
+                    "stderr_x": 72.377676,
+                    "stderr_y": 0.0092502052
+                },
+                {
+                    "metric_x": 1096,
+                    "metric_y": 0.25130344,
+                    "participant_id": "OMA_GETHOGs_2.0",
+                    "stderr_x": 64.172438,
+                    "stderr_y": 0.010526177
+                },
+                {
+                    "metric_x": 183,
+                    "metric_y": 0.25526932,
+                    "participant_id": "OMA_Groups_2.0",
+                    "stderr_x": 26.465823,
+                    "stderr_y": 0.024937176
+                },
+                {
+                    "metric_x": 490,
+                    "metric_y": 0.26588921,
+                    "participant_id": "OMA_Pairs_2.0",
+                    "stderr_x": 43.173332,
+                    "stderr_y": 0.016061563
+                },
+                {
+                    "metric_x": 1274,
+                    "metric_y": 0.28279883,
+                    "participant_id": "OrthoFinder_2_BLAST__DendroBLAST_",
+                    "stderr_x": 69.061525,
+                    "stderr_y": 0.01035383
+                },
+                {
+                    "metric_x": 1194,
+                    "metric_y": 0.2810481,
+                    "participant_id": "OrthoFinder_2_BLAST__MSA",
+                    "stderr_x": 66.912898,
+                    "stderr_y": 0.010262521
+                },
+                {
+                    "metric_x": 1230,
+                    "metric_y": 0.27363531,
+                    "participant_id": "OrthoFinder_2_Defaults_DIAMOND__MSA",
+                    "stderr_x": 67.889092,
+                    "stderr_y": 0.010125949
+                },
+                {
+                    "metric_x": 1086,
+                    "metric_y": 0.28453039,
+                    "participant_id": "OrthoFinder_2_DIAMOND__MSA",
+                    "stderr_x": 63.88554,
+                    "stderr_y": 0.010891404
+                },
+                {
+                    "metric_x": 2014,
+                    "metric_y": 0.26259044,
+                    "participant_id": "OrthoInspector_3.0",
+                    "stderr_x": 86.170394,
+                    "stderr_y": 0.0076783832
+                },
+                {
+                    "metric_x": 1596,
+                    "metric_y": 0.28714644,
+                    "participant_id": "PANTHER_14.1_all",
+                    "stderr_x": 77.042105,
+                    "stderr_y": 0.009444306
+                },
+                {
+                    "metric_x": 736,
+                    "metric_y": 0.2490295,
+                    "participant_id": "PANTHER_14.1_LDO_only",
+                    "stderr_x": 52.780659,
+                    "stderr_y": 0.01234697
+                },
+                {
+                    "metric_x": 924,
+                    "metric_y": 0.28107607,
+                    "participant_id": "RSD",
+                    "stderr_x": 59.025766,
+                    "stderr_y": 0.012010024
+                },
+                {
+                    "metric_x": 1155,
+                    "metric_y": 0.24836116,
+                    "participant_id": "SonicParanoid_default",
+                    "stderr_x": 65.837316,
+                    "stderr_y": 0.010205506
+                },
+                {
+                    "metric_x": 1837,
+                    "metric_y": 0.26152889,
+                    "participant_id": "SonicParanoid_most",
+                    "stderr_x": 82.448434,
+                    "stderr_y": 0.0083538482
+                },
+                {
+                    "metric_x": 1643,
+                    "metric_y": 0.26223807,
+                    "participant_id": "SonicParanoid_sensitive",
+                    "stderr_x": 78.130306,
+                    "stderr_y": 0.0088538855
+                },
+                {
+                    "metric_x": 453,
+                    "metric_y": 0.28129927,
+                    "participant_id": "eggNOG",
+                    "stderr_x": 41.526837,
+                    "stderr_y": 0.016986407
+                }
+            ],
+            "visualization": {
+                "optimization": "bottom-right",
+                "type": "2D-plot",
+                "x_axis": "NR_COMPLETED_TREE_SAMPLINGS",
+                "y_axis": "RF_DISTANCE"
+            }
+        },
+        "schema_url": "https://raw.githubusercontent.com/inab/OpenEBench_scientific_visualizer/js/benchmarking_data_model/inline_data_visualizer.json"
+    },
+    "dataset_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T00:00:00Z"
+    },
+    "depends_on": {
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD00200001FC"
+            },
+            {
+                "dataset_id": "OEBD00200000ZD"
+            },
+            {
+                "dataset_id": "OEBD0020000124"
+            },
+            {
+                "dataset_id": "OEBD00200001EQ"
+            },
+            {
+                "dataset_id": "OEBD0020000153"
+            },
+            {
+                "dataset_id": "OEBD00200000R4"
+            },
+            {
+                "dataset_id": "OEBD00200001C7"
+            },
+            {
+                "dataset_id": "OEBD00200000PW"
+            },
+            {
+                "dataset_id": "OEBD00200000R6"
+            },
+            {
+                "dataset_id": "OEBD00200000VE"
+            },
+            {
+                "dataset_id": "OEBD002000012V"
+            },
+            {
+                "dataset_id": "OEBD00200001EL"
+            },
+            {
+                "dataset_id": "OEBD00200000TX"
+            },
+            {
+                "dataset_id": "OEBD0020000105"
+            },
+            {
+                "dataset_id": "OEBD00200000W2"
+            },
+            {
+                "dataset_id": "OEBD0020000128"
+            },
+            {
+                "dataset_id": "OEBD002000016L"
+            },
+            {
+                "dataset_id": "OEBD00200000PM"
+            },
+            {
+                "dataset_id": "OEBD00200001AS"
+            },
+            {
+                "dataset_id": "OEBD00200001BE"
+            },
+            {
+                "dataset_id": "OEBD00200001F9"
+            },
+            {
+                "dataset_id": "OEBD002000010H"
+            },
+            {
+                "dataset_id": "OEBD00200001AX"
+            },
+            {
+                "dataset_id": "OEBD0020000163"
+            },
+            {
+                "dataset_id": "OEBD00200001E9"
+            },
+            {
+                "dataset_id": "OEBD00200001FT"
+            },
+            {
+                "dataset_id": "OEBD00200001FD"
+            },
+            {
+                "dataset_id": "OEBD00200001AC"
+            },
+            {
+                "dataset_id": "OEBD00200000RP"
+            },
+            {
+                "dataset_id": "OEBD00200000SE"
+            },
+            {
+                "dataset_id": "OEBD00200001CL"
+            },
+            {
+                "dataset_id": "OEBD00200000T1"
+            },
+            {
+                "dataset_id": "OEBD00200000WL"
+            },
+            {
+                "dataset_id": "OEBD0020000116"
+            },
+            {
+                "dataset_id": "OEBD002000010Q"
+            },
+            {
+                "dataset_id": "OEBD0020000173"
+            },
+            {
+                "dataset_id": "OEBD00200001AQ"
+            },
+            {
+                "dataset_id": "OEBD002000016M"
+            },
+            {
+                "dataset_id": "OEBD002000011W"
+            }
+        ],
+        "tool_id": "OEBT0020000002"
+    },
+    "description": "Summary dataset with information about challenge G_STD2_Luca (e.g. input/output datasets, metrics...)",
+    "name": "Summary dataset for challenge: G_STD2_Luca",
+    "type": "aggregation",
+    "version": "unknown",
+    "visibility": "public"
+}
