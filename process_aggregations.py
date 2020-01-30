@@ -50,6 +50,7 @@ def run(in_dir, challenges_hash, assessments_oeb_hash, out_dir):
                 aggregation_data = json.load(f)
                 inline_data = aggregation_data["datalink"]["inline_data"]
                 ## set the 'tool id' key (for compatibility with the data model) in case the data coming from the workflow does not have it
+                ## in the future, this will validate against https://github.com/inab/OpenEBench_scientific_visualizer/tree/master/benchmarking_data_model
                 for element in inline_data["challenge_participants"]:
                     if "participant_id" in element:
                         element["tool_id"] = element.pop("participant_id")
