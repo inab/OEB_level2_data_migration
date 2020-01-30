@@ -1,0 +1,173 @@
+{
+    "_id": "QfO:2018-07-07_STD_Eukaryota_Aggregation_STD_num_orthologs+RF_DISTANCE_Event",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+    "action_type": "AggregationEvent",
+    "challenge_id": "OEBX002000000K",
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "reception": "2018-07-07T00:00:00Z"
+    },
+    "involved_datasets": [
+        {
+            "dataset_id": "OEBD00200001DZ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000181",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000010D",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001CJ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000UG",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000T5",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000T6",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000174",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000015N",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000014K",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001B2",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001C6",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000RC",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000012I",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000RN",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000VI",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000T8",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000PT",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000012B",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000ZW",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000WO",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DQ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001BR",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000Y0",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001G6",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001GJ",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000165",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000R0",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DO",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001A0",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000QO",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000QT",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000YA",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000154",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000ZM",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000PD",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000RE",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000135",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "QfO:2018-07-07_STD_Eukaryota_Aggregation_STD_num_orthologs+RF_DISTANCE",
+            "role": "outgoing"
+        }
+    ],
+    "test_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "tool_id": "OEBT0020000002"
+}

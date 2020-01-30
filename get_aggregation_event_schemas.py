@@ -5,8 +5,9 @@ import pandas
 
 def run (in_dir, out_dir):
 
+    i = 0
     for name in os.listdir(in_dir):
-
+        i = i+1
         #generate array with all incoming assessment datasets aun aoutgoing aggregation dataset
         with open(os.path.join(in_dir, name), 'r') as f:
             aggregation_data = json.load(f)
@@ -27,7 +28,7 @@ def run (in_dir, out_dir):
 
         info = {
 
-            "_id": aggregation_data["_id"] + "Event",
+            "_id": aggregation_data["_id"] + "_Event",
             "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
             "tool_id": "OEBT0020000002",
             "action_type": "AggregationEvent",
@@ -55,11 +56,11 @@ if __name__ == "__main__":
 
 
     # Assuring the output directory does exist
-    out_dir = "out/aggregation_events/"
+    out_dir = "out/NEW_aggregation_events/"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/aggregation_datasets"
+    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/NEW_aggregation_datasets"
 
 
     run(in_dir, out_dir)

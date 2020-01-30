@@ -1,0 +1,173 @@
+{
+    "_id": "QfO:2018-07-07_G_STD2_Fungi_Aggregation_STD_num_orthologs+FRAC_INCORRECT_TREES_Event",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+    "action_type": "AggregationEvent",
+    "challenge_id": "OEBX002000000D",
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "reception": "2018-07-07T00:00:00Z"
+    },
+    "involved_datasets": [
+        {
+            "dataset_id": "OEBD00200000X8",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000130",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001AH",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000SC",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DD",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001AA",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000ZS",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000Z4",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000169",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000016J",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001AU",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001A4",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000UX",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001BB",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001EX",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000017L",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001C4",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000UL",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001DB",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000011O",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001BH",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000018B",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000015U",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000015J",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001FX",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001GE",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000YE",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001C8",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000198",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD0020000113",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000UY",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000PY",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001EA",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200001EK",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000016Z",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000TF",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD002000013B",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "OEBD00200000V2",
+            "role": "incoming"
+        },
+        {
+            "dataset_id": "QfO:2018-07-07_G_STD2_Fungi_Aggregation_STD_num_orthologs+FRAC_INCORRECT_TREES",
+            "role": "outgoing"
+        }
+    ],
+    "test_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "tool_id": "OEBT0020000002"
+}

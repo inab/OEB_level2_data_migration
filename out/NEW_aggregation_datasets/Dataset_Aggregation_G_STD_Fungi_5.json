@@ -1,0 +1,290 @@
+{
+    "_id": "QfO:2018-07-07_G_STD_Fungi_Aggregation_STD_num_orthologs+FRAC_INCORRECT_TREES",
+    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+    "challenge_ids": [
+        "OEBX002000000H"
+    ],
+    "community_ids": [
+        "OEBC002"
+    ],
+    "datalink": {
+        "inline_data": {
+            "challenge_participants": [
+                {
+                    "metric_x": 236514,
+                    "metric_y": 0.444,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017789513,
+                    "tool_id": "BBH"
+                },
+                {
+                    "metric_x": 330075,
+                    "metric_y": 0.45366667,
+                    "stderr_x": 0,
+                    "stderr_y": 0.01782512,
+                    "tool_id": "Ensembl_Compara"
+                },
+                {
+                    "metric_x": 249541,
+                    "metric_y": 0.44133333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017778492,
+                    "tool_id": "Hieranoid2"
+                },
+                {
+                    "metric_x": 254236,
+                    "metric_y": 0.429,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017720741,
+                    "tool_id": "InParanoid"
+                },
+                {
+                    "metric_x": 205433,
+                    "metric_y": 0.39733333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017520692,
+                    "tool_id": "OMA_GETHOGs_2.0"
+                },
+                {
+                    "metric_x": 140048,
+                    "metric_y": 0.38033333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017381867,
+                    "tool_id": "OMA_Groups_2.0"
+                },
+                {
+                    "metric_x": 202005,
+                    "metric_y": 0.40233333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017557299,
+                    "tool_id": "OMA_Pairs_2.0"
+                },
+                {
+                    "metric_x": 335774,
+                    "metric_y": 0.445,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017793512,
+                    "tool_id": "OrthoFinder_2_BLAST__DendroBLAST_"
+                },
+                {
+                    "metric_x": 333995,
+                    "metric_y": 0.461,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017847608,
+                    "tool_id": "OrthoFinder_2_BLAST__MSA"
+                },
+                {
+                    "metric_x": 324951,
+                    "metric_y": 0.44033333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017774225,
+                    "tool_id": "OrthoFinder_2_DIAMOND__MSA"
+                },
+                {
+                    "metric_x": 319462,
+                    "metric_y": 0.47033333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.01787061,
+                    "tool_id": "OrthoFinder_2_Defaults_DIAMOND__MSA"
+                },
+                {
+                    "metric_x": 289508,
+                    "metric_y": 0.44366667,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017788163,
+                    "tool_id": "OrthoInspector_3.0"
+                },
+                {
+                    "metric_x": 227009,
+                    "metric_y": 0.442,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017781296,
+                    "tool_id": "PANTHER_14.1_LDO_only"
+                },
+                {
+                    "metric_x": 354368,
+                    "metric_y": 0.46333333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017853947,
+                    "tool_id": "PANTHER_14.1_all"
+                },
+                {
+                    "metric_x": 228556,
+                    "metric_y": 0.425,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017699604,
+                    "tool_id": "RSD"
+                },
+                {
+                    "metric_x": 244236,
+                    "metric_y": 0.421,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017677282,
+                    "tool_id": "SonicParanoid_default"
+                },
+                {
+                    "metric_x": 273104,
+                    "metric_y": 0.43166667,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017734175,
+                    "tool_id": "SonicParanoid_most"
+                },
+                {
+                    "metric_x": 269314,
+                    "metric_y": 0.45233333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017820612,
+                    "tool_id": "SonicParanoid_sensitive"
+                },
+                {
+                    "metric_x": 264869,
+                    "metric_y": 0.43933333,
+                    "stderr_x": 0,
+                    "stderr_y": 0.017769885,
+                    "tool_id": "eggNOG"
+                }
+            ],
+            "visualization": {
+                "type": "2D-plot",
+                "x_axis": "STD_num_orthologs",
+                "y_axis": "FRAC_INCORRECT_TREES"
+            }
+        },
+        "schema_url": "https://raw.githubusercontent.com/inab/OpenEBench_scientific_visualizer/js/benchmarking_data_model/inline_data_visualizer.json"
+    },
+    "dataset_contact_ids": [
+        "Adrian.Altenhoff",
+        "Christophe.Dessimoz"
+    ],
+    "dates": {
+        "creation": "2018-07-07T00:00:00Z",
+        "modification": "2018-07-07T00:00:00Z"
+    },
+    "depends_on": {
+        "rel_dataset_ids": [
+            {
+                "dataset_id": "OEBD00200001FC"
+            },
+            {
+                "dataset_id": "OEBD002000016I"
+            },
+            {
+                "dataset_id": "OEBD00200001DP"
+            },
+            {
+                "dataset_id": "OEBD002000018C"
+            },
+            {
+                "dataset_id": "OEBD0020000137"
+            },
+            {
+                "dataset_id": "OEBD00200000X1"
+            },
+            {
+                "dataset_id": "OEBD00200000YM"
+            },
+            {
+                "dataset_id": "OEBD00200000X9"
+            },
+            {
+                "dataset_id": "OEBD00200001DR"
+            },
+            {
+                "dataset_id": "OEBD00200000T3"
+            },
+            {
+                "dataset_id": "OEBD0020000127"
+            },
+            {
+                "dataset_id": "OEBD002000012A"
+            },
+            {
+                "dataset_id": "OEBD00200000WD"
+            },
+            {
+                "dataset_id": "OEBD002000016H"
+            },
+            {
+                "dataset_id": "OEBD00200000VY"
+            },
+            {
+                "dataset_id": "OEBD002000012E"
+            },
+            {
+                "dataset_id": "OEBD00200000Z6"
+            },
+            {
+                "dataset_id": "OEBD002000016R"
+            },
+            {
+                "dataset_id": "OEBD00200000XK"
+            },
+            {
+                "dataset_id": "OEBD00200000U8"
+            },
+            {
+                "dataset_id": "OEBD002000010G"
+            },
+            {
+                "dataset_id": "OEBD0020000191"
+            },
+            {
+                "dataset_id": "OEBD00200000PP"
+            },
+            {
+                "dataset_id": "OEBD00200000VS"
+            },
+            {
+                "dataset_id": "OEBD00200000RQ"
+            },
+            {
+                "dataset_id": "OEBD00200001G8"
+            },
+            {
+                "dataset_id": "OEBD00200001GQ"
+            },
+            {
+                "dataset_id": "OEBD00200000Y8"
+            },
+            {
+                "dataset_id": "OEBD002000010W"
+            },
+            {
+                "dataset_id": "OEBD002000016W"
+            },
+            {
+                "dataset_id": "OEBD00200001CR"
+            },
+            {
+                "dataset_id": "OEBD002000013Z"
+            },
+            {
+                "dataset_id": "OEBD00200001B8"
+            },
+            {
+                "dataset_id": "OEBD00200000PR"
+            },
+            {
+                "dataset_id": "OEBD00200000ZI"
+            },
+            {
+                "dataset_id": "OEBD00200001F0"
+            },
+            {
+                "dataset_id": "OEBD00200000UE"
+            },
+            {
+                "dataset_id": "OEBD00200000WH"
+            },
+            {
+                "dataset_id": "OEBD002000016E"
+            }
+        ],
+        "tool_id": "OEBT0020000002"
+    },
+    "description": "Summary dataset with information about challenge G_STD_Fungi (e.g. input/output datasets, metrics...)",
+    "name": "Summary dataset for challenge: G_STD_Fungi. Metrics: STD_num_orthologs/FRAC_INCORRECT_TREES",
+    "type": "aggregation",
+    "version": "unknown",
+    "visibility": "public"
+}
