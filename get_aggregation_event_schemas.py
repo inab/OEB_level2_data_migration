@@ -56,11 +56,11 @@ if __name__ == "__main__":
 
 
     # Assuring the output directory does exist
-    out_dir = "out/NEW_aggregation_events/"
+    out_dir = "out/LUCA_aggregation_events/"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/NEW_aggregation_datasets"
+    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/LUCA_aggregation_datasets"
 
 
     run(in_dir, out_dir)

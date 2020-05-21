@@ -8,7 +8,14 @@ def run(dataset, out_dir, challenges_hash, tools_oeb_hash, assessments_oeb_hash)
     challenge_name = dataset["challenge_ids"][0]
     tool_name = dataset["depends_on"]["tool_id"]
     metric_name = dataset["depends_on"]["metrics_id"]
-    assessment_oeb_id = assessments_oeb_hash[dataset["_id"]]
+    # assessment_oeb_id = assessments_oeb_hash[dataset["_id"]]
+
+    dates = {
+        "Proteinortho_6.0.13":"2020-01-30T00:00:00Z",
+        "QfO:Proteinortho_6.0.13_with-isoform":"2020-01-30T00:00:00Z",
+        "Broccoli_1.0": "2019-11-26T00:00:00Z",
+	"QfO:Broccoli_1.1": "2020-04-27T00:00:00Z"
+    }
 
     info = {
 
@@ -22,14 +29,14 @@ def run(dataset, out_dir, challenges_hash, tools_oeb_hash, assessments_oeb_hash)
                 "role": "incoming"
             },
             {
-                "dataset_id": assessment_oeb_id,
+                "dataset_id": challenge_name + "_A_"+ metric_name.split(":")[1] + "_" + tool_name.split(":")[1],
                 "role": "outgoing"
             }
         ],
         "challenge_id": challenges_hash[challenge_name],
         "dates": {
-            "creation": "2018-07-07T00:00:00Z",
-                        "reception": "2018-07-07T00:00:00Z",
+            "creation": dates[tool_name],
+                        "reception": dates[tool_name],
         },
         "test_contact_ids": [
             "Adrian.Altenhoff",
@@ -48,7 +55,7 @@ if __name__ == "__main__":
 
 
    # Assuring the output directory does exist
-    out_dir = "out/metrics_events/"
+    out_dir = "out/Broccoli_2018/metrics_events_2018/"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -58,7 +65,7 @@ if __name__ == "__main__":
         tools_oeb_hash[data.iloc[i, 0]] = data.iloc[i, 1]
 
     challenges_hash={}
-    with open("/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/challenges_oeb.json", 'r') as f:
+    with open("/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/challenges_oeb.1.json", 'r') as f:
             data = json.load(f)
             for item in data:
                 challenges_hash[item["orig_id"]] = item["_id"]
@@ -68,7 +75,7 @@ if __name__ == "__main__":
             for item in data:
                 assessments_oeb_hash[item["orig_id"]] = item["_id"]
     
-    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/assessment_datasets/OLD+EGGNOG"
+    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/out/Broccoli_2018/assessment_datasets"
     for name in os.listdir(in_dir):
         with open(os.path.join(in_dir, name), 'r') as f:
             dataset = json.load(f)

@@ -27,8 +27,8 @@ def run(tools_oeb_hash, challenges_hash, out_dir):
                     ],
                     "challenge_id": challenge_id,
                     "dates":{
-                        "creation": "2018-07-07T00:00:00Z",
-                        "reception": "2018-07-07T00:00:00Z",
+                        "creation": "2020-01-30T00:00:00Z",
+                        "reception": "2020-01-30T00:00:00Z",
                     },
                     "test_contact_ids": [
                         "Adrian.Altenhoff",
@@ -48,12 +48,12 @@ if __name__ == "__main__":
 
 
    # Assuring the output directory does exist
-    out_dir = "out/test_events/"
+    out_dir = "out/Broccoli_2018/test_events/"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     tools_oeb_hash={}
-    data = pandas.read_csv("/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/tools_oeb_no_prefix.csv", sep='\t')
+    data = pandas.read_csv("/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/new_tools_2018_oeb.csv", sep='\t')
     for i, tool in enumerate(data.iloc[:, 0]):
         tools_oeb_hash[data.iloc[i, 0]] = data.iloc[i, 1]
 

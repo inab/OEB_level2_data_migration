@@ -3,14 +3,21 @@ import io, json
 
 def build_json_schema (community_ids, challenge_name, challenge_id, participant, full_method_name, metric_name, metric_value, error_value):
 
+    dates = {
+        "Proteinortho_6.0.13":"2020-01-30T00:00:00Z",
+        "Proteinortho_6.0.13_with-isoform":"2020-01-30T00:00:00Z",
+        "Broccoli_1.0": "2019-11-26T00:00:00Z",
+	"Broccoli_1.1": "2020-04-27T00:00:00Z"
+    }
+    
     info = {
 
         "_id": challenge_id + "_A_" + metric_name + "_" + participant,
         "description": "Assessment dataset for applying Metric '" + metric_name + "' to " + participant + " predictions in " +
                        full_method_name,
         "dates": {
-            "creation": "2018-07-07T00:00:00Z",
-            "modification": "2018-07-07T14:00:00Z"
+            "creation": dates[participant],
+            "modification": dates[participant]
         },
         "type": "assessment",
         "visibility": "public",
@@ -22,13 +29,16 @@ def build_json_schema (community_ids, challenge_name, challenge_id, participant,
             "metrics_id": "QfO:" + metric_name,
             "rel_dataset_ids": [
                 {
-                    "dataset_id": "OEBD0020000000",
+                    "dataset_id": "OEBD0020000000"
+                },
+                {
+                    "dataset_id": "QfO:2018-07-07_P_" + participant
                 }
             ]
         },
         "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
         "community_ids": [community_ids],
-        "challenge_ids": [challenge_id],
+        "challenge_ids": ["QfO:2018-07-07_"+challenge_id],
         "version": "1",
         "name": "Assesment of " + metric_name + " in " + participant,
         "dataset_contact_ids": [
@@ -89,10 +99,10 @@ if __name__ == "__main__":
 
 
    # Assuring the output directory does exist
-    out_dir = "out/assessment_datasets/EGGNOG"
+    out_dir = "out/Broccoli_2018/assessment_datasets"
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
-    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/all_assessments/NEW_PARTICIPANT_EGGNOG"
+    in_dir = "/home/jgarrayo/benchmark_repositories/QFO_data_model_2018/2018_missing_participants/broccoli"
 
     read_workflow_assessment(in_dir, out_dir)
