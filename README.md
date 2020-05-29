@@ -1,9 +1,14 @@
-# OEB_level2_data_migtration
-Example data and code used to migrate the outputs of QfO 2018 workflow to the OEB benchmarking data model.
-The scripts found in this repository are just in BETA state, but might be used in the future in the migration tool from VRE to OpenEBench.
+# OEB_workflows_data_migration (BETA version)
+## Description
+Application used by community managers to migrate results of a benchmarking workflow from [Virtual Research Environment](https://openebench.bsc.es/vre) to [OpenEBench](https://openebench.bsc.es) database. It takes the minimal datasets from the 'consolidated results' from the workflow, adds the rest of metadata to validate against the [Benchmarking Data Model](https://github.com/inab/benchmarking-data-model), and the required OEB keys, and pushes them to OpenEBench temporary database.
 
-1. process_assessments.py reads the assessent data coming from the workflow and adds the rests of metadata, for compatibility  with the benchmarking data model
-2. rename_oeb_ids.py takes the output from the previous step and substitutes the orig_ids with the official OEB, if it finds some that are already registered in the database.
-3. process_aggregations.py does the same with the aggregation datasets coming from the workflow.
-4. the get_***_schemas.py scripts are used to generate the required TestActions that connect the datasets generated in the previous scripts.
-5. In case, an aggregation dataset that is already uploaded to OEB needs to be updated, use the example in ADD_NEW_PARTICIPANT_TO_OEB_AGGREGATION
+## Prerequisites for moving workflow results from VRE to OEB
+In order to use the migration tool, some requirements need to be fulfilled:
+* The benchmarking event and challenges that the results refer to should already be registered in OpenEBench and have official OEB identifiers.
+* The tool that computed the input file' predictions should also be registered in OpenEBench.
+* The 'consolidated results' file should come from a pipeline that follows the OpenEBench Benchmarking Workflows Standards.
+(If any of these requirements is not satisfied, a form should be provided so that the manager or developer can 'inaugurate' the required object in OEB)
+
+## Parameters
+
+## Usage
