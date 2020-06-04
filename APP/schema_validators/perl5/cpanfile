@@ -1,0 +1,7 @@
+requires 'JSON::MaybeXS';
+requires 'JSON::Validator', ">= 3.0000";
+requires 'File::Spec';
+requires 'File::Temp';
+requires 'Mojo::Util';
+requires 'URI';
+requires 'Storable';
