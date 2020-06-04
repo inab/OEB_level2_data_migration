@@ -1,20 +1,17 @@
 import logging
-import sys
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import sys, os
 from datetime import datetime
+from schema_validators.python import jsonValidate
+import json
+import tempfile
 
 class participant():
 
-    DEFAULT_API="https://dev-openebench.bsc.es/sciapi/graphql"
-
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
     logging.basicConfig(level=logging.INFO)
 
-    def build_participant_dataset(self, participant_data, data_visibility, bench_event_id, file_location,community_id, tool_id):
+    def build_participant_dataset(self, response, participant_data, data_visibility, bench_event_id, file_location,community_id, tool_id, version, contacts, data_model_dir):
 
-        logging.info("\t1. Processing participant dataset")
+        logging.info("\n==================================\n\t1. Processing participant dataset\n==================================\n")
 
         # add dataset visibility 
         participant_data["visibility"] = data_visibility
@@ -27,56 +24,30 @@ class participant():
 
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
 
-        try:
-            url = self.DEFAULT_API
-            # get challenges and input datasets for provided benchmarking event
-            json = { 'query' : '{\
-                                    getChallenges(challengeFilters: {benchmarking_event_id: "'+ bench_event_id + '"}) {\
-                                        _id\
-                                        _metadata\
-                                        datasets(datasetFilters: {type: "input"}) {\
-                                            _id\
-                                        }\
-                                    }\
-                                }' }
+        data = response["data"]["getChallenges"]
 
-            r = requests.post(url=url, json=json, verify=False )
-            response = r.json()
-            if response["data"]["getChallenges"] == []:
+        oeb_challenges = {}
+        for challenge in data:
+            oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
 
-                logging.fatal("No challenges associated to benchmarking event " + bench_event_id + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+        ## replace dataset related challenges with oeb challenge ids
+        execution_challenges = []
+        for challenge in participant_data["challenge_id"]:
+            
+            try:
+                execution_challenges.append(oeb_challenges[challenge])
+            except:
+                logging.fatal("No challenges associated to " + challenge + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit()
-            else:
-                data = response["data"]["getChallenges"]
 
-                oeb_challenges = {}
-                for challenge in data:
-                    oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
-
-                ## replace dataset related challenges with oeb challenge ids
-                execution_challenges = []
-                for challenge in participant_data["challenge_id"]:
-                    
-                    try:
-                        execution_challenges.append(oeb_challenges[challenge])
-                    except:
-                        logging.fatal("No challenges associated to " + challenge + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                        sys.exit()
-
-                del participant_data["challenge_id"]
-                participant_data["challenge_ids"] = execution_challenges
-                
-                ## select input datasets related to the challenges
-                rel_oeb_datasets = set()
-                for dataset in [item for item in data if item["_id"] in participant_data["challenge_ids"] ]:
-                    for input_data in dataset["datasets"]:
-                        rel_oeb_datasets.add( input_data["_id"] )
-
-
-
-        except Exception as e:
-
-            logging.exception(e)
+        del participant_data["challenge_id"]
+        participant_data["challenge_ids"] = execution_challenges
+        
+        ## select input datasets related to the challenges
+        rel_oeb_datasets = set()
+        for dataset in [item for item in data if item["_id"] in participant_data["challenge_ids"] ]:
+            for input_data in dataset["datasets"]:
+                rel_oeb_datasets.add( input_data["_id"] )
 
         # add data registration dates
         participant_data["dates"] = {
@@ -93,60 +64,80 @@ class participant():
         ## remove custom workflow community id and add OEB id for the community
         del participant_data["community_id"]
         participant_data["community_ids"] = [community_id]
-
+          
         ## add dataset dependencies: tool and reference datasets
         list_oeb_datasets = []
         for dataset in rel_oeb_datasets:
             list_oeb_datasets.append({
                 "dataset_id": dataset
             })
+
         participant_data["depends_on"] = {
             "tool_id": tool_id,
             "rel_dataset_ids": list_oeb_datasets
         }
 
-        #############
-        # check if provided oeb tool actually exists
-        #############
-        print (participant_data)
-        ## validate!!
-        
+        ## remove participant_id, as it is the new 'tool_id'
+        del participant_data["participant_id"]
 
-        # info = {
-        #     "_id": "QfO:2018-07-07_P_" + tool_name,
-        #     "name": "Orthologs predicted by " + tool_name,
-        #     "description": "List of orthologs pairs predicted by " + tool_name + " using the Quest for Orthologs reference proteome",
-        #     "dates": {
-        #         "creation": "2018-07-07T00:00:00Z",
-        #         "modification": "2018-07-07T14:00:00Z"
-        #     },
-        #     "datalink": {
-        #         "uri": link,
-        #         "attrs": ["archive"],
-        #         "validation_date": "2018-07-07T00:00:00Z",
-        #         "status": "ok"
-        #     },
-        #     "type": "participant",
-        #     "visibility": "public",
-        #     "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
-        #     "community_ids": ["OEBC002"],
-        #     "challenge_ids": [
-        #                         "OEBX002000000A",
-        #                         "OEBX002000000B",
-        #                     ],
-        #     "depends_on": {
-        #         "tool_id": tools_oeb_hash[tool_name],
-        #         "rel_dataset_ids": [
-        #             {
-        #                 "dataset_id": "OEBD00200001FC",
-        #             }
-        #         ]
-        #     },
-        #     "version": "unknown",
-        #     "dataset_contact_ids": [
-        #         "Adrian.Altenhoff",
-        #         "Christophe.Dessimoz"
-        #     ]
-        # }
+        ## add data version
+        participant_data["version"] = str(version)
+
+        ## add dataset contacts ids
+        participant_data["dataset_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
+
+        sys.stdout.write('Processed "' + str(participant_data["_id"]) + '"...\n')
+
+        ## validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
+        
+        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
+        ## thus, FK errors are expected and allowed
+        logging.info("\n==================================\n\t2. Validating participant dataset\n==================================\n")
+        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
+            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
+            schemaHash = {}
+            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
+
+        tmp = tempfile.NamedTemporaryFile()
+
+        with open(tmp.name, 'w') as fp:
+            json.dump(participant_data, fp)
+        jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
+        tmp.close()
+        
+        logging.info("\n==================================\n\t3. Participant dataset OK\n==================================\n")
+        
+        return participant_data
 
     # def build_test_events:
+
+
+
+
+# Define a context manager to suppress stdout
+class suppress_stdout_stderr(object):
+    '''
+    A context manager for doing a "deep suppression" of stdout and stderr in 
+    Python, i.e. will suppress all print, even if the print originates in a 
+    compiled C/Fortran sub-function.
+       This will not suppress raised exceptions, since exceptions are printed
+    to stderr just before a script exits, and after the context manager has
+    exited (at least, I think that is why it lets exceptions through).      
+
+    '''
+    def __init__(self):
+        # Open a pair of null files
+        self.null_fds =  [os.open(os.devnull,os.O_RDWR) for x in range(2)]
+        # Save the actual stdout (1)  file descriptors.
+        self.save_fds = [os.dup(1)]
+
+    def __enter__(self):
+        # Assign the null pointers to stdout 
+        os.dup2(self.null_fds[0],1)
+
+    def __exit__(self, *_):
+        # Re-assign the real stdout back to (1)
+        os.dup2(self.save_fds[0],1)
+        # Close all file descriptors
+        for fd in self.null_fds + self.save_fds:
+            os.close(fd)

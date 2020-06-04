@@ -6,22 +6,56 @@
 #########################################################
 """
 from process.participant import participant
+from utils.migration_utils import utils
 import json
 from argparse import ArgumentParser
+import sys, os
+import logging
 
-def main(input_file, data_visibility, bench_event_id, file_location, community_id, tool_id):
+def main(config_json):
+
+    #check whether config file exists and has all the required fields
+    try:
+        with open(config_json, 'r') as f:
+            config_params = json.load(f)
+
+            input_file = config_params["consolidated_oeb_data"]
+            data_visibility = config_params["data_visibility"]
+            bench_event_id = config_params["benchmarking_event_id"]
+            file_location = config_params["participant_file"]
+            community_id = config_params["community_id"]
+            tool_id = config_params["tool_id"]
+            version = config_params["data_version"]
+            contacts = config_params["data_contacts"]
+            data_model_repo = config_params["data_model_repo"]
+            data_model_tag = config_params["data_model_tag"]
+
+    except Exception as e:
+
+        logging.fatal(e, "config file " + config_json + " is missing or has incorrect format")
+        sys.exit()
 
     with open(input_file, 'r') as f:
         data = json.load(f)
-
+    
+    #sort out dataset depending on 'type' property
     for dataset in data:
 
         if "type" in dataset and dataset["type"] == "participant":
             participant_data = dataset
+    
+    # get data model to validate against
+    migration_utils = utils()
+    data_model_dir = migration_utils.doMaterializeRepo(data_model_repo, data_model_tag)
+    data_model_dir = os.path.join(os.getcwd(), data_model_dir)
 
+    # query remote OEB database to get offical ids from associated challenges, tools and contacts
+    query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id)
+
+    # generate all required objects
     process_participant = participant()
-    process_participant.build_participant_dataset(participant_data, data_visibility, bench_event_id, file_location, community_id, tool_id)
-
+    valid_participant_data = process_participant.build_participant_dataset(query_response, participant_data, data_visibility, bench_event_id, file_location, community_id, tool_id, version, contacts, data_model_dir)
+    print (valid_participant_data)
     #build_test_events()
 
     ##VALIDATE!! JM validator
@@ -30,28 +64,10 @@ def main(input_file, data_visibility, bench_event_id, file_location, community_i
 if __name__ == '__main__':
     
     parser = ArgumentParser()
-    parser.add_argument("-i", "--consolidated_oeb_data", help="json file with the aggregation of datasets coming from a OEB VRE workflow \
-                                                                    (data_type:consolidated_benchmark_dataset)", required=True)
-    parser.add_argument("-v", "--data_visibility", help="visibility of the datasets associated to the participant's run, according \
-                                                                    to the benchmarking data model - 'enum': [ 'public', 'community', 'challenge', 'participant' ]", required=True)
-    parser.add_argument("-be", "--benchmarking_event_id", help="benchmarking event id that corresponds to the executed workflow \
-                                                                    - should be an official OEB id stored in the DB", required=True)
-    parser.add_argument("-f", "--participant_file", help="location of the file that was uploaded by the participant \
-                                                                    - should be a FS path or a remote DOI", required=True)
-    parser.add_argument("-com", "--community_id", help=" official id of the community that corresponds to the execution \
-                                                                    - should already be registered in OEB", required=True)
-    parser.add_argument("-t", "--tool_id", help=" official id of the tool that made the predictions which were used as input \
-                                                    , if tool is not registered in OEB, should provide the access to a form to register it", required=True)                                                                   
-
+    parser.add_argument("-i", "--config_json", help="json file which contains all parameters for migration)", required=True)
                                                                 
     args = parser.parse_args()
 
-    input_file = args.consolidated_oeb_data
-    data_visibility = args.data_visibility
-    bench_event_id = args.benchmarking_event_id
-    file_location = args.participant_file
-    community_id = args.community_id
-    tool_id = args.tool_id
-
+    config_json = args.config_json
     
-    main(input_file, data_visibility, bench_event_id, file_location, community_id, tool_id)
+    main(config_json)
