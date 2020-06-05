@@ -42,7 +42,7 @@ def main(config_json):
     for dataset in data:
 
         if "type" in dataset and dataset["type"] == "participant":
-            participant_data = dataset
+            min_participant_data = dataset
     
     # get data model to validate against
     migration_utils = utils()
@@ -54,9 +54,10 @@ def main(config_json):
 
     # generate all required objects
     process_participant = participant()
-    valid_participant_data = process_participant.build_participant_dataset(query_response, participant_data, data_visibility, bench_event_id, file_location, community_id, tool_id, version, contacts, data_model_dir)
-    print (valid_participant_data)
-    #build_test_events()
+    valid_participant_data = process_participant.build_participant_dataset(query_response, min_participant_data, data_visibility, bench_event_id, file_location, community_id, tool_id, version, contacts, data_model_dir)
+    print(valid_participant_data)
+    valid_test_events = process_participant.build_test_events(query_response, min_participant_data, tool_id, contacts, data_model_dir)
+    print(valid_test_events)
 
     ##VALIDATE!! JM validator
 

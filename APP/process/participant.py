@@ -13,14 +13,20 @@ class participant():
 
         logging.info("\n==================================\n\t1. Processing participant dataset\n==================================\n")
 
+        ## initialize new dataset object
+        valid_participant_data = {
+            "_id": participant_data["_id"],
+            "type": "participant"
+        }
+        
         # add dataset visibility 
-        participant_data["visibility"] = data_visibility
+        valid_participant_data["visibility"] = data_visibility
 
         # add name and description, if workflow did not provide them
         if "name" not in participant_data:
-            participant_data["name"] = "Predictions made by " + participant_data["participant_id"] + " participant"
+            valid_participant_data["name"] = "Predictions made by " + participant_data["participant_id"] + " participant"
         if "description" not in participant_data:
-            participant_data["description"] = "Predictions made by " + participant_data["participant_id"]  + " participant"
+            valid_participant_data["description"] = "Predictions made by " + participant_data["participant_id"]  + " participant"
 
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
 
@@ -40,30 +46,29 @@ class participant():
                 logging.fatal("No challenges associated to " + challenge + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit()
 
-        del participant_data["challenge_id"]
-        participant_data["challenge_ids"] = execution_challenges
+        valid_participant_data["challenge_ids"] = execution_challenges
         
         ## select input datasets related to the challenges
         rel_oeb_datasets = set()
-        for dataset in [item for item in data if item["_id"] in participant_data["challenge_ids"] ]:
+        for dataset in [item for item in data if item["_id"] in valid_participant_data["challenge_ids"] ]:
             for input_data in dataset["datasets"]:
                 rel_oeb_datasets.add( input_data["_id"] )
 
         # add data registration dates
-        participant_data["dates"] = {
+        valid_participant_data["dates"] = {
                 "creation": str(datetime.now().replace(microsecond=0).isoformat()),
                 "modification": str(datetime.now().replace(microsecond=0).isoformat())
             }
         
         # add participant's file permanent location
-        participant_data["datalink"]["uri"] = file_location
+        valid_participant_data["datalink"] = participant_data["datalink"]
+        valid_participant_data["datalink"]["uri"] = file_location
         
         ## add Benchmarking Data Model Schema Location
-        participant_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+        valid_participant_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
 
         ## remove custom workflow community id and add OEB id for the community
-        del participant_data["community_id"]
-        participant_data["community_ids"] = [community_id]
+        valid_participant_data["community_ids"] = [community_id]
           
         ## add dataset dependencies: tool and reference datasets
         list_oeb_datasets = []
@@ -72,24 +77,21 @@ class participant():
                 "dataset_id": dataset
             })
 
-        participant_data["depends_on"] = {
+        valid_participant_data["depends_on"] = {
             "tool_id": tool_id,
             "rel_dataset_ids": list_oeb_datasets
         }
 
-        ## remove participant_id, as it is the new 'tool_id'
-        del participant_data["participant_id"]
-
         ## add data version
-        participant_data["version"] = str(version)
+        valid_participant_data["version"] = str(version)
 
         ## add dataset contacts ids
-        participant_data["dataset_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
+        valid_participant_data["dataset_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
 
         sys.stdout.write('Processed "' + str(participant_data["_id"]) + '"...\n')
 
         ## validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
-        
+
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
         logging.info("\n==================================\n\t2. Validating participant dataset\n==================================\n")
@@ -101,15 +103,106 @@ class participant():
         tmp = tempfile.NamedTemporaryFile()
 
         with open(tmp.name, 'w') as fp:
-            json.dump(participant_data, fp)
+            json.dump(valid_participant_data, fp)
         jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
         tmp.close()
         
-        logging.info("\n==================================\n\t3. Participant dataset OK\n==================================\n")
+        logging.info("\n==================================\n\t Participant dataset OK\n==================================\n")
         
-        return participant_data
+        return valid_participant_data
+        
 
-    # def build_test_events:
+    def build_test_events(self, response, participant_data, tool_id, contacts, data_model_dir):
+        
+        logging.info("\n==================================\n\t3. Generating Test Events\n==================================\n")
+
+        # initialize the array of test events
+        test_events = []
+
+        # an  new event object will be created for each of the challenge where the participants has taken part in 
+        for challenge in participant_data["challenge_id"]:
+
+            sys.stdout.write('Building object "' + str(challenge + "_testEvent_" + participant_data["participant_id"]) + '"...\n')
+
+            event = {
+                "_id": challenge + "_testEvent_" + participant_data["participant_id"],
+                "_schema":"https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+                "action_type":"TestEvent",
+            }
+
+            ## add id of tool for the test event
+            event["tool_id"] = tool_id
+
+            ## add the oeb official id for the challenge
+            data = response["data"]["getChallenges"]
+            oeb_challenges = {}
+            for oeb_challenge in data:
+                oeb_challenges[oeb_challenge["_metadata"]["level_2:challenge_id"]] = oeb_challenge["_id"]
+
+            try:
+                event["challenge_id"] = oeb_challenges[challenge]
+            except:
+                logging.fatal("No challenge associated to " + challenge + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                sys.exit()   
+            
+            ## append incoming and outgoing datasets
+            involved_data = []
+
+            ## select input datasets related to the challenge
+            rel_oeb_datasets = set()
+            for dataset in [item for item in data if item["_id"] == event["challenge_id"] ]:
+                for input_data in dataset["datasets"]:
+                    rel_oeb_datasets.add( input_data["_id"] )
+
+            for dataset in rel_oeb_datasets:
+                involved_data.append({
+                    "dataset_id": dataset,
+                    "role": "incoming"
+                })
+            
+            involved_data.append({
+                "dataset_id": participant_data["_id"],
+                "role": "outgoing"
+            })
+
+            event["involved_datasets"] = involved_data
+            # add data registration dates
+            event["dates"] = {
+                "creation": str(datetime.now().replace(microsecond=0).isoformat()),
+                "reception": str(datetime.now().replace(microsecond=0).isoformat())
+            }
+
+            ## add dataset contacts ids
+            event["test_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
+
+            test_events.append(event)
+
+        ## validate the new objects against https://github.com/inab/benchmarking-data-model
+
+        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
+        ## thus, FK errors are expected and allowed
+        logging.info("\n==================================\n\t4. Validating Test Events\n==================================\n")
+        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
+            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
+            schemaHash = {}
+            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
+
+        for element in test_events:
+
+            tmp = tempfile.NamedTemporaryFile()
+
+            with open(tmp.name, 'w') as fp:
+                json.dump(element, fp)
+            
+            with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking, as it would get too verbose
+                jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
+            tmp.close()
+
+            sys.stdout.write('Validated object "' + str(event["_id"]) + '"...\n')
+            #  VALIDATEEE and add loggings !!
+        logging.info("\n==================================\n\t Test Events OK\n==================================\n")
+        
+        return test_events
 
 
 

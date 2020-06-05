@@ -1,4 +1,5 @@
 # Extended JSON Schema validators
+**Original code obtained from https://github.com/inab/extended-json-schema-validators**
 
 The common reference JSON Schema validation and consistency check tools are hosted in this project. The code was originally hosted in the OpenEBench Benchmarking Data Model repository.
 
