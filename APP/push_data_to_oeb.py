@@ -29,6 +29,7 @@ def main(config_json):
             contacts = config_params["data_contacts"]
             data_model_repo = config_params["data_model_repo"]
             data_model_tag = config_params["data_model_tag"]
+            storage_server_endpoint = config_params["data_storage_endpoint"]
 
     except Exception as e:
 
@@ -51,6 +52,9 @@ def main(config_json):
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id)
+
+    # upload predicitions file to stable server and get permanent identifier
+    data_doi = migration_utils.upload_to_storage_service(storage_server_endpoint, min_participant_data, file_location, contacts[0])
 
     # generate all required objects
     process_participant = participant()
