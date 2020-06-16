@@ -77,11 +77,9 @@ class utils():
         return repo_tag_destdir
 
     ## function that retrieves all the required metadata from OEB database
-    def query_OEB_DB(self, bench_event_id, tool_id, community_id):
+    def query_OEB_DB(self, bench_event_id, tool_id, community_id, data_type):
 
-        try:
-            url = self.DEFAULT_OEB_API
-            # get challenges and input datasets for provided benchmarking event
+        if data_type == "input":
             json_query = { 'query' : '{\
                                     getChallenges(challengeFilters: {benchmarking_event_id: "'+ bench_event_id + '"}) {\
                                         _id\
@@ -98,7 +96,30 @@ class utils():
                                         email\
                                     }\
                                 }' }
-
+        elif data_type == "metrics_reference":
+            json_query = { 'query' : '{\
+                                    getChallenges(challengeFilters: {benchmarking_event_id: "'+ bench_event_id + '"}) {\
+                                        _id\
+                                        _metadata\
+                                        datasets(datasetFilters: {type: "metrics_reference"}) {\
+                                            _id\
+                                        }\
+                                    }\
+                                    getTools(toolFilters: {id: "' +  tool_id + '"}) {\
+                                        _id\
+                                    }\
+                                    getContacts(contactFilters:{community_id:"' + community_id + '"}){\
+                                        _id\
+                                        email\
+                                    }\
+                                    getMetrics {\
+                                        _id\
+                                        _metadata\
+                                    }\
+                                }' }
+        try:
+            url = self.DEFAULT_OEB_API
+            # get challenges and input datasets for provided benchmarking event
             r = requests.post(url=url, json=json_query, verify=False )
             response = r.json()
             if response["data"]["getChallenges"] == []:
@@ -116,62 +137,70 @@ class utils():
             logging.exception(e)
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
-    def upload_to_storage_service(self, endpoint, participant_data, local_file_path, contact_email):
-
-        # 1. create new record
-        logging.info("Uploading participant's predictions file to " + endpoint + " for permanent storage")
-        header = {"Content-Type": "application/json"}
-        params = {'access_token': self.STORAGE_API_TOKEN}
-        metadata = {"titles": [{"title": "Predictions made by " + participant_data["participant_id"] + " participant in OpenEBench Virtual Research Environment"}],
-                    "community": "THE_B2SHARE_COMMUNITY_UUID",
-                    "community_specific": {},
-                    "contact_email": contact_email, 
-                    "open_access": True}
-        r = requests.post(endpoint + "records/", params=params, data=json.dumps(metadata), headers=header)
-
-        result = json.loads(r.text)
-        # check whether request was succesful
-        if r.status_code != 201:
-            logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
-            sys.exit()
-
-        # 2. add file to new record 
-        filebucketid = result["links"]["files"].split('/')[-1]
-        record_id = result["id"]
-
-        try:
-            upload_file = open(local_file_path, 'rb')
-        except OSError as exc:
-            logging.fatal("OS error: {0}".format(exc))
-            sys.exit()
-
-        url = endpoint + 'files/' + filebucketid
-        header = {"Accept": "application/json", "Content-Type": "application/octet-stream"}
+    def upload_to_storage_service(self, endpoint, participant_data, file_location, contact_email, data_version):
         
-        r = requests.put(url + '/' + os.path.basename(local_file_path), data=upload_file, params=params, headers=header)
+        # check if file already has an assigned doi, if not, upload
+        if "doi.org" in file_location:
+            logging.info("Participant's predictions file already has an assigned DOI: " + file_location)
+            return file_location
 
-        # check whether request was succesful
-        if r.status_code != 200:
-            logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
-            sys.exit()
-        
-        # 3. publish the new record
-        header = {'Content-Type': 'application/json-patch+json'}
-        commit = '[{"op": "add", "path":"/publication_state", "value": "submitted"}]'
+        else:
 
-        url =  endpoint + "records/" + record_id + "/draft"
-        r = requests.patch(url, data=commit, params=params, headers=header)
+            # 1. create new record
+            logging.info("Uploading participant's predictions file to " + endpoint + " for permanent storage")
+            header = {"Content-Type": "application/json"}
+            params = {'access_token': self.STORAGE_API_TOKEN}
+            metadata = {"titles": [{"title": "Predictions made by " + participant_data["participant_id"] + " participant in OpenEBench Virtual Research Environment"}],
+                        "community": "THE_B2SHARE_COMMUNITY_UUID",
+                        "community_specific": {},
+                        "contact_email": contact_email,
+                        "version": str(data_version), 
+                        "open_access": True}
+            r = requests.post(endpoint + "records/", params=params, data=json.dumps(metadata), headers=header)
 
-        # check whether request was succesful
-        if r.status_code != 200:
-            logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
-            sys.exit()
+            result = json.loads(r.text)
+            # check whether request was succesful
+            if r.status_code != 201:
+                logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
+                sys.exit()
+
+            # 2. add file to new record 
+            filebucketid = result["links"]["files"].split('/')[-1]
+            record_id = result["id"]
+
+            try:
+                upload_file = open(file_location, 'rb')
+            except OSError as exc:
+                logging.fatal("OS error: {0}".format(exc))
+                sys.exit()
+
+            url = endpoint + 'files/' + filebucketid
+            header = {"Accept": "application/json", "Content-Type": "application/octet-stream"}
             
-        published_result = json.loads(r.text)
+            r = requests.put(url + '/' + os.path.basename(file_location), data=upload_file, params=params, headers=header)
 
-        data_doi = published_result["metadata"]["DOI"]
-        print(record_id)
-        logging.info("File '" + local_file_path + "' uploaded and permanent ID assigned: " + data_doi)
-        return data_doi
+            # check whether request was succesful
+            if r.status_code != 200:
+                logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
+                sys.exit()
+            
+            # 3. publish the new record
+            header = {'Content-Type': 'application/json-patch+json'}
+            commit = '[{"op": "add", "path":"/publication_state", "value": "submitted"}]'
+
+            url =  endpoint + "records/" + record_id + "/draft"
+            r = requests.patch(url, data=commit, params=params, headers=header)
+
+            # check whether request was succesful
+            if r.status_code != 200:
+                logging.fatal("Bad request: " + str(r.status_code) + str(r.text))
+                sys.exit()
+
+            published_result = json.loads(r.text)
+
+            data_doi = published_result["metadata"]["DOI"]
+            # print(record_id) https://trng-b2share.eudat.eu/api/records/637a25e86dbf43729d30217613f1218b
+            logging.info("File '" + file_location + "' uploaded and permanent ID assigned: " + data_doi)
+            return data_doi
 
         
