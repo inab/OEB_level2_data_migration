@@ -73,13 +73,15 @@ def main(config_json):
     process_assessments = assessment(data_model_dir)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
     print(valid_assessment_datasets)
+    valid_metrics_events = process_assessments.build_metrics_events(query_response, valid_assessment_datasets, tool_id, contacts)
+    print(valid_metrics_events)
     ##VALIDATE!! JM validator
 
 
 if __name__ == '__main__':
     
     parser = ArgumentParser()
-    parser.add_argument("-i", "--config_json", help="json file which contains all parameters for migration)", required=True)
+    parser.add_argument("-i", "--config_json", help="json file which contains all parameters for migration", required=True)
                                                                 
     args = parser.parse_args()
 

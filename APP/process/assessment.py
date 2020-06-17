@@ -150,56 +150,43 @@ class assessment():
         return valid_assessment_datasets
         
 
-    def build_test_events(self, response, participant_data, tool_id, contacts, data_model_dir):
+    def build_metrics_events(self, response, assessment_datasets, tool_id, contacts):
         
-        logging.info("\n==================================\n\t3. Generating Test Events\n==================================\n")
+        logging.info("\n\t==================================\n\t7. Generating Metrics Events\n\t==================================\n")
 
         # initialize the array of test events
-        test_events = []
+        metrics_events = []
 
-        # an  new event object will be created for each of the challenge where the participants has taken part in 
-        for challenge in participant_data["challenge_id"]:
-
-            sys.stdout.write('Building object "' + str(challenge + "_testEvent_" + participant_data["participant_id"]) + '"...\n')
-
+        # an  new event object will be created for each of the previously generated assessment datasets 
+        for dataset in assessment_datasets:
+            
+            event_id = rchop( dataset["_id"], "_A" ) + "_MetricsEvent"
             event = {
-                "_id": challenge + "_testEvent_" + participant_data["participant_id"],
+                "_id": event_id,
                 "_schema":"https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
-                "action_type":"TestEvent",
+                "action_type":"MetricsEvent",
             }
+
+            sys.stdout.write('Building Event object for assessment "' + str(event["_id"]) + '"...\n')
 
             ## add id of tool for the test event
             event["tool_id"] = tool_id
 
-            ## add the oeb official id for the challenge
-            data = response["data"]["getChallenges"]
-            oeb_challenges = {}
-            for oeb_challenge in data:
-                oeb_challenges[oeb_challenge["_metadata"]["level_2:challenge_id"]] = oeb_challenge["_id"]
-
-            try:
-                event["challenge_id"] = oeb_challenges[challenge]
-            except:
-                logging.fatal("No challenge associated to " + challenge + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                sys.exit()   
+            ## add the oeb official id for the challenge (which is already in the assessment dataset)
+            event["challenge_id"] = dataset["challenge_ids"][0]
             
             ## append incoming and outgoing datasets
             involved_data = []
 
-            ## select input datasets related to the challenge
-            rel_oeb_datasets = set()
-            for dataset in [item for item in data if item["_id"] == event["challenge_id"] ]:
-                for input_data in dataset["datasets"]:
-                    rel_oeb_datasets.add( input_data["_id"] )
-
-            for dataset in rel_oeb_datasets:
+            ## include the incomning datasets related to the event
+            for data_id in dataset["depends_on"]["rel_dataset_ids"]:
                 involved_data.append({
-                    "dataset_id": dataset,
+                    "dataset_id": data_id["dataset_id"],
                     "role": "incoming"
                 })
-            
+            ## ad the outgoing assessment data
             involved_data.append({
-                "dataset_id": participant_data["_id"],
+                "dataset_id": dataset["_id"],
                 "role": "outgoing"
             })
 
@@ -213,62 +200,31 @@ class assessment():
             ## add dataset contacts ids
             event["test_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
 
-            test_events.append(event)
+            metrics_events.append(event)
 
         ## validate the new objects against https://github.com/inab/benchmarking-data-model
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n==================================\n\t4. Validating Test Events\n==================================\n")
-        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
-            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
-            schemaHash = {}
-            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
+        logging.info("\n\t==================================\n\t8. Validating Metrics Events\n\t==================================\n")
 
-        for element in test_events:
+        for element in metrics_events:
 
             tmp = tempfile.NamedTemporaryFile()
 
             with open(tmp.name, 'w') as fp:
                 json.dump(element, fp)
             
-            with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking, as it would get too verbose
-                jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
+            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
+
             tmp.close()
+            
+            sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
 
-            sys.stdout.write('Validated object "' + str(event["_id"]) + '"...\n')
-            #  VALIDATEEE and add loggings !!
-        logging.info("\n==================================\n\t Test Events OK\n==================================\n")
+        logging.info("\n\t==================================\n\t Metrics Events OK\n\t==================================\n")
         
-        return test_events
+        return metrics_events
 
 
-
-
-# Define a context manager to suppress stdout
-class suppress_stdout_stderr(object):
-    '''
-    A context manager for doing a "deep suppression" of stdout and stderr in 
-    Python, i.e. will suppress all print, even if the print originates in a 
-    compiled C/Fortran sub-function.
-       This will not suppress raised exceptions, since exceptions are printed
-    to stderr just before a script exits, and after the context manager has
-    exited (at least, I think that is why it lets exceptions through).      
-
-    '''
-    def __init__(self):
-        # Open a pair of null files
-        self.null_fds =  [os.open(os.devnull,os.O_RDWR) for x in range(2)]
-        # Save the actual stdout (1)  file descriptors.
-        self.save_fds = [os.dup(1)]
-
-    def __enter__(self):
-        # Assign the null pointers to stdout 
-        os.dup2(self.null_fds[0],1)
-
-    def __exit__(self, *_):
-        # Re-assign the real stdout back to (1)
-        os.dup2(self.save_fds[0],1)
-        # Close all file descriptors
-        for fd in self.null_fds + self.save_fds:
-            os.close(fd)
+def rchop(s, sub):
+    return s[:-len(sub)] if s.endswith(sub) else s
