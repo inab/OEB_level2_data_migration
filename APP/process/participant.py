@@ -1,17 +1,28 @@
 import logging
 import sys, os
 from datetime import datetime
-from schema_validators.python import jsonValidate
+from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
 
 class participant():
 
-    logging.basicConfig(level=logging.INFO)
+    def __init__(self, data_model_dir):
 
-    def build_participant_dataset(self, response, participant_data, data_visibility, file_location,community_id, tool_id, version, contacts, data_model_dir):
+        logging.basicConfig(level=logging.INFO)
 
-        logging.info("\n==================================\n\t1. Processing participant dataset\n==================================\n")
+        self.schema_validators = FairGTracksValidator()
+
+        # create the cached json schemas for validation
+        numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)
+	                
+        if numSchemas == 0:
+            print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
+            sys.exit(1)
+
+    def build_participant_dataset(self, response, participant_data, data_visibility, file_location,community_id, tool_id, version, contacts):
+
+        logging.info("\n\t==================================\n\t1. Processing participant dataset\n\t==================================\n")
 
         ## initialize new dataset object
         valid_participant_data = {
@@ -98,27 +109,25 @@ class participant():
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n==================================\n\t2. Validating participant dataset\n==================================\n")
-        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
-            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
-            schemaHash = {}
-            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
+        logging.info("\n\t==================================\n\t2. Validating participant dataset\n\t==================================\n")
 
         tmp = tempfile.NamedTemporaryFile()
 
         with open(tmp.name, 'w') as fp:
             json.dump(valid_participant_data, fp)
-        jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
+       
+        val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
+
         tmp.close()
         
-        logging.info("\n==================================\n\t Participant dataset OK\n==================================\n")
+        logging.info("\n\t==================================\n\t Participant dataset OK\n\t==================================\n")
         
         return valid_participant_data
         
 
-    def build_test_events(self, response, participant_data, tool_id, contacts, data_model_dir):
+    def build_test_events(self, response, participant_data, tool_id, contacts):
         
-        logging.info("\n==================================\n\t3. Generating Test Events\n==================================\n")
+        logging.info("\n\t==================================\n\t3. Generating Test Events\n\t==================================\n")
 
         # initialize the array of test events
         test_events = []
@@ -185,12 +194,8 @@ class participant():
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n==================================\n\t4. Validating Test Events\n==================================\n")
-        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
-            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
-            schemaHash = {}
-            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
-
+        logging.info("\n\t==================================\n\t4. Validating Test Events\n\t==================================\n")
+              
         for element in test_events:
 
             tmp = tempfile.NamedTemporaryFile()
@@ -198,43 +203,12 @@ class participant():
             with open(tmp.name, 'w') as fp:
                 json.dump(element, fp)
             
-            with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking, as it would get too verbose
-                jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
+            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
+
             tmp.close()
 
             sys.stdout.write('Validated object "' + str(event["_id"]) + '"...\n')
-            #  VALIDATEEE and add loggings !!
-        logging.info("\n==================================\n\t Test Events OK\n==================================\n")
+
+        logging.info("\n\t==================================\n\t Test Events OK\n\t==================================\n")
         
         return test_events
-
-
-
-
-# Define a context manager to suppress stdout
-class suppress_stdout_stderr(object):
-    '''
-    A context manager for doing a "deep suppression" of stdout and stderr in 
-    Python, i.e. will suppress all print, even if the print originates in a 
-    compiled C/Fortran sub-function.
-       This will not suppress raised exceptions, since exceptions are printed
-    to stderr just before a script exits, and after the context manager has
-    exited (at least, I think that is why it lets exceptions through).      
-
-    '''
-    def __init__(self):
-        # Open a pair of null files
-        self.null_fds =  [os.open(os.devnull,os.O_RDWR) for x in range(2)]
-        # Save the actual stdout (1)  file descriptors.
-        self.save_fds = [os.dup(1)]
-
-    def __enter__(self):
-        # Assign the null pointers to stdout 
-        os.dup2(self.null_fds[0],1)
-
-    def __exit__(self, *_):
-        # Re-assign the real stdout back to (1)
-        os.dup2(self.save_fds[0],1)
-        # Close all file descriptors
-        for fd in self.null_fds + self.save_fds:
-            os.close(fd)

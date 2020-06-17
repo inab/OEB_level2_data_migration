@@ -61,17 +61,17 @@ def main(config_json):
     data_doi = migration_utils.upload_to_storage_service(storage_server_endpoint, min_participant_data, file_location, contacts[0], version)
 
     # generate all required objects
-    process_participant = participant()
-    valid_participant_data = process_participant.build_participant_dataset(query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts, data_model_dir)
+    process_participant = participant(data_model_dir)
+    valid_participant_data = process_participant.build_participant_dataset(query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
     print(valid_participant_data)
-    valid_test_events = process_participant.build_test_events(query_response, min_participant_data, tool_id, contacts, data_model_dir)
+    valid_test_events = process_participant.build_test_events(query_response, min_participant_data, tool_id, contacts)
     print(valid_test_events)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "metrics_reference")
 
-    process_assessments = assessment()
-    valid_assessment_datasets = process_assessments.build_assessment_datasets(query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts, data_model_dir)
+    process_assessments = assessment(data_model_dir)
+    valid_assessment_datasets = process_assessments.build_assessment_datasets(query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
     print(valid_assessment_datasets)
     ##VALIDATE!! JM validator
 

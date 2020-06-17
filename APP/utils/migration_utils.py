@@ -9,14 +9,16 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 class utils():
 
-    DEFAULT_DATA_MODEL_DIR="benchmarking_data_model"
-    DEFAULT_GIT_CMD='git'
-    DEFAULT_OEB_API="https://dev-openebench.bsc.es/sciapi/graphql"
-    STORAGE_API_TOKEN="STORAGE_TOKEN"
+    def __init__(self):
 
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        self.DEFAULT_DATA_MODEL_DIR="benchmarking_data_model"
+        self.DEFAULT_GIT_CMD='git'
+        self.DEFAULT_OEB_API="https://dev-openebench.bsc.es/sciapi/graphql"
+        self.STORAGE_API_TOKEN="STORAGE_TOKEN"
 
-    logging.basicConfig(level=logging.INFO)
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+        logging.basicConfig(level=logging.INFO)
 
     ## function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
 

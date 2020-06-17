@@ -1,18 +1,29 @@
 import logging
 import sys, os
 from datetime import datetime
-from schema_validators.python import jsonValidate
+from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
 from process.benchmarking_dataset import benchmarking_dataset
 
 class assessment():
 
-    logging.basicConfig(level=logging.INFO)
+    def __init__(self, data_model_dir):
 
-    def build_assessment_datasets(self, response, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts, data_model_dir):
+        logging.basicConfig(level=logging.INFO)
 
-        logging.info("\n==================================\n\t5. Processing assessment datasets\n==================================\n")
+        self.schema_validators = FairGTracksValidator()
+
+        # create the cached json schemas for validation
+        numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)
+	                
+        if numSchemas == 0:
+            print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
+            sys.exit(1)
+
+    def build_assessment_datasets(self, response, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts):
+
+        logging.info("\n\t==================================\n\t5. Processing assessment datasets\n\t==================================\n")
 
         valid_assessment_datasets = []
         for dataset in assessment_datasets:
@@ -97,7 +108,7 @@ class assessment():
                     metric_id = metric["_id"]
               
             try:
-                    metric_id
+                metric_id
             except:
                 logging.fatal("No metric associated to " + dataset["metrics"]["metric_id"] + " in OEB. Please contact OpenEBench support for information about how to register your own metrics")
                 sys.exit()
@@ -121,21 +132,17 @@ class assessment():
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n==================================\n\t6. Validating assessment datasets\n==================================\n")
-        with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking the schemas
-            uriLoad = jsonValidate.cacheJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"))
-            schemaHash = {}
-            jsonValidate.loadJSONSchemas(schemaHash,uriLoad)
+        logging.info("\n\t==================================\n\t6. Validating assessment datasets\n\t==================================\n")
 
         for element in valid_assessment_datasets:
 
             tmp = tempfile.NamedTemporaryFile()
 
             with open(tmp.name, 'w') as fp:
-                json.dump(valid_data, fp)
+                json.dump(element, fp)
+            
+            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
 
-            with suppress_stdout_stderr(): ## avoid printing to stdout the logs for checking, as it would get too verbose
-                jsonValidate.jsonValidate(schemaHash,uriLoad, tmp.name)
             tmp.close()
             
             sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
