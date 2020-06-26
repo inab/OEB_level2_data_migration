@@ -119,6 +119,51 @@ class utils():
                                         _metadata\
                                     }\
                                 }' }
+        elif data_type == "aggregation":
+            json_query = { 'query' : '{\
+                                    getChallenges(challengeFilters: {benchmarking_event_id: "'+ bench_event_id + '"}) {\
+                                        _id\
+                                        _metadata\
+                                        challenge_contact_ids\
+                                        datasets(datasetFilters: {type: "aggregation"}) {\
+                                                _id\
+                                                _schema\
+                                                orig_id\
+                                                community_ids\
+                                                challenge_ids\
+                                                visibility\
+                                                name\
+                                                version\
+                                                description\
+                                                dates {\
+                                                    creation\
+                                                    modification\
+                                                }\
+                                                type\
+                                                datalink {\
+                                                    inline_data\
+                                                }\
+                                                dataset_contact_ids\
+                                                depends_on {\
+                                                    tool_id\
+                                                    rel_dataset_ids {\
+                                                    dataset_id\
+                                                    }\
+                                                }\
+                                        }\
+                                    }\
+                                    getTools(toolFilters: {id: "' +  tool_id + '"}) {\
+                                        _id\
+                                    }\
+                                    getContacts(contactFilters:{community_id:"' + community_id + '"}){\
+                                        _id\
+                                        email\
+                                    }\
+                                    getMetrics {\
+                                        _id\
+                                        _metadata\
+                                    }\
+                                }' }
         try:
             url = self.DEFAULT_OEB_API
             # get challenges and input datasets for provided benchmarking event

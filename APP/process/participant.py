@@ -5,13 +5,24 @@ from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
 
+import yaml
+# We have preference for the C based loader and dumper, but the code
+# should fallback to default implementations when C ones are not present
+try:
+	from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
+except ImportError:
+	from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
+
 class participant():
 
-    def __init__(self, data_model_dir):
+    def __init__(self, data_model_dir, config_db):
 
         logging.basicConfig(level=logging.INFO)
 
-        self.schema_validators = FairGTracksValidator()
+        with open(config_db,"r",encoding="utf-8") as cf:
+            local_config = yaml.load(cf,Loader=YAMLLoader)
+
+        self.schema_validators = FairGTracksValidator(config=local_config)
 
         # create the cached json schemas for validation
         numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)

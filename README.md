@@ -5,9 +5,11 @@ Application used by community managers to migrate results of a benchmarking work
 ## Prerequisites for moving workflow results from VRE to OEB
 In order to use the migration tool, some requirements need to be fulfilled:
 * The benchmarking event, challenges, metrics, and input/reference datasets that the results refer to should already be registered in OpenEBench and have official OEB identifiers.
+* IDs of challenges and metrics used in the workflow should be annotated in the correspondent OEB objects (in the *_metadata:level_2* field) so that the can be mapped to the registered OEB elements.
 * The tool that computed the input file' predictions should also be registered in OpenEBench.
 * The 'consolidated results' file should come from a pipeline that follows the OpenEBench Benchmarking Workflows Standards.
 (If any of these requirements is not satisfied, a form should be provided so that the manager or developer can 'inaugurate' the required object in OEB)
+* **NOTE:** this tool just moves VRE datasets to OEB database, it does NOT update the reference aggregation data that VRE workflows use. In order to move official OEB aggregation datasets to a VRE workflow, copy them manually to the corresponding reference directory *(/gpfs/VRE/public/aggreggation/<workflow_name>)* 
 
 ## Parameters
 
