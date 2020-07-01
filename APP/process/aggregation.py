@@ -21,7 +21,7 @@ class aggregation():
             print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
             sys.exit(1)
 
-    def build_aggregation_datasets(self, response, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, contacts):
+    def build_aggregation_datasets(self, response, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
 
         logging.info("\n\t==================================\n\t9. Processing aggregation datasets\n\t==================================\n")
 
@@ -43,7 +43,7 @@ class aggregation():
                 
                 if valid_data == None:
                     sys.stdout.write('Dataset "' + str(dataset["_id"]) + '" is not registered in OpenEBench... Building new object\n')
-                    new_aggregation(response, dataset, assessment_datasets, community_id, version)
+                    new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id)
                     continue
 
                 ## add new participant metrics to OEB aggregation dataset
@@ -84,7 +84,7 @@ class aggregation():
             else: # if dataset does not have oeb id, build a new one
 
                 sys.stdout.write('Building object "' + str(dataset["_id"]) + '"...\n')
-                valid_data = new_aggregation(response, dataset, assessment_datasets, community_id, version)
+                valid_data = new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id)
 
                 valid_aggregation_datasets.append(valid_data)
     
@@ -92,7 +92,7 @@ class aggregation():
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t10. Validating assessment datasets\n\t==================================\n")
+        logging.info("\n\t==================================\n\t10. Validating aggregation datasets\n\t==================================\n")
 
         for element in valid_aggregation_datasets:
 
@@ -101,73 +101,99 @@ class aggregation():
             with open(tmp.name, 'w') as fp:
                 json.dump(element, fp)
             
-            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=True)
+            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
 
             tmp.close()
             
             sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
             
         return valid_aggregation_datasets
+    
+    def build_aggregation_events(self, response, aggregation_datasets, workflow_id):
         
-    def build_metrics_events(self, response, assessment_datasets, tool_id, contacts):
-        
-        logging.info("\n\t==================================\n\t7. Generating Metrics Events\n\t==================================\n")
+        logging.info("\n\t==================================\n\t11. Generating Aggregation Events\n\t==================================\n")
 
-        # initialize the array of test events
-        metrics_events = []
+        # initialize the array of events
+        aggregation_events = []
 
-        # an  new event object will be created for each of the previously generated assessment datasets 
-        for dataset in assessment_datasets:
+        data = response["data"]["getTestActions"]
+
+        for dataset in aggregation_datasets:
             
-            event_id = rchop( dataset["_id"], "_A" ) + "_MetricsEvent"
-            event = {
-                "_id": event_id,
-                "_schema":"https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
-                "action_type":"MetricsEvent",
-            }
+            # if the aggregation dataset is already in OpenEBench, it should also have an associated aggregation event
+            if dataset["_id"].startswith("OEB"):
 
-            sys.stdout.write('Building Event object for assessment "' + str(event["_id"]) + '"...\n')
+                sys.stdout.write('Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench...\n')
+                for action in data:
 
-            ## add id of tool for the test event
-            event["tool_id"] = tool_id
+                    if action["action_type"] == "AggregationEvent" and action["challenge_id"] == dataset["challenge_ids"][0]:
+                        event = action
+                        sys.stdout.write('Adding new metadata to TestAction "' + str(event["_id"]) + '"\n')
+                        break
+                
+                #update the event modification date
+                event["dates"]["modification"] = str(datetime.now().replace(microsecond=0).isoformat())
 
-            ## add the oeb official id for the challenge (which is already in the assessment dataset)
-            event["challenge_id"] = dataset["challenge_ids"][0]
-            
-            ## append incoming and outgoing datasets
-            involved_data = []
+                ## add referenced assessment datasets ids
+                for agg_dataset_id in (item for item in dataset["depends_on"]["rel_dataset_ids"] if not item["dataset_id"].startswith('OEB')):
+                    event["involved_datasets"].append( { "dataset_id": agg_dataset_id["dataset_id"], "role": "incoming"} )
+                
+                aggregation_events.append(event)
+                
+            else: # if datset is not in oeb a  new event object will be created
+                event = {
+                    "_id": dataset["_id"] + "_Event",
+                    "_schema":"https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+                    "action_type":"AggregationEvent",
+                }
 
-            ## include the incomning datasets related to the event
-            for data_id in dataset["depends_on"]["rel_dataset_ids"]:
+                sys.stdout.write('Building Event object for aggregation "' + str(dataset["_id"]) + '"...\n')
+
+                ## add id of workflow for the test event
+                event["tool_id"] = workflow_id
+
+                ## add the oeb official id for the challenge (which is already in the aggregation dataset)
+                event["challenge_id"] = dataset["challenge_ids"][0]
+                
+                ## append incoming and outgoing datasets
+                involved_data = []
+
+                ## include the incomning datasets related to the event
+                for data_id in dataset["depends_on"]["rel_dataset_ids"]:
+                    data_id["role"] = "incoming"
+                    involved_data.append(data_id)
+                
+                ## ad the outgoing assessment data
                 involved_data.append({
-                    "dataset_id": data_id["dataset_id"],
-                    "role": "incoming"
+                    "dataset_id": dataset["_id"],
+                    "role": "outgoing"
                 })
-            ## ad the outgoing assessment data
-            involved_data.append({
-                "dataset_id": dataset["_id"],
-                "role": "outgoing"
-            })
 
-            event["involved_datasets"] = involved_data
-            # add data registration dates
-            event["dates"] = {
-                "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                "reception": str(datetime.now().replace(microsecond=0).isoformat())
-            }
+                event["involved_datasets"] = involved_data
 
-            ## add dataset contacts ids
-            event["test_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
+                # add data registration dates
+                event["dates"] = {
+                    "creation": str(datetime.now().replace(microsecond=0).isoformat()),
+                    "reception": str(datetime.now().replace(microsecond=0).isoformat())
+                }
 
-            metrics_events.append(event)
+                ## add challenge managers as aggregation dataset contacts ids
+                data_contacts = []
+                for challenge in response["data"]["getChallenges"]:
+                    if challenge["_id"] in dataset["challenge_ids"]:
+                        data_contacts.extend(challenge["challenge_contact_ids"])
+
+                event["test_contact_ids"] = data_contacts
+
+                aggregation_events.append(event)
 
         ## validate the new objects against https://github.com/inab/benchmarking-data-model
 
         ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
         ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t8. Validating Metrics Events\n\t==================================\n")
+        logging.info("\n\t==================================\n\t12. Validating Aggregation Events\n\t==================================\n")
 
-        for element in metrics_events:
+        for element in aggregation_events:
 
             tmp = tempfile.NamedTemporaryFile()
 
@@ -180,15 +206,12 @@ class aggregation():
             
             sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
 
-        logging.info("\n\t==================================\n\t Metrics Events OK\n\t==================================\n")
+        logging.info("\n\t==================================\n\t Aggregation Events OK\n\t==================================\n")
         
-        return metrics_events
+        return aggregation_events
 
 
-def rchop(s, sub):
-    return s[:-len(sub)] if s.endswith(sub) else s
-
-def new_aggregation(response, dataset, assessment_datasets, community_id, version):
+def new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id):
 
     ## initialize new dataset object
     valid_data = {
@@ -276,14 +299,9 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
     valid_data["community_ids"] = [community_id]
     
     ## add dataset dependencies: metric id, tool and reference datasets
-    list_oeb_datasets = []
-    for dataset_id in rel_data:
-        list_oeb_datasets.append({
-            "dataset_id": dataset_id
-        })
-
     valid_data["depends_on"] = {
-        "rel_dataset_ids": list_oeb_datasets,
+        "tool_id": workflow_id,
+        "rel_dataset_ids": rel_data,
     }
 
     ## add data version

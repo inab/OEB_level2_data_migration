@@ -163,6 +163,23 @@ class utils():
                                         _id\
                                         _metadata\
                                     }\
+                                      getTestActions{\
+                                        _id\
+                                        _schema\
+                                        orig_id\
+                                        tool_id\
+                                        action_type\
+                                        involved_datasets{\
+                                            dataset_id\
+                                            role\
+                                        }\
+                                        challenge_id\
+                                        test_contact_ids\
+                                        dates{\
+                                            creation\
+                                            modification\
+                                        }\
+                                    }\
                                 }' }
         try:
             url = self.DEFAULT_OEB_API

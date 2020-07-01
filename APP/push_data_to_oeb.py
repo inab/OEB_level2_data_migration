@@ -32,6 +32,7 @@ def main(config_json, config_db):
             data_model_repo = config_params["data_model_repo"]
             data_model_tag = config_params["data_model_tag"]
             storage_server_endpoint = config_params["data_storage_endpoint"]
+            workflow_id = config_params["workflow_oeb_id"]
 
     except Exception as e:
 
@@ -85,7 +86,8 @@ def main(config_json, config_db):
     query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "aggregation")
 
     process_aggregations = aggregation(data_model_dir)
-    process_aggregations.build_aggregation_datasets(query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, contacts)
+    valid_aggregation_datasets =  process_aggregations.build_aggregation_datasets(query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+    process_aggregations.build_aggregation_events( query_response, valid_aggregation_datasets, workflow_id)
     ##VALIDATE!! JM validator
 
 

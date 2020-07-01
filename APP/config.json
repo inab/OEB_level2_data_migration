@@ -9,6 +9,7 @@
     "data_contacts": ["javier.garrayo@bsc.es"],
     "data_model_repo": "https://github.com/inab/benchmarking-data-model",
     "data_model_tag": "584200576539f72e2b1fe4cdf3a47dcfed7c2975",
-    "data_storage_endpoint": "https://trng-b2share.eudat.eu/api/"
+    "data_storage_endpoint": "https://trng-b2share.eudat.eu/api/",
+    "workflow_oeb_id": "OEBT0020000002"
 
 }
