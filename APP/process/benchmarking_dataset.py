@@ -11,7 +11,7 @@ class benchmarking_dataset:
         self.description = description
         self.challenge_ids = challenge_ids
         self.version = version
-        self.datalink = vars(Datalink(inline_data="fuck"))
+        self.datalink = Datalink(inline_data="{test}")
 
 class Datalink:
 
