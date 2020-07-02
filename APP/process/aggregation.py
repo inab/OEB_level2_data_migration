@@ -1,6 +1,6 @@
 import logging
 import sys, os
-from datetime import datetime
+from datetime import datetime, timezone
 from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
@@ -56,7 +56,7 @@ class aggregation():
                         break
 
                 ## update modification date
-                valid_data["dates"]["modification"] = str(datetime.now().replace(microsecond=0).isoformat())
+                valid_data["dates"]["modification"] = str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
 
                 ## add referenced assessment datasets ids
                 oeb_metrics={}
@@ -132,7 +132,7 @@ class aggregation():
                         break
                 
                 #update the event modification date
-                event["dates"]["modification"] = str(datetime.now().replace(microsecond=0).isoformat())
+                event["dates"]["modification"] = str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
 
                 ## add referenced assessment datasets ids
                 for agg_dataset_id in (item for item in dataset["depends_on"]["rel_dataset_ids"] if not item["dataset_id"].startswith('OEB')):
@@ -173,8 +173,8 @@ class aggregation():
 
                 # add data registration dates
                 event["dates"] = {
-                    "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                    "reception": str(datetime.now().replace(microsecond=0).isoformat())
+                    "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+                    "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
                 }
 
                 ## add challenge managers as aggregation dataset contacts ids
@@ -279,8 +279,8 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
 
     # add data registration dates
     valid_data["dates"] = {
-            "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-            "modification": str(datetime.now().replace(microsecond=0).isoformat())
+            "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+            "modification": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
         }
     
     # add assessment metrics values, as inline data

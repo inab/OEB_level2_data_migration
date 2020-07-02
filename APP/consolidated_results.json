@@ -24,7 +24,7 @@
                 "archive"
             ],
             "status": "ok",
-            "validation_date": "2020-05-25T17:53:53"
+            "validation_date": "2020-05-25T17:53:53+00:00"
         },
         "participant_id": "last_test",
         "type": "participant"

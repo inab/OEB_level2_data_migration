@@ -1,6 +1,6 @@
 import logging
 import sys, os
-from datetime import datetime
+from datetime import datetime, timezone
 from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
@@ -82,8 +82,8 @@ class participant():
 
         # add data registration dates
         valid_participant_data["dates"] = {
-                "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                "modification": str(datetime.now().replace(microsecond=0).isoformat())
+                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+                "modification": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
             }
         
         # add participant's file permanent location
@@ -128,7 +128,7 @@ class participant():
             json.dump(valid_participant_data, fp)
        
         val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
-
+        print(val_res[0]["errors"])
         tmp.close()
         
         logging.info("\n\t==================================\n\t Participant dataset OK\n\t==================================\n")
@@ -192,8 +192,8 @@ class participant():
             event["involved_datasets"] = involved_data
             # add data registration dates
             event["dates"] = {
-                "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                "reception": str(datetime.now().replace(microsecond=0).isoformat())
+                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+                "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
             }
 
             ## add dataset contacts ids

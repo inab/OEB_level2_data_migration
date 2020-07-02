@@ -1,6 +1,6 @@
 import logging
 import sys, os
-from datetime import datetime
+from datetime import datetime, timezone
 from fairtracks_validator.validator import FairGTracksValidator
 import json
 import tempfile
@@ -79,8 +79,8 @@ class assessment():
 
             # add data registration dates
             valid_data["dates"] = {
-                    "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                    "modification": str(datetime.now().replace(microsecond=0).isoformat())
+                    "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+                    "modification": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
                 }
             
             # add assessment metrics values, as inline data
@@ -193,8 +193,8 @@ class assessment():
             event["involved_datasets"] = involved_data
             # add data registration dates
             event["dates"] = {
-                "creation": str(datetime.now().replace(microsecond=0).isoformat()),
-                "reception": str(datetime.now().replace(microsecond=0).isoformat())
+                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
+                "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
             }
 
             ## add dataset contacts ids
