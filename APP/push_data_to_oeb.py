@@ -14,7 +14,7 @@ from argparse import ArgumentParser
 import sys, os
 import logging
 
-def main(config_json, config_db):
+def main(config_json, config_db, oeb_buffer_token):
 
     #check whether config file exists and has all the required fields
     try:
@@ -69,25 +69,30 @@ def main(config_json, config_db):
     process_participant = participant(data_model_dir, config_db)
     valid_participant_data = process_participant.build_participant_dataset(query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
     print(valid_participant_data)
-    # valid_test_events = process_participant.build_test_events(query_response, min_participant_data, tool_id, contacts)
-    # print(valid_test_events)
+
+    valid_test_events = process_participant.build_test_events(query_response, min_participant_data, tool_id, contacts)
+    print(valid_test_events)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    # query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "metrics_reference")
+    query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "metrics_reference")
 
-    # process_assessments = assessment(data_model_dir)
-    # valid_assessment_datasets = process_assessments.build_assessment_datasets(query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
-    # # print(valid_assessment_datasets)
-    # valid_metrics_events = process_assessments.build_metrics_events(query_response, valid_assessment_datasets, tool_id, contacts)
-    # # print(valid_metrics_events)
+    process_assessments = assessment(data_model_dir)
+    valid_assessment_datasets = process_assessments.build_assessment_datasets(query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
+    # print(valid_assessment_datasets)
+    valid_metrics_events = process_assessments.build_metrics_events(query_response, valid_assessment_datasets, tool_id, contacts)
+    # print(valid_metrics_events)
 
 
-    # # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    # query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "aggregation")
+    # query remote OEB database to get offical ids from associated challenges, tools and contacts
+    query_response = migration_utils.query_OEB_DB(bench_event_id, tool_id, community_id, "aggregation")
 
-    # process_aggregations = aggregation(data_model_dir)
-    # valid_aggregation_datasets =  process_aggregations.build_aggregation_datasets(query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
-    # process_aggregations.build_aggregation_events( query_response, valid_aggregation_datasets, workflow_id)
+    process_aggregations = aggregation(data_model_dir)
+    valid_aggregation_datasets =  process_aggregations.build_aggregation_datasets(query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+    valid_aggregation_events = process_aggregations.build_aggregation_events( query_response, valid_aggregation_datasets, workflow_id)
+
+    # join all elements in a single list and push them to OEB tmp database
+    final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
+    migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token)
     ##VALIDATE!! JM validator
 
 
@@ -96,10 +101,12 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-i", "--config_json", help="json file which contains all parameters for migration", required=True)
     parser.add_argument("-db", "--config_db", help="yaml file with configuration for remote OEB db validation", required=True)
+    parser.add_argument("-tk", "--oeb_submit_api_token", help="token used for submission to oeb buffer DB", required=True)
                                                                 
     args = parser.parse_args()
 
     config_json = args.config_json
     config_db = args.config_db
+    oeb_buffer_token = args.oeb_submit_api_token
     
-    main(config_json, config_db)
+    main(config_json, config_db, oeb_buffer_token)

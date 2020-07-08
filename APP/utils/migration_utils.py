@@ -15,6 +15,7 @@ class utils():
         self.DEFAULT_GIT_CMD='git'
         self.DEFAULT_OEB_API="https://dev-openebench.bsc.es/sciapi/graphql"
         self.STORAGE_API_TOKEN="STORAGE_TOKEN"
+        self.OEB_SUBMISSION_API="https://dev-openebench.bsc.es/api/scientific/submission/"
 
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -267,4 +268,12 @@ class utils():
             logging.info("File '" + file_location + "' uploaded and permanent ID assigned: " + data_doi)
             return data_doi
 
-        
+    def submit_oeb_buffer(self, json_data, oeb_buffer_token):
+
+        header = {"Content-Type": "application/json"}
+        params = {'access_token': oeb_buffer_token}
+        r = requests.post(self.OEB_SUBMISSION_API, params=params, data=json.dumps(json_data), headers=header)
+
+        if r.status_code != 200:
+            logging.fatal("Error in uploading data to OpenEBench. Bad request: " + str(r.status_code) + str(r.text))
+            sys.exit()
