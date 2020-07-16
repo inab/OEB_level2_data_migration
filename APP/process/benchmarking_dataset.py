@@ -1,6 +1,6 @@
 
 class benchmarking_dataset:
-      
+
     def __init__(self, id, data_type, visibility, name, description, challenge_ids, version):
 
         self._id = id
@@ -13,11 +13,12 @@ class benchmarking_dataset:
         self.version = version
         self.datalink = Datalink(inline_data="{test}")
 
+
 class Datalink:
 
-    def __init__(self, inline_data = None, file = None):
+    def __init__(self, inline_data=None, file=None):
 
         if inline_data is not None:
             self.inline_data = inline_data
         elif file is not None:
-            self.file = file 
+            self.file = file
