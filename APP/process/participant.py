@@ -1,35 +1,13 @@
 import logging
 import sys, os
 from datetime import datetime, timezone
-from fairtracks_validator.validator import FairGTracksValidator
 import json
-import tempfile
-
-import yaml
-# We have preference for the C based loader and dumper, but the code
-# should fallback to default implementations when C ones are not present
-try:
-	from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
-except ImportError:
-	from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 class participant():
 
-    def __init__(self, data_model_dir, config_db):
+    def __init__(self):
 
         logging.basicConfig(level=logging.INFO)
-
-        with open(config_db,"r",encoding="utf-8") as cf:
-            local_config = yaml.load(cf,Loader=YAMLLoader)
-
-        self.schema_validators = FairGTracksValidator(config=local_config)
-
-        # create the cached json schemas for validation
-        numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)
-	                
-        if numSchemas == 0:
-            print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
-            sys.exit(1)
 
     def build_participant_dataset(self, response, participant_data, data_visibility, file_location,community_id, tool_id, version, contacts):
 
@@ -115,30 +93,13 @@ class participant():
         valid_participant_data["dataset_contact_ids"] = [contact["_id"] for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
 
         sys.stdout.write('Processed "' + str(participant_data["_id"]) + '"...\n')
-
-        ## validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
-
-        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
-        ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t2. Validating participant dataset\n\t==================================\n")
-
-        tmp = tempfile.NamedTemporaryFile()
-
-        with open(tmp.name, 'w') as fp:
-            json.dump(valid_participant_data, fp)
-       
-        val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
-        print(val_res[0]["errors"])
-        tmp.close()
-        
-        logging.info("\n\t==================================\n\t Participant dataset OK\n\t==================================\n")
-        
+      
         return valid_participant_data
         
 
     def build_test_events(self, response, participant_data, tool_id, contacts):
         
-        logging.info("\n\t==================================\n\t3. Generating Test Events\n\t==================================\n")
+        logging.info("\n\t==================================\n\t2. Generating Test Events\n\t==================================\n")
 
         # initialize the array of test events
         test_events = []
@@ -201,25 +162,4 @@ class participant():
 
             test_events.append(event)
 
-        ## validate the new objects against https://github.com/inab/benchmarking-data-model
-
-        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
-        ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t4. Validating Test Events\n\t==================================\n")
-              
-        for element in test_events:
-
-            tmp = tempfile.NamedTemporaryFile()
-
-            with open(tmp.name, 'w') as fp:
-                json.dump(element, fp)
-            
-            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
-
-            tmp.close()
-
-            sys.stdout.write('Validated object "' + str(event["_id"]) + '"...\n')
-
-        logging.info("\n\t==================================\n\t Test Events OK\n\t==================================\n")
-        
         return test_events

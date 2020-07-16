@@ -1,29 +1,19 @@
 import logging
 import sys, os
 from datetime import datetime, timezone
-from fairtracks_validator.validator import FairGTracksValidator
 import json
-import tempfile
 from process.benchmarking_dataset import benchmarking_dataset
 
 class aggregation():
 
-    def __init__(self, data_model_dir):
+    def __init__(self):
 
         logging.basicConfig(level=logging.INFO)
 
-        self.schema_validators = FairGTracksValidator()
-
-        # create the cached json schemas for validation
-        numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)
-	                
-        if numSchemas == 0:
-            print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
-            sys.exit(1)
 
     def build_aggregation_datasets(self, response, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
 
-        logging.info("\n\t==================================\n\t9. Processing aggregation datasets\n\t==================================\n")
+        logging.info("\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
 
         valid_aggregation_datasets = []
         data = response["data"]["getChallenges"]
@@ -87,31 +77,12 @@ class aggregation():
                 valid_data = new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id)
 
                 valid_aggregation_datasets.append(valid_data)
-    
-        ## validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
-
-        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
-        ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t10. Validating aggregation datasets\n\t==================================\n")
-
-        for element in valid_aggregation_datasets:
-
-            tmp = tempfile.NamedTemporaryFile()
-
-            with open(tmp.name, 'w') as fp:
-                json.dump(element, fp)
-            
-            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
-
-            tmp.close()
-            
-            sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
-            
+               
         return valid_aggregation_datasets
     
     def build_aggregation_events(self, response, aggregation_datasets, workflow_id):
         
-        logging.info("\n\t==================================\n\t11. Generating Aggregation Events\n\t==================================\n")
+        logging.info("\n\t==================================\n\t6. Generating Aggregation Events\n\t==================================\n")
 
         # initialize the array of events
         aggregation_events = []
@@ -186,28 +157,7 @@ class aggregation():
                 event["test_contact_ids"] = data_contacts
 
                 aggregation_events.append(event)
-
-        ## validate the new objects against https://github.com/inab/benchmarking-data-model
-
-        ## TODO: now, only local object is validated, as the validator does not have capability to check for remote foreign keys
-        ## thus, FK errors are expected and allowed
-        logging.info("\n\t==================================\n\t12. Validating Aggregation Events\n\t==================================\n")
-
-        for element in aggregation_events:
-
-            tmp = tempfile.NamedTemporaryFile()
-
-            with open(tmp.name, 'w') as fp:
-                json.dump(element, fp)
-            
-            val_res = self.schema_validators.jsonValidate(tmp.name,verbose=False)
-
-            tmp.close()
-            
-            sys.stdout.write('Validated object "' + str(element["_id"]) + '"...\n')
-
-        logging.info("\n\t==================================\n\t Aggregation Events OK\n\t==================================\n")
-        
+                
         return aggregation_events
 
 

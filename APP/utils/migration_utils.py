@@ -6,10 +6,18 @@ import logging
 import json
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from fairtracks_validator.validator import FairGTracksValidator
+import yaml
+# We have preference for the C based loader and dumper, but the code
+# should fallback to default implementations when C ones are not present
+try:
+	from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
+except ImportError:
+	from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 class utils():
 
-    def __init__(self):
+    def __init__(self, config_db):
 
         self.DEFAULT_DATA_MODEL_DIR="benchmarking_data_model"
         self.DEFAULT_GIT_CMD='git'
@@ -20,6 +28,13 @@ class utils():
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         logging.basicConfig(level=logging.INFO)
+
+        # load the remote OEB DB ids and the validator
+
+        with open(config_db,"r",encoding="utf-8") as cf:
+            local_config = yaml.load(cf,Loader=YAMLLoader)
+
+        self.schema_validators = FairGTracksValidator(config=local_config)
 
     ## function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
 
@@ -268,7 +283,42 @@ class utils():
             logging.info("File '" + file_location + "' uploaded and permanent ID assigned: " + data_doi)
             return data_doi
 
+    def schemas_validation(self, jsonSchemas_array, data_model_dir):
+
+        # create the cached json schemas for validation
+        numSchemas = self.schema_validators.loadJSONSchemas(os.path.join(data_model_dir, "json-schemas", "1.0.x"),verbose=False)
+	                
+        if numSchemas == 0:
+            print("FATAL ERROR: No schema was successfuly loaded. Exiting...\n",file=sys.stderr)
+            sys.exit(1)
+
+        ## validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
+
+        logging.info("\n\t==================================\n\t7. Validating datasets and TestActions\n\t==================================\n")
+
+        cached_jsons = []
+        for element in jsonSchemas_array:
+
+            cached_jsons.append({'json': element, 'file': "inline" + element["_id"], 'errors': []})
+
+        val_res = self.schema_validators.jsonValidate(*cached_jsons,verbose=True)
+
+        # check for errors in the validation results
+        ## TODO: if one of the objects to upload has a OEBXXXX primary key, the validator returns a 'Duplicated PK' error
+        # For now, those objects are escaped...
+        for val_obj in val_res:
+            if val_obj["json"]["_id"].startswith("OEB"):
+                continue
+            elif val_obj["errors"]:
+                logging.fatal("\nObjects validation Failed:\n " + str(val_obj))
+                # logging.fatal("\nSee full validation logs:\n " + str(val_res))
+                sys.exit() 
+        
+        logging.info("\n\t==================================\n\t Objects validated\n\t==================================\n")
+
     def submit_oeb_buffer(self, json_data, oeb_buffer_token):
+
+        logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}
         params = {'access_token': oeb_buffer_token}
@@ -277,3 +327,5 @@ class utils():
         if r.status_code != 200:
             logging.fatal("Error in uploading data to OpenEBench. Bad request: " + str(r.status_code) + str(r.text))
             sys.exit()
+        else:
+            logging.info("\n\tData uploaded correctly...finalizing migration\n\n")
