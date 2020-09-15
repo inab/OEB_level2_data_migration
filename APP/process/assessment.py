@@ -33,14 +33,15 @@ class assessment():
 
             # add name and description, if workflow did not provide them
             if "name" not in dataset:
-                valid_data["name"] = "Assessment of metric '" + dataset["metrics"]["metric_id"] + \
-                    "' in " + dataset["participant_id"] + " participant"
+                valid_data["name"] = "Metric '" + dataset["metrics"]["metric_id"] + \
+                    "' in challenge '" + dataset["challenge_id"] + "' applied to participant '" + dataset["participant_id"] + "'"
             else:
                 valid_data["name"] = dataset["name"]
+
             if "description" not in dataset:
                 valid_data["description"] = "Assessment dataset of applying metric '" + \
-                    dataset["metrics"]["metric_id"] + "' in " + \
-                    dataset["participant_id"] + " participant"
+                    dataset["metrics"]["metric_id"] + "' in challenge '" + dataset["challenge_id"] + "' to '"\
+                     + dataset["participant_id"] + "' participant"
             else:
                 valid_data["description"] = dataset["description"]
 

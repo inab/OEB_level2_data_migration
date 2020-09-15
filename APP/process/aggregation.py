@@ -43,6 +43,7 @@ class aggregation():
 
                 # add new participant metrics to OEB aggregation dataset
                 tool_name = participant_data["participant_id"]
+
                 for participant in dataset["datalink"]["inline_data"]["challenge_participants"]:
 
                     if participant["participant_id"] == tool_name:
@@ -245,6 +246,11 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
             if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
             elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                rel_data.append({"dataset_id": assess_element["_id"]})
+            #check for not 'oeb' challenges ids, in case the datasets is still not uploaded
+            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+                rel_data.append({"dataset_id": assess_element["_id"]})
+            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
             # also check for official oeb metrics, in case the aggregation dataset contains them
             elif assess_element["depends_on"]["metrics_id"] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
