@@ -153,8 +153,10 @@ class aggregation():
 
                 # include the incomning datasets related to the event
                 for data_id in dataset["depends_on"]["rel_dataset_ids"]:
-                    data_id["role"] = "incoming"
-                    involved_data.append(data_id)
+                    involved_data.append({
+                        "dataset_id": data_id["dataset_id"],
+                        "role": "incoming"
+                    })
 
                 # ad the outgoing assessment data
                 involved_data.append({
