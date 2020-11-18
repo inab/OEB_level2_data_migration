@@ -189,8 +189,9 @@ class aggregation():
 def new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id):
 
     # initialize new dataset object
+    metrics = [dataset["datalink"]["inline_data"]["visualization"]["x_axis"], dataset["datalink"]["inline_data"]["visualization"]["y_axis"]]
     valid_data = {
-        "_id": dataset["_id"],
+        "_id": dataset["_id"] + "_" + metrics[0] + "+" + metrics[1],
         "type": "aggregation"
     }
 
@@ -200,12 +201,12 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
     # add name and description, if workflow did not provide them
     if "name" not in dataset:
         valid_data["name"] = "Summary dataset for challenge: " + \
-            dataset["challenge_ids"][0]
+            dataset["challenge_ids"][0] + ". Metrics: " + metrics[0] + " - " + metrics[1]
     else:
         valid_data["name"] = dataset["name"]
     if "description" not in dataset:
         valid_data["description"] = "Summary dataset that aggregates all results from participants in challenge: " + \
-            dataset["challenge_ids"][0]
+            dataset["challenge_ids"][0] + ". Metrics: " + metrics[0] + " - " + metrics[1]
     else:
         valid_data["description"] = dataset["description"]
 
