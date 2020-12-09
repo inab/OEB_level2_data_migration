@@ -109,6 +109,7 @@ class aggregation():
         for dataset in aggregation_datasets:
 
             # if the aggregation dataset is already in OpenEBench, it should also have an associated aggregation event
+            event = None
             if dataset["_id"].startswith("OEB"):
 
                 sys.stdout.write(
@@ -116,10 +117,17 @@ class aggregation():
                 for action in data:
 
                     if action["action_type"] == "AggregationEvent" and action["challenge_id"] == dataset["challenge_ids"][0]:
-                        event = action
-                        sys.stdout.write(
-                            'Adding new metadata to TestAction "' + str(event["_id"]) + '"\n')
-                        break
+                        #check if aggregation dataset id is an outgoing in the event involved data
+                        for related_data in action["involved_datasets"]:
+                            if related_data["role"] == "outgoing" and related_data["dataset_id"] == dataset["_id"]:
+
+                                event = action
+                                sys.stdout.write(
+                                    'Adding new metadata to TestAction "' + str(event["_id"]) + '"\n')
+                                break
+                    # break loop if event is already found
+                    if event:
+                        break       
 
                 # update the event modification date
                 event["dates"]["modification"] = str(datetime.now(
