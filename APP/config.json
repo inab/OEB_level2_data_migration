@@ -1,0 +1,15 @@
+{
+    "consolidated_oeb_data": "/home/javi/BSC/OEB_level2_data_migtration/APP/consolidated_results.json",
+    "data_visibility": "public",
+    "benchmarking_event_id": "OEBE0020000001",
+    "participant_file": "https://doi.org/10.1093/nar/gkaa308",
+    "community_id": "OEBC002",
+    "tool_id": "OEBT0020000007",
+    "data_version": 1,
+    "data_contacts": ["javier.garrayo@bsc.es"],
+    "data_model_repo": "https://github.com/inab/benchmarking-data-model",
+    "data_model_tag": "584200576539f72e2b1fe4cdf3a47dcfed7c2975",
+    "data_storage_endpoint": "https://trng-b2share.eudat.eu/api/",
+    "workflow_oeb_id": "OEBT0020000002"
+
+}
