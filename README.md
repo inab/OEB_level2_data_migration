@@ -29,3 +29,6 @@ parser.add_argument("-i", "--consolidated_oeb_data", help="json file with the ag
                                                     not required - default: unknown", required=False, default="unknown")  
 
 ## Usage
+
+Edit the [run.sh](./run.sh) file with your own parameters. E.g.:
+.py3env/bin/python push_data_to_oeb.py -i config.json -db ./db_config.yaml -tk <YOUR-KEYCLOACK-TOKEN>
