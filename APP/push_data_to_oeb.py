@@ -105,7 +105,7 @@ def main(config_json, config_db, oeb_buffer_token):
         valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
     migration_utils.schemas_validation(final_data, data_model_dir)
 
-    migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token)
+    migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
 
 
 if __name__ == '__main__':

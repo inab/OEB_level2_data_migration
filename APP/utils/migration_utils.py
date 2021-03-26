@@ -342,12 +342,16 @@ class utils():
         logging.info(
             "\n\t==================================\n\t Objects validated\n\t==================================\n")
 
-    def submit_oeb_buffer(self, json_data, oeb_buffer_token):
+    def submit_oeb_buffer(self, json_data, oeb_buffer_token, community_id):
 
         logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}
-        params = {'access_token': oeb_buffer_token}
+        params = {
+                    'access_token': oeb_buffer_token,
+                    'community_id': community_id
+                    
+                }
         r = requests.post(self.OEB_SUBMISSION_API, params=params,
                           data=json.dumps(json_data), headers=header)
 

@@ -75,6 +75,9 @@ class participant():
         valid_participant_data["datalink"] = participant_data["datalink"]
         valid_participant_data["datalink"]["uri"] = file_location
 
+        # change date format for compatibility with Java validator (temporary solution)
+        valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
+
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
 
