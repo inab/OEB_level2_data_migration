@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 #########################################################
 	    VRE Level 2 to OpenEBench migration tool 
@@ -14,10 +16,35 @@ from argparse import ArgumentParser
 import sys
 import os
 import logging
+import urllib.parse
+import urllib.request
 
 
-def main(config_json, config_db, oeb_buffer_token):
+DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
+DEFAULT_CLIENT_ID = 'THECLIENTID'
+DEFAULT_GRANT_TYPE = 'password'
 
+# curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
+
+def getAccessToken(oeb_credentials):
+    authURI = oeb_credentials.get('authURI', DEFAULT_AUTH_URI)
+    payload = {
+        'client_id': oeb_credentials.get('clientId', DEFAULT_CLIENT_ID),
+        'grant_type': oeb_credentials.get('grantType', DEFAULT_GRANT_TYPE),
+        'username': oeb_credentials['user'],
+        'password': oeb_credentials['pass'],
+    }
+    
+    req = urllib.request.Request(authURI, data=urllib.parse.urlencode(payload).encode('UTF-8'), method='POST')
+    with urllib.request.urlopen(req) as t:
+        token = json.load(t)
+        
+        return token['access_token']
+
+def main(config_json, config_db, oeb_credentials):
+    
+    oeb_buffer_token = getAccessToken(oeb_credentials)
+    
     # check whether config file exists and has all the required fields
     try:
         with open(config_json, 'r') as f:
@@ -115,13 +142,14 @@ if __name__ == '__main__':
                         help="json file which contains all parameters for migration", required=True)
     parser.add_argument(
         "-db", "--config_db", help="yaml file with configuration for remote OEB db validation", required=True)
-    parser.add_argument("-tk", "--oeb_submit_api_token",
-                        help="token used for submission to oeb buffer DB", required=True)
+    parser.add_argument("-cr", "--oeb_submit_api_creds",
+                        help="Credentials used to obtain a token for submission to oeb buffer DB", required=True)
 
     args = parser.parse_args()
 
     config_json = args.config_json
     config_db = args.config_db
-    oeb_buffer_token = args.oeb_submit_api_token
+    with open(args.oeb_submit_api_creds, mode='r', encoding='utf-8') as ac:
+        oeb_credentials = json.load(ac)
 
-    main(config_json, config_db, oeb_buffer_token)
+    main(config_json, config_db, oeb_credentials)

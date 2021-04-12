@@ -1,0 +1,6 @@
+{
+	"authURI": "THEENDPOINT",
+	"clientId": "THECLIENTID",
+	"user": "YOURUSER",
+	"pass": "YOURPASSWORD"
+}
