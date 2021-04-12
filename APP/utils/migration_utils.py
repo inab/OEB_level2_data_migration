@@ -8,7 +8,7 @@ import subprocess
 import logging
 import json
 import requests
-#from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from fairtracks_validator.validator import FairGTracksValidator
 import yaml
 # We have preference for the C based loader and dumper, but the code
@@ -29,7 +29,7 @@ class utils():
         self.STORAGE_API_TOKEN = "STORAGE_TOKEN"
         self.OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
 
-        #requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         logging.basicConfig(level=logging.INFO)
 
