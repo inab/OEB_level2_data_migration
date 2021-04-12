@@ -1,6 +1,14 @@
 {
-	"authURI": "THEENDPOINT",
+	"authURI": "AUTH_ENDPOINT",
 	"clientId": "THECLIENTID",
 	"user": "YOURUSER",
-	"pass": "YOURPASSWORD"
+	"pass": "YOURPASSWORD",
+	"storageServer": {
+		"type": "b2share",
+		"community": "THE_B2SHARE_COMMUNITY_UUID",
+		"token": "STORAGE_TOKEN",
+		"endpoint": "STORAGE_ENDPOINT"
+	},
+	"graphqlURI": "GRAPHQL_ENDPOINT",
+	"submissionURI": "SUBMISSION_ENDPOINT"
 }

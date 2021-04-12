@@ -20,14 +20,23 @@ except ImportError:
 
 
 class utils():
+    DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
+    DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
+    DEFAULT_GIT_CMD = 'git'
+    DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
-    def __init__(self, config_db):
+    def __init__(self, config_db, oeb_credentials, workdir):
 
-        self.DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
-        self.DEFAULT_GIT_CMD = 'git'
-        self.DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
-        self.STORAGE_API_TOKEN = "STORAGE_TOKEN"
-        self.OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
+        self.data_model_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
+        self.git_cmd = self.DEFAULT_GIT_CMD
+        self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
+	
+        storageServer = oeb_credentials.get('storageServer', {})
+        self.b2share_api_token = storageServer['token']
+        self.b2share_community = storageServer['community']
+        self.b2share_endpoint = storageServer['endpoint']
+        
+        self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
 
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
@@ -49,7 +58,7 @@ class utils():
 
         # Assure directory exists before next step
         repo_destdir = os.path.join(
-            self.DEFAULT_DATA_MODEL_DIR, repo_hashed_id)
+            self.data_model_dir, repo_hashed_id)
         if not os.path.exists(repo_destdir):
             try:
                 os.makedirs(repo_destdir)
@@ -63,17 +72,17 @@ class utils():
         if not os.path.exists(repo_tag_destdir):
             # Try cloing the repository without initial checkout
             gitclone_params = [
-                self.DEFAULT_GIT_CMD, 'clone', '-n', '--recurse-submodules', git_uri, repo_tag_destdir
+                self.git_cmd, 'clone', '-n', '--recurse-submodules', git_uri, repo_tag_destdir
             ]
 
             # Now, checkout the specific commit
             gitcheckout_params = [
-                self.DEFAULT_GIT_CMD, 'checkout', git_tag
+                self.git_cmd, 'checkout', git_tag
             ]
 
             # Last, initialize submodules
             gitsubmodule_params = [
-                self.DEFAULT_GIT_CMD, 'submodule', 'update', '--init'
+                self.git_cmd, 'submodule', 'update', '--init'
             ]
 
             with tempfile.NamedTemporaryFile() as git_stdout:
@@ -208,7 +217,7 @@ class utils():
                                     }\
                                 }'}
         try:
-            url = self.DEFAULT_OEB_API
+            url = self.oeb_api
             # get challenges and input datasets for provided benchmarking event
             r = requests.post(url=url, json=json_query, verify=False)
             response = r.json()
@@ -230,7 +239,7 @@ class utils():
             logging.exception(e)
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
-    def upload_to_storage_service(self, endpoint, participant_data, file_location, contact_email, data_version):
+    def upload_to_storage_service(self, participant_data, file_location, contact_email, data_version):
 
         # check if file already has an assigned doi, if not, upload
         if "doi.org" in file_location:
@@ -239,14 +248,14 @@ class utils():
             return file_location
 
         else:
-
+            endpoint = self.b2share_endpoint
             # 1. create new record
             logging.info("Uploading participant's predictions file to " +
                          endpoint + " for permanent storage")
             header = {"Content-Type": "application/json"}
-            params = {'access_token': self.STORAGE_API_TOKEN}
+            params = {'access_token': self.b2share_api_token}
             metadata = {"titles": [{"title": "Predictions made by " + participant_data["participant_id"] + " participant in OpenEBench Virtual Research Environment"}],
-                        "community": "THE_B2SHARE_COMMUNITY_UUID",
+                        "community": self.b2share_community,
                         "community_specific": {},
                         "contact_email": contact_email,
                         "version": str(data_version),
@@ -354,7 +363,7 @@ class utils():
                     'community_id': community_id
                     
                 }
-        r = requests.post(self.OEB_SUBMISSION_API, params=params,
+        r = requests.post(self.oeb_submission_api, params=params,
                           data=json.dumps(json_data), headers=header)
 
         if r.status_code != 200:

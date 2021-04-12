@@ -47,10 +47,16 @@ def main(config_json, config_db, oeb_credentials):
     
     # check whether config file exists and has all the required fields
     try:
+        config_json_dir = os.path.dirname(os.path.abspath(config_json))
         with open(config_json, 'r') as f:
             config_params = json.load(f)
-
+            
+            # When this path is relative, the reference is the directory
+            # of the configuration file
             input_file = config_params["consolidated_oeb_data"]
+            if not os.path.isabs(input_file):
+                input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
+            
             data_visibility = config_params["data_visibility"]
             bench_event_id = config_params["benchmarking_event_id"]
             file_location = config_params["participant_file"]
@@ -60,35 +66,48 @@ def main(config_json, config_db, oeb_credentials):
             contacts = config_params["data_contacts"]
             data_model_repo = config_params["data_model_repo"]
             data_model_tag = config_params["data_model_tag"]
-            storage_server_endpoint = config_params["data_storage_endpoint"]
+            storageServer = oeb_credentials.get('storageServer', {})
+            if storageServer['type'] == 'b2share':
+                if 'endpoint' not in storageServer:
+                    storageServer['endpoint'] = config_params["data_storage_endpoint"]
+            else:
+                raise Exception('Unknown server type "{}"'.format(storageServer['type']))
             workflow_id = config_params["workflow_oeb_id"]
 
     except Exception as e:
 
         logging.fatal(e, "config file " + config_json +
                       " is missing or has incorrect format")
-        sys.exit()
-
-    with open(input_file, 'r') as f:
-        data = json.load(f)
+        sys.exit(1)
+    
+    try:
+        with open(input_file, 'r') as f:
+            data = json.load(f)
+    except Exception as e:
+        logging.fatal(e, "input file " + input_file +
+                      " is missing or has incorrect format")
+        sys.exit(1)
 
     # sort out dataset depending on 'type' property
     min_assessment_datasets = []
     min_aggregation_datasets = []
-    for dataset in data:
-
-        if "type" in dataset and dataset["type"] == "participant":
+    for i_dataset, dataset in enumerate(data):
+        dataset_type = dataset.get("type")
+        if dataset_type == "participant":
             min_participant_data = dataset
-        elif "type" in dataset and dataset["type"] == "assessment":
+        elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
-        elif "type" in dataset and dataset["type"] == "aggregation":
+        elif dataset_type == "aggregation":
             min_aggregation_datasets.append(dataset)
+        #else:
+        #    logging.error("Dataset {} is of unknown type {}".format(i_dataset,dataset_type))
+        #    sys.exit(2)
 
     # get data model to validate against
-    migration_utils = utils(config_db)
+    migration_utils = utils(config_db, oeb_credentials, config_json_dir)
     data_model_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
-    data_model_dir = os.path.join(os.getcwd(), data_model_dir)
+    data_model_dir = os.path.abspath(data_model_dir)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     query_response = migration_utils.query_OEB_DB(
@@ -96,7 +115,7 @@ def main(config_json, config_db, oeb_credentials):
 
     # upload predicitions file to stable server and get permanent identifier
     data_doi = migration_utils.upload_to_storage_service(
-        storage_server_endpoint, min_participant_data, file_location, contacts[0], version)
+        min_participant_data, file_location, contacts[0], version)
 
     # generate all required objects
     process_participant = participant()
@@ -143,7 +162,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-db", "--config_db", help="yaml file with configuration for remote OEB db validation", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
-                        help="Credentials used to obtain a token for submission to oeb buffer DB", required=True)
+                        help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
 
     args = parser.parse_args()
 
