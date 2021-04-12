@@ -26,20 +26,25 @@ class aggregation():
 
             # check if assessment datasets already exist in OEB for the provided bench event id
             # in that case, there is no need to generate new datasets, just adding the new metrics to the existing one
+            orig_future_id = build_new_aggregation_id(dataset)
             if dataset["_id"].startswith("OEB"):
                 sys.stdout.write(
                     'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
                 agg_key = "_id"
+                future_id = dataset["_id"]
             else:
                 agg_key = "orig_id"
+                future_id = orig_future_id
             
             # This cache is very useful when assembling a bunch of new data from several participants
-            valid_data = agg_by_id.get(dataset["_id"])
+            valid_data = agg_by_id.get(future_id)
+            if (valid_data is None) and future_id!=orig_future_id:
+                valid_data = agg_by_id.get(orig_future_id)
             if valid_data is None:
                 for challenge in data:
                     if challenge["_id"] in dataset["challenge_ids"]:
                         for agg_data in challenge["datasets"]:
-                            if dataset["_id"] == agg_data[agg_key]:
+                            if future_id == agg_data[agg_key]:
                                 valid_data = agg_data
                                 break
                         if valid_data is not None:
@@ -96,7 +101,7 @@ class aggregation():
                         continue
 
             valid_aggregation_datasets.append(valid_data)
-            agg_by_id[dataset["_id"]] = valid_data
+            agg_by_id[valid_data["_id"]] = valid_data
 
 
         return valid_aggregation_datasets
@@ -199,12 +204,17 @@ class aggregation():
         return aggregation_events
 
 
+def build_new_aggregation_id(dataset):
+    metrics = [dataset["datalink"]["inline_data"]["visualization"]["x_axis"], dataset["datalink"]["inline_data"]["visualization"]["y_axis"]]
+    
+    return dataset["_id"] + "_" + metrics[0] + "+" + metrics[1]
+
 def new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id):
 
     # initialize new dataset object
     metrics = [dataset["datalink"]["inline_data"]["visualization"]["x_axis"], dataset["datalink"]["inline_data"]["visualization"]["y_axis"]]
     valid_data = {
-        "_id": dataset["_id"] + "_" + metrics[0] + "+" + metrics[1],
+        "_id": build_new_aggregation_id(dataset),
         "type": "aggregation"
     }
 
