@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import logging
 import sys
 import os
 from datetime import datetime, timezone
 import json
-from process.benchmarking_dataset import benchmarking_dataset
+from .benchmarking_dataset import benchmarking_dataset
 
 
 class assessment():

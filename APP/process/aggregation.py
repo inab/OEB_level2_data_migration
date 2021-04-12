@@ -1,9 +1,11 @@
+#!/usr/bin/env python
+
 import logging
 import sys
 import os
 from datetime import datetime, timezone
 import json
-from process.benchmarking_dataset import benchmarking_dataset
+from .benchmarking_dataset import benchmarking_dataset
 
 
 class aggregation():
@@ -18,6 +20,7 @@ class aggregation():
             "\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
 
         valid_aggregation_datasets = []
+        agg_by_id = dict()
         data = response["data"]["getChallenges"]
         for dataset in aggregation_datasets:
 
@@ -26,20 +29,29 @@ class aggregation():
             if dataset["_id"].startswith("OEB"):
                 sys.stdout.write(
                     'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
-
-                for challenge in [item for item in data if item["_id"] in dataset["challenge_ids"]]:
-                    for agg_data in challenge["datasets"]:
-                        if agg_data["_id"] == dataset["_id"]:
-                            valid_data = agg_data
+                agg_key = "_id"
+            else:
+                agg_key = "orig_id"
+            
+            # This cache is very useful when assembling a bunch of new data from several participants
+            valid_data = agg_by_id.get(dataset["_id"])
+            if valid_data is None:
+                for challenge in data:
+                    if challenge["_id"] in dataset["challenge_ids"]:
+                        for agg_data in challenge["datasets"]:
+                            if dataset["_id"] == agg_data[agg_key]:
+                                valid_data = agg_data
+                                break
+                        if valid_data is not None:
                             break
-                    break
-
-                if valid_data == None:
-                    sys.stdout.write(
-                        'Dataset "' + str(dataset["_id"]) + '" is not registered in OpenEBench... Building new object\n')
-                    new_aggregation(
-                        response, dataset, assessment_datasets, community_id, version, workflow_id)
-                    continue
+            
+            # If dataset could not be found, then store new one
+            if valid_data is None:
+                sys.stdout.write(
+                    'Dataset "' + str(dataset["_id"]) + '" is not registered in OpenEBench... Building new object\n')
+                valid_data = new_aggregation(
+                    response, dataset, assessment_datasets, community_id, version, workflow_id)
+            else:
 
                 # add new participant metrics to OEB aggregation dataset
                 tool_name = participant_data["participant_id"]
@@ -83,16 +95,9 @@ class aggregation():
                     except:
                         continue
 
-                valid_aggregation_datasets.append(valid_data)
+            valid_aggregation_datasets.append(valid_data)
+            agg_by_id[dataset["_id"]] = valid_data
 
-            else:  # if dataset does not have oeb id, build a new one
-
-                sys.stdout.write('Building object "' +
-                                 str(dataset["_id"]) + '"...\n')
-                valid_data = new_aggregation(
-                    response, dataset, assessment_datasets, community_id, version, workflow_id)
-
-                valid_aggregation_datasets.append(valid_data)
 
         return valid_aggregation_datasets
 
