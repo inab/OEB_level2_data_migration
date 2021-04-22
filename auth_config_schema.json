@@ -1,0 +1,90 @@
+{
+	"id": "https://github.com/inab/OEB_level2_data_migration/configuration-json-schema",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Schema that defines the configuration file for OEB_level2_data_migration",
+	"type": "object",
+	"properties": {
+		"authURI": {
+			"title": "OpenID Connect auth URI",
+			"description": "OpenID Connect authorization URI to the token endpoint",
+			"type": "string",
+			"format": "uri",
+			"minLength": 1
+		},
+		"clientId": {
+			"title": "OpenID Connect client id",
+			"description": "The client id registered at OpenID Connect server",
+			"type": "string",
+			"minLength": 1
+		},
+		"user": {
+			"title": "Username",
+			"description": "User to be used to request an OpenID access token",
+			"type": "string",
+			"minLength": 1
+		},
+		"pass": {
+			"title": "Password",
+			"description": "password to be used to request an OpenID access token",
+			"type": "string",
+			"minLength": 1
+		},
+		"storageServer": {
+			"title": "Storage server configuration options",
+			"description": "Perdurable storage server (B2SHARE, Zenodo) configuration options",
+			"type": "object",
+			"properties": {
+				"type": {
+					"title": "Type of storage server",
+					"description": "Type of storage server ('b2share' right now)",
+					"type": "string",
+					"minLength": 1,
+					"examples": [
+						"b2share"
+					]
+				},
+				"community": {
+					"title": "Community id",
+					"description": "In the case of B2SHARE, the community id (its UUID) where the dataset bundle will be hosted",
+					"type": "string"
+				},
+				"token": {
+					"title": "The submission token needed to obtain the authorization",
+					"description": "The submission token needed to obtain the authorization",
+					"type": "string",
+					"minLength": 1
+				},
+				"endpoint": {
+					"title": "Storage endpoint",
+					"description": "Storage endpoint used to submit the assessment dataset to a perdurable storage which is able to provide a persistent id (e.g. a DOI)",
+					"type": "string",
+					"format": "uri",
+					"minLength": 1
+				}
+			},
+			"required": [
+				"type",
+				"token",
+				"endpoint"
+			],
+			"additionalProperties": true
+		},
+		"graphqlURI": {
+			"title": "GraphQL query endpoint",
+			"description": "GraphQL query endpoint used to query and fetch the different datasets and events",
+			"type": "string",
+			"format": "uri",
+			"minLength": 1
+		},
+		"submissionURI": {
+			"title": "OpenEBench submission endpoint",
+			"description": "This endpoint is used to stage-in the datasets and events",
+			"type": "string",
+			"format": "uri",
+			"minLength": 1
+		}
+	},
+	"required": [
+	],
+	"additionalProperties": false
+}

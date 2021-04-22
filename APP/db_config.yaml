@@ -2,5 +2,6 @@
 primary_key:
   provider:
     - 'https://dev-openebench.bsc.es/api/scientific/access/'
+#    - 'https://dev-openebench.bsc.es/api/scientific/submission/'
   schema_prefix: 'https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/'
   accept: 'text/uri-list'

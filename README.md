@@ -1,6 +1,6 @@
 # OEB_workflows_data_migration (BETA version)
 ## Description
-Application used by community managers to migrate results of a benchmarking workflow from [Virtual Research Environment](https://openebench.bsc.es/vre) to [OpenEBench](https://openebench.bsc.es) database. It takes the minimal datasets from the 'consolidated results' from the workflow, adds the rest of metadata to validate against the [Benchmarking Data Model](https://github.com/inab/benchmarking-data-model), and the required OEB keys, builds the neccesary TestActions, and finally pushes them to OpenEBench temporary database.
+Application used by community managers to migrate results of a benchmarking workflow from [Virtual Research Environment](https://openebench.bsc.es/vre) to [OpenEBench](https://openebench.bsc.es) database. It takes the minimal datasets from the 'consolidated results' from the workflow, adds the rest of metadata to validate against the [Benchmarking Data Model](https://github.com/inab/benchmarking-data-model), and the required OEB keys, builds the necessary TestActions, and finally pushes them to OpenEBench temporary database.
 
 ## Prerequisites for moving workflow results from VRE to OEB
 In order to use the migration tool, some requirements need to be fulfilled:
@@ -13,22 +13,40 @@ In order to use the migration tool, some requirements need to be fulfilled:
 
 ## Parameters
 
-parser.add_argument("-i", "--consolidated_oeb_data", help="json file with the aggregation of datasets coming from a OEB VRE workflow \
-                                                                    (data_type:consolidated_benchmark_dataset)", required=True)
-    parser.add_argument("-v", "--data_visibility", help="visibility of the datasets associated to the participant's run, according \
-                                                                    to the benchmarking data model - 'enum': [ 'public', 'community', 'challenge', 'participant' ]", required=True)
-    parser.add_argument("-be", "--benchmarking_event_id", help="benchmarking event id that corresponds to the executed workflow \
-                                                                    - should be an official OEB id stored in the DB", required=True)
-    parser.add_argument("-f", "--participant_file", help="location of the file that was uploaded by the participant \
-                                                                    - should be a FS path or a remote DOI", required=True)
-    parser.add_argument("-com", "--community_id", help=" official id of the community that corresponds to the execution \
-                                                                    - should already be registered in OEB", required=True)
-    parser.add_argument("-t", "--tool_id", help=" official id of the tool that made the predictions which were used as input \
-                                                    , if tool is not registered in OEB, should provide the access to a form to register it", required=True)
-    parser.add_argument("-vers", "--data_version", help=" version for annotating metadata of all datasets coming from this execution \
-                                                    not required - default: unknown", required=False, default="unknown")  
+```
+usage: push_data_to_oeb.py [-h] -i CONFIG_JSON -db CONFIG_DB -cr
+                           OEB_SUBMIT_API_CREDS [-o OUTPUT]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i CONFIG_JSON, --config_json CONFIG_JSON
+                        json file which contains all parameters for migration
+  -db CONFIG_DB, --config_db CONFIG_DB
+                        yaml file with configuration for remote OEB db
+                        validation
+  -cr OEB_SUBMIT_API_CREDS, --oeb_submit_api_creds OEB_SUBMIT_API_CREDS
+                        Credentials and endpoints used to obtain a token for
+                        submission to oeb buffer DB
+  -o OUTPUT, --output OUTPUT
+                        Save what it was going to be submitted in this file,
+                        instead of sending them (like a dry-run)
+```
 
 ## Usage
 
-Edit the [run.sh](./run.sh) file with your own parameters. E.g.:
-.py3env/bin/python push_data_to_oeb.py -i config.json -db ./db_config.yaml -tk <YOUR-KEYCLOACK-TOKEN>
+First, install the Python dependencies in a virtual environment:
+
+```bash
+cd APP
+python3 -m venv .py3env
+source .py3env/bin/activate
+pip install --upgrade pip wheel
+pip install -r requirements.txt
+```
+
+Create a `config.json` file declaring the partial dataset to be uplifted to the benchmarking data model (JSON Schema [available here](submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [available here](auth_config_schema.json)).
+
+```bash
+# The command must be run with the virtual environment enabled
+python push_data_to_oeb.py -i config.json -db ./db_config.yaml -cr auth_config.json
+```
