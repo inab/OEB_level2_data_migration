@@ -7,9 +7,10 @@ import json
 
 class participant():
 
-    def __init__(self):
+    def __init__(self, schemaMappings):
 
         logging.basicConfig(level=logging.INFO)
+        self.schemaMappings = schemaMappings
 
     def build_participant_dataset(self, response, participant_data, data_visibility, file_location, community_id, tool_id, version, contacts):
 
@@ -79,7 +80,7 @@ class participant():
         valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
 
         # add Benchmarking Data Model Schema Location
-        valid_participant_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+        valid_participant_data["_schema"] = self.schemaMappings["Dataset"]
 
         # remove custom workflow community id and add OEB id for the community
         valid_participant_data["community_ids"] = [community_id]
@@ -124,7 +125,7 @@ class participant():
 
             event = {
                 "_id": challenge + "_testEvent_" + participant_data["participant_id"],
-                "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+                "_schema": self.schemaMappings["TestAction"],
                 "action_type": "TestEvent",
             }
 

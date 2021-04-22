@@ -27,7 +27,7 @@ class utils():
 
     def __init__(self, config_db, oeb_credentials, workdir):
 
-        self.data_model_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
+        self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
         self.git_cmd = self.DEFAULT_GIT_CMD
         self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
 	
@@ -58,7 +58,7 @@ class utils():
 
         # Assure directory exists before next step
         repo_destdir = os.path.join(
-            self.data_model_dir, repo_hashed_id)
+            self.data_model_repo_dir, repo_hashed_id)
         if not os.path.exists(repo_destdir):
             try:
                 os.makedirs(repo_destdir)
@@ -117,121 +117,127 @@ class utils():
     def query_OEB_DB(self, bench_event_id, tool_id, community_id, data_type):
 
         if data_type == "input":
-            json_query = {'query': '{\
-                                    getChallenges(challengeFilters: {benchmarking_event_id: "' + bench_event_id + '"}) {\
-                                        _id\
-                                        _metadata\
-                                        datasets(datasetFilters: {type: "input"}) {\
-                                            _id\
-                                        }\
-                                    }\
-                                    getTools(toolFilters: {id: "' + tool_id + '"}) {\
-                                        _id\
-                                    }\
-                                    getContacts(contactFilters:{community_id:"' + community_id + '"}){\
-                                        _id\
-                                        email\
-                                    }\
-                                }'}
+            json_query = {'query': f"""{{
+    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+        _id
+        _metadata
+        datasets(datasetFilters: {{type: "input"}}) {{
+            _id
+        }}
+    }}
+    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+        _id
+    }}
+    getContacts(contactFilters:{{community_id:"{community_id}"}}) {{
+        _id
+        email
+    }}
+}}"""
+            }
         elif data_type == "metrics_reference":
-            json_query = {'query': '{\
-                                    getChallenges(challengeFilters: {benchmarking_event_id: "' + bench_event_id + '"}) {\
-                                        _id\
-                                        _metadata\
-                                        datasets(datasetFilters: {type: "metrics_reference"}) {\
-                                            _id\
-                                        }\
-                                    }\
-                                    getTools(toolFilters: {id: "' + tool_id + '"}) {\
-                                        _id\
-                                    }\
-                                    getContacts(contactFilters:{community_id:"' + community_id + '"}){\
-                                        _id\
-                                        email\
-                                    }\
-                                    getMetrics {\
-                                        _id\
-                                        _metadata\
-                                    }\
-                                }'}
+            json_query = {'query': f"""{{
+    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+        _id
+        _metadata
+        datasets(datasetFilters: {{type: "metrics_reference"}}) {{
+            _id
+        }}
+    }}
+    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+        _id
+    }}
+    getContacts(contactFilters:{{community_id: "{community_id}"}}) {{
+        _id
+        email
+    }}
+    getMetrics {{
+        _id
+        _metadata
+    }}
+}}"""
+            }
         elif data_type == "aggregation":
-            json_query = {'query': '{\
-                                    getChallenges(challengeFilters: {benchmarking_event_id: "' + bench_event_id + '"}) {\
-                                        _id\
-                                        _metadata\
-                                        challenge_contact_ids\
-                                        datasets(datasetFilters: {type: "aggregation"}) {\
-                                                _id\
-                                                _schema\
-                                                orig_id\
-                                                community_ids\
-                                                challenge_ids\
-                                                visibility\
-                                                name\
-                                                version\
-                                                description\
-                                                dates {\
-                                                    creation\
-                                                    modification\
-                                                }\
-                                                type\
-                                                datalink {\
-                                                    inline_data\
-                                                }\
-                                                dataset_contact_ids\
-                                                depends_on {\
-                                                    tool_id\
-                                                    rel_dataset_ids {\
-                                                    dataset_id\
-                                                    }\
-                                                }\
-                                        }\
-                                    }\
-                                    getTools(toolFilters: {id: "' + tool_id + '"}) {\
-                                        _id\
-                                    }\
-                                    getContacts(contactFilters:{community_id:"' + community_id + '"}){\
-                                        _id\
-                                        email\
-                                    }\
-                                    getMetrics {\
-                                        _id\
-                                        _metadata\
-                                    }\
-                                      getTestActions{\
-                                        _id\
-                                        _schema\
-                                        orig_id\
-                                        tool_id\
-                                        action_type\
-                                        involved_datasets{\
-                                            dataset_id\
-                                            role\
-                                        }\
-                                        challenge_id\
-                                        test_contact_ids\
-                                        dates{\
-                                            creation\
-                                            modification\
-                                        }\
-                                    }\
-                                }'}
+            json_query = {'query': f"""{{
+    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+        _id
+        _metadata
+        challenge_contact_ids
+        datasets(datasetFilters: {{type: "aggregation"}}) {{
+                _id
+                _schema
+                orig_id
+                community_ids
+                challenge_ids
+                visibility
+                name
+                version
+                description
+                dates {{
+                    creation
+                    modification
+                }}
+                type
+                datalink {{
+                    inline_data
+                }}
+                dataset_contact_ids
+                depends_on {{
+                    tool_id
+                    rel_dataset_ids {{
+                        dataset_id
+                    }}
+                }}
+        }}
+    }}
+    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+        _id
+    }}
+    getContacts(contactFilters:{{community_id: "{community_id}"}}) {{
+        _id
+        email
+    }}
+    getMetrics {{
+        _id
+        _metadata
+    }}
+    getTestActions {{
+        _id
+        _schema
+        orig_id
+        tool_id
+        action_type
+        involved_datasets {{
+            dataset_id
+            role
+        }}
+        challenge_id
+        test_contact_ids
+        dates {{
+            creation
+            modification
+        }}
+    }}
+}}"""
+                        }
+        else:
+            logging.fatal("Unable to generate graphQL query: Unknown datatype {}".format(data_type))
+            sys.exit(2)
         try:
             url = self.oeb_api
             # get challenges and input datasets for provided benchmarking event
             r = requests.post(url=url, json=json_query, verify=False)
             response = r.json()
-            if response["data"]["getChallenges"] == []:
+            if len(response["data"]["getChallenges"]) == 0:
 
                 logging.fatal("No challenges associated to benchmarking event " + bench_event_id +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit()
             # check if provided oeb tool actually exists
-            elif response["data"]["getTools"] == []:
+            elif len(response["data"]["getTools"]) == 0:
 
                 logging.fatal(
                     "No tool '" + tool_id + "' was found in OEB. Please contact OpenEBench support for information about how to register your tool")
-                sys.exit()
+                sys.exit(2)
             else:
                 return response
         except Exception as e:
@@ -314,17 +320,25 @@ class utils():
                          "' uploaded and permanent ID assigned: " + data_doi)
             return data_doi
 
-    def schemas_validation(self, jsonSchemas_array, data_model_dir):
+    def load_schemas(self, data_model_dir):
 
         # create the cached json schemas for validation
-        numSchemas = self.schema_validators.loadJSONSchemas(
-            os.path.join(data_model_dir, "json-schemas", "1.0.x"), verbose=False)
+        numSchemas = self.schema_validators.loadJSONSchemas(data_model_dir, verbose=False)
 
         if numSchemas == 0:
             print(
                 "FATAL ERROR: No schema was successfuly loaded. Exiting...\n", file=sys.stderr)
             sys.exit(1)
+        
+        schemaMappings = {}
+        for key in self.schema_validators.getValidSchemas().keys():
+            concept = key[key.rindex('/')+1:]
+            if concept:
+                schemaMappings[concept] = key
+        
+        return schemaMappings
 
+    def schemas_validation(self, jsonSchemas_array):
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         logging.info(

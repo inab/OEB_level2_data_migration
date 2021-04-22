@@ -10,9 +10,10 @@ from .benchmarking_dataset import benchmarking_dataset
 
 class aggregation():
 
-    def __init__(self):
+    def __init__(self, schemaMappings):
 
         logging.basicConfig(level=logging.INFO)
+        self.schemaMappings = schemaMappings
 
     def build_aggregation_datasets(self, response, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
 
@@ -22,6 +23,7 @@ class aggregation():
         valid_aggregation_datasets = []
         agg_by_id = dict()
         data = response["data"]["getChallenges"]
+        dataset_schema_uri = self.schemaMappings['Dataset']
         for dataset in aggregation_datasets:
 
             # check if assessment datasets already exist in OEB for the provided bench event id
@@ -55,7 +57,7 @@ class aggregation():
                 sys.stdout.write(
                     'Dataset "' + str(dataset["_id"]) + '" is not registered in OpenEBench... Building new object\n')
                 valid_data = new_aggregation(
-                    response, dataset, assessment_datasets, community_id, version, workflow_id)
+                    response, dataset, assessment_datasets, community_id, version, workflow_id, dataset_schema_uri)
             else:
 
                 # add new participant metrics to OEB aggregation dataset
@@ -153,7 +155,7 @@ class aggregation():
             else:  # if datset is not in oeb a  new event object will be created
                 event = {
                     "_id": dataset["_id"] + "_Event",
-                    "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+                    "_schema": self.schemaMappings['TestAction'],
                     "action_type": "AggregationEvent",
                 }
 
@@ -209,7 +211,7 @@ def build_new_aggregation_id(dataset):
     
     return dataset["_id"] + "_" + metrics[0] + "+" + metrics[1]
 
-def new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id):
+def new_aggregation(response, dataset, assessment_datasets, community_id, version, workflow_id, dataset_schema_uri):
 
     # initialize new dataset object
     metrics = [dataset["datalink"]["inline_data"]["visualization"]["x_axis"], dataset["datalink"]["inline_data"]["visualization"]["y_axis"]]
@@ -269,19 +271,20 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
     for assess_element in assessment_datasets:
 
         try:
-            if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+            vis = dataset["datalink"]["inline_data"]["visualization"]
+            if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
-            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
             #check for not 'oeb' challenges ids, in case the datasets is still not uploaded
-            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["x_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
-            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == dataset["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+            elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["y_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
             # also check for official oeb metrics, in case the aggregation dataset contains them
-            elif assess_element["depends_on"]["metrics_id"] == dataset["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+            elif assess_element["depends_on"]["metrics_id"] == vis["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
-            elif assess_element["depends_on"]["metrics_id"] == dataset["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+            elif assess_element["depends_on"]["metrics_id"] == vis["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                 rel_data.append({"dataset_id": assess_element["_id"]})
         except:
             continue
@@ -302,7 +305,7 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
     valid_data["datalink"] = datalink
 
     # add Benchmarking Data Model Schema Location
-    valid_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+    valid_data["_schema"] = dataset_schema_uri
 
     # add OEB id for the community
     valid_data["community_ids"] = [community_id]

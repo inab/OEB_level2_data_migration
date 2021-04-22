@@ -23,6 +23,7 @@ import urllib.request
 DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
 DEFAULT_CLIENT_ID = 'THECLIENTID'
 DEFAULT_GRANT_TYPE = 'password'
+DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
 
@@ -39,9 +40,11 @@ def getAccessToken(oeb_credentials):
     with urllib.request.urlopen(req) as t:
         token = json.load(t)
         
+        logging.info("Token {}".format(token['access_token']))
+        
         return token['access_token']
 
-def main(config_json, config_db, oeb_credentials):
+def main(config_json, config_db, oeb_credentials, output_filename=None):
     
     oeb_buffer_token = getAccessToken(oeb_credentials)
     
@@ -50,29 +53,34 @@ def main(config_json, config_db, oeb_credentials):
         config_json_dir = os.path.dirname(os.path.abspath(config_json))
         with open(config_json, 'r') as f:
             config_params = json.load(f)
-            
-            # When this path is relative, the reference is the directory
-            # of the configuration file
-            input_file = config_params["consolidated_oeb_data"]
-            if not os.path.isabs(input_file):
-                input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
-            
-            data_visibility = config_params["data_visibility"]
-            bench_event_id = config_params["benchmarking_event_id"]
-            file_location = config_params["participant_file"]
-            community_id = config_params["community_id"]
-            tool_id = config_params["tool_id"]
-            version = config_params["data_version"]
-            contacts = config_params["data_contacts"]
-            data_model_repo = config_params["data_model_repo"]
-            data_model_tag = config_params["data_model_tag"]
-            storageServer = oeb_credentials.get('storageServer', {})
-            if storageServer['type'] == 'b2share':
-                if 'endpoint' not in storageServer:
-                    storageServer['endpoint'] = config_params["data_storage_endpoint"]
-            else:
-                raise Exception('Unknown server type "{}"'.format(storageServer['type']))
-            workflow_id = config_params["workflow_oeb_id"]
+        
+        # When this path is relative, the reference is the directory
+        # of the configuration file
+        input_file = config_params["consolidated_oeb_data"]
+        if not os.path.isabs(input_file):
+            input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
+        if not os.path.exists(input_file):
+            logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json))
+            sys.exit(1)
+        
+        
+        data_visibility = config_params["data_visibility"]
+        bench_event_id = config_params["benchmarking_event_id"]
+        file_location = config_params["participant_file"]
+        community_id = config_params["community_id"]
+        tool_id = config_params["tool_id"]
+        version = config_params["data_version"]
+        contacts = config_params["data_contacts"]
+        data_model_repo = config_params["data_model_repo"]
+        data_model_tag = config_params["data_model_tag"]
+        data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
+        storageServer = oeb_credentials.get('storageServer', {})
+        if storageServer['type'] == 'b2share':
+            if 'endpoint' not in storageServer:
+                storageServer['endpoint'] = config_params["data_storage_endpoint"]
+        else:
+            raise Exception('Unknown server type "{}"'.format(storageServer['type']))
+        workflow_id = config_params["workflow_oeb_id"]
 
     except Exception as e:
 
@@ -99,15 +107,16 @@ def main(config_json, config_db, oeb_credentials):
             min_assessment_datasets.append(dataset)
         elif dataset_type == "aggregation":
             min_aggregation_datasets.append(dataset)
-        #else:
-        #    logging.error("Dataset {} is of unknown type {}".format(i_dataset,dataset_type))
+        else:
+            logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
         #    sys.exit(2)
 
     # get data model to validate against
     migration_utils = utils(config_db, oeb_credentials, config_json_dir)
-    data_model_dir = migration_utils.doMaterializeRepo(
+    data_model_repo_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
-    data_model_dir = os.path.abspath(data_model_dir)
+    data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
+    schemaMappings = migration_utils.load_schemas(data_model_dir)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     query_response = migration_utils.query_OEB_DB(
@@ -118,7 +127,7 @@ def main(config_json, config_db, oeb_credentials):
         min_participant_data, file_location, contacts[0], version)
 
     # generate all required objects
-    process_participant = participant()
+    process_participant = participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
         query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
 
@@ -129,7 +138,7 @@ def main(config_json, config_db, oeb_credentials):
     query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
 
-    process_assessments = assessment()
+    process_assessments = assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
         query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
 
@@ -140,7 +149,7 @@ def main(config_json, config_db, oeb_credentials):
     query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
 
-    process_aggregations = aggregation()
+    process_aggregations = aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
         query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     valid_aggregation_events = process_aggregations.build_aggregation_events(
@@ -149,9 +158,14 @@ def main(config_json, config_db, oeb_credentials):
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
         valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
-    migration_utils.schemas_validation(final_data, data_model_dir)
-
-    migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
+    migration_utils.schemas_validation(final_data)
+    
+    if output_filename is None:
+        migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
+    else:
+        logging.info("Storing output at {}".format(output_filename))
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
 
 
 if __name__ == '__main__':
@@ -159,10 +173,12 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-i", "--config_json",
                         help="json file which contains all parameters for migration", required=True)
-    parser.add_argument(
-        "-db", "--config_db", help="yaml file with configuration for remote OEB db validation", required=True)
+    parser.add_argument("-db", "--config_db",
+                        help="yaml file with configuration for remote OEB db validation", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
                         help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
+    parser.add_argument("-o", "--output",
+                        help="Save what it was going to be submitted in this file, instead of sending them (like a dry-run)")
 
     args = parser.parse_args()
 
@@ -171,4 +187,5 @@ if __name__ == '__main__':
     with open(args.oeb_submit_api_creds, mode='r', encoding='utf-8') as ac:
         oeb_credentials = json.load(ac)
 
-    main(config_json, config_db, oeb_credentials)
+    logging.basicConfig(level=logging.INFO)
+    main(config_json, config_db, oeb_credentials, args.output)

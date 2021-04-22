@@ -10,9 +10,10 @@ from .benchmarking_dataset import benchmarking_dataset
 
 class assessment():
 
-    def __init__(self):
+    def __init__(self, schemaMappings):
 
         logging.basicConfig(level=logging.INFO)
+        self.schemaMappings = schemaMappings
 
     def build_assessment_datasets(self, response, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts):
 
@@ -94,7 +95,7 @@ class assessment():
                 "value": metric_value, "error": error_value}}
 
             # add Benchmarking Data Model Schema Location
-            valid_data["_schema"] = "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+            valid_data["_schema"] = self.schemaMappings["Dataset"]
 
             # add OEB id for the community
             valid_data["community_ids"] = [community_id]
@@ -151,7 +152,7 @@ class assessment():
             event_id = rchop(dataset["_id"], "_A") + "_MetricsEvent"
             event = {
                 "_id": event_id,
-                "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+                "_schema": self.schemaMappings["TestAction"],
                 "action_type": "MetricsEvent",
             }
 
