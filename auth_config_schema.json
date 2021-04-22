@@ -85,6 +85,13 @@
 		}
 	},
 	"required": [
+		"authURI",
+		"clientId",
+		"user",
+		"pass",
+		"storageServer",
+		"graphqlURI",
+		"submissionURI"
 	],
 	"additionalProperties": false
 }
