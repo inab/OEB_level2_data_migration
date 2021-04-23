@@ -10,6 +10,10 @@ import json
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from fairtracks_validator.validator import FairGTracksValidator
+
+import urllib.request
+import urllib.parse
+
 import yaml
 # We have preference for the C based loader and dumper, but the code
 # should fallback to default implementations when C ones are not present
@@ -367,6 +371,18 @@ class utils():
         logging.info(
             "\n\t==================================\n\t Objects validated\n\t==================================\n")
 
+    def fetchStagedData(self, dataType, oeb_buffer_token):
+        headers = {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer {}'.format(oeb_buffer_token)
+        }
+        
+        req = urllib.request.Request(self.oeb_submission_api + '/' + urllib.parse.quote(dataType), headers=headers, method='GET')
+        with urllib.request.urlopen(req) as t:
+            datares = json.load(t)
+            
+            return datares
+    
     def submit_oeb_buffer(self, json_data, oeb_buffer_token, community_id):
 
         logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")

@@ -15,7 +15,7 @@ class aggregation():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_aggregation_datasets(self, response, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
+    def build_aggregation_datasets(self, response, stagedAggregationDatasets, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
 
         logging.info(
             "\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
@@ -43,6 +43,13 @@ class aggregation():
             if (valid_data is None) and future_id!=orig_future_id:
                 valid_data = agg_by_id.get(orig_future_id)
             if valid_data is None:
+                # Now, the aggregation datasets in the staging area
+                for agg_data in stagedAggregationDatasets:
+                    if future_id == agg_data[agg_key]:
+                        valid_data = agg_data
+                        break
+            if valid_data is None:
+                # Last, the datasets associated to each challenge
                 for challenge in data:
                     if challenge["_id"] in dataset["challenge_ids"]:
                         for agg_data in challenge["datasets"]:
@@ -108,7 +115,7 @@ class aggregation():
 
         return valid_aggregation_datasets
 
-    def build_aggregation_events(self, response, aggregation_datasets, workflow_id):
+    def build_aggregation_events(self, response, stagedEvents, aggregation_datasets, workflow_id):
 
         logging.info(
             "\n\t==================================\n\t6. Generating Aggregation Events\n\t==================================\n")
@@ -116,7 +123,7 @@ class aggregation():
         # initialize the array of events
         aggregation_events = []
 
-        data = response["data"]["getTestActions"]
+        data = stagedEvents + response["data"]["getTestActions"]
 
         for dataset in aggregation_datasets:
 

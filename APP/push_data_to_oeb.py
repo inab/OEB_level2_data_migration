@@ -42,7 +42,7 @@ def getAccessToken(oeb_credentials):
         
         logging.info("Token {}".format(token['access_token']))
         
-        return token['access_token']
+        return token['access_token']    
 
 def main(config_json, config_db, oeb_credentials, output_filename=None):
     
@@ -107,7 +107,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
             min_assessment_datasets.append(dataset)
         elif dataset_type == "aggregation":
             min_aggregation_datasets.append(dataset)
-        else:
+        elif dataset_type is not None:
             logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
         #    sys.exit(2)
 
@@ -119,7 +119,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
     schemaMappings = migration_utils.load_schemas(data_model_dir)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    query_response = migration_utils.query_OEB_DB(
+    input_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "input")
 
     # upload predicitions file to stable server and get permanent identifier
@@ -129,31 +129,37 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
     # generate all required objects
     process_participant = participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
-        query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
+        input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
 
     valid_test_events = process_participant.build_test_events(
-        query_response, min_participant_data, tool_id, contacts)
+        input_query_response, min_participant_data, tool_id, contacts)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    query_response = migration_utils.query_OEB_DB(
+    metrics_reference_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
 
     process_assessments = assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
-        query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
+        metrics_reference_query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
 
     valid_metrics_events = process_assessments.build_metrics_events(
-        query_response, valid_assessment_datasets, tool_id, contacts)
+        metrics_reference_query_response, valid_assessment_datasets, tool_id, contacts)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    query_response = migration_utils.query_OEB_DB(
+    aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
-
+    
+    # Needed to better consolidate
+    stagedDatasets = migration_utils.fetchStagedData('Dataset', oeb_buffer_token)
+    stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
+    
     process_aggregations = aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        query_response, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+    
+    stagedEvents = migration_utils.fetchStagedData('TestAction', oeb_buffer_token)
     valid_aggregation_events = process_aggregations.build_aggregation_events(
-        query_response, valid_aggregation_datasets, workflow_id)
+        aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
 
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
