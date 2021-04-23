@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import json
 
 
-class participant():
+class Participant():
 
     def __init__(self, schemaMappings):
 

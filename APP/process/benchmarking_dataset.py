@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-class benchmarking_dataset:
+class BenchmarkingDataset:
 
     def __init__(self, schemaMappings, id, data_type, visibility, name, description, challenge_ids, version):
 

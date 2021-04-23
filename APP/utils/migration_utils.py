@@ -23,7 +23,7 @@ except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 
-class utils():
+class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
     DEFAULT_GIT_CMD = 'git'

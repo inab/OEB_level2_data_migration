@@ -7,10 +7,10 @@
 		Barcelona Supercomputing Center. Spain. 2020
 #########################################################
 """
-from process.participant import participant
-from process.assessment import assessment
-from process.aggregation import aggregation
-from utils.migration_utils import utils
+from process.participant import Participant
+from process.assessment import Assessment
+from process.aggregation import Aggregation
+from utils.migration_utils import OpenEBenchUtils
 import json
 from argparse import ArgumentParser
 import sys
@@ -112,7 +112,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
         #    sys.exit(2)
 
     # get data model to validate against
-    migration_utils = utils(config_db, oeb_credentials, config_json_dir)
+    migration_utils = OpenEBenchUtils(config_db, oeb_credentials, config_json_dir)
     data_model_repo_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
     data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
@@ -127,7 +127,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
         min_participant_data, file_location, contacts[0], version)
 
     # generate all required objects
-    process_participant = participant(schemaMappings)
+    process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
         input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
 
@@ -138,7 +138,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
     metrics_reference_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
 
-    process_assessments = assessment(schemaMappings)
+    process_assessments = Assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
         metrics_reference_query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
 
@@ -153,7 +153,7 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
     stagedDatasets = migration_utils.fetchStagedData('Dataset', oeb_buffer_token)
     stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
     
-    process_aggregations = aggregation(schemaMappings)
+    process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
         aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     

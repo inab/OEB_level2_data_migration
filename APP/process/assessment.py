@@ -5,10 +5,10 @@ import sys
 import os
 from datetime import datetime, timezone
 import json
-from .benchmarking_dataset import benchmarking_dataset
+from .benchmarking_dataset import BenchmarkingDataset
 
 
-class assessment():
+class Assessment():
 
     def __init__(self, schemaMappings):
 
