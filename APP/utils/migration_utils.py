@@ -342,7 +342,7 @@ class OpenEBenchUtils():
         
         return schemaMappings
 
-    def schemas_validation(self, jsonSchemas_array):
+    def schemas_validation(self, jsonSchemas_array, val_result_filename):
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         logging.info(
@@ -356,20 +356,31 @@ class OpenEBenchUtils():
 
         val_res = self.schema_validators.jsonValidate(
             *cached_jsons, verbose=True)
-
+        
+        if val_result_filename is not None:
+            logging.info("Saving validation result to {}".format(val_result_filename))
+            with open(val_result_filename, mode="w", encoding="utf-8") as wb:
+                json.dump(val_res, wb)
+        
         # check for errors in the validation results
-        # TODO: if one of the objects to upload has a OEBXXXX primary key, the validator returns a 'Duplicated PK' error
-        # For now, those objects are escaped...
+        # skipping the duplicate keys case
+        to_warning = 0
+        to_obj_warning = 0
         for val_obj in val_res:
-            if val_obj["json"]["_id"].startswith("OEB"):
-                continue
-            elif val_obj["errors"]:
-                logging.fatal("\nObjects validation Failed:\n " + str(val_obj))
-                # logging.fatal("\nSee full validation logs:\n " + str(val_res))
-                sys.exit()
-
+            for error in val_obj['errors']:
+                if error['reason'] not in ("dup_pk",):
+                    logging.fatal("\nObjects validation Failed:\n " + str(val_obj))
+                    # logging.fatal("\nSee full validation logs:\n " + str(val_res))
+                    sys.exit(3)
+                
+                to_warning += 1
+            if len(val_obj['errors']) > 0:
+                to_obj_warning += 1
+        
         logging.info(
             "\n\t==================================\n\t Objects validated\n\t==================================\n")
+        
+        logging.info("Report: {} duplicated keys in {} of {} documents".format(to_warning, to_obj_warning, len(val_res)))
 
     def fetchStagedData(self, dataType, oeb_buffer_token):
         headers = {

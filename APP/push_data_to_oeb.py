@@ -44,7 +44,7 @@ def getAccessToken(oeb_credentials):
         
         return token['access_token']    
 
-def main(config_json, config_db, oeb_credentials, output_filename=None):
+def main(config_json, config_db, oeb_credentials, val_result_filename=None, output_filename=None):
     
     oeb_buffer_token = getAccessToken(oeb_credentials)
     
@@ -164,14 +164,19 @@ def main(config_json, config_db, oeb_credentials, output_filename=None):
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
         valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
-    migration_utils.schemas_validation(final_data)
     
-    if output_filename is None:
-        migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
-    else:
-        logging.info("Storing output at {}".format(output_filename))
+    if output_filename is not None:
+        logging.info("Storing output before validation at {}".format(output_filename))
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
+    
+    migration_utils.schemas_validation(final_data, val_result_filename)
+    
+    if output_filename is None:
+        logging.info("Submitting...")
+        migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
+    else:
+        logging.info("Submission was skipped, as data was stored at {}".format(output_filename))
 
 
 if __name__ == '__main__':
@@ -183,6 +188,8 @@ if __name__ == '__main__':
                         help="yaml file with configuration for remote OEB db validation", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
                         help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
+    parser.add_argument("--val_output",
+                        help="Save the JSON Schema validation output to a file")
     parser.add_argument("-o", "--output",
                         help="Save what it was going to be submitted in this file, instead of sending them (like a dry-run)")
 
@@ -194,4 +201,4 @@ if __name__ == '__main__':
         oeb_credentials = json.load(ac)
 
     logging.basicConfig(level=logging.INFO)
-    main(config_json, config_db, oeb_credentials, args.output)
+    main(config_json, config_db, oeb_credentials, args.val_output, args.output)
