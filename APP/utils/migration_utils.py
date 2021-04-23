@@ -23,6 +23,27 @@ except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 
+DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
+DEFAULT_CLIENT_ID = 'THECLIENTID'
+DEFAULT_GRANT_TYPE = 'password'
+
+def getAccessToken(oeb_credentials):
+    authURI = oeb_credentials.get('authURI', DEFAULT_AUTH_URI)
+    payload = {
+        'client_id': oeb_credentials.get('clientId', DEFAULT_CLIENT_ID),
+        'grant_type': oeb_credentials.get('grantType', DEFAULT_GRANT_TYPE),
+        'username': oeb_credentials['user'],
+        'password': oeb_credentials['pass'],
+    }
+    
+    req = urllib.request.Request(authURI, data=urllib.parse.urlencode(payload).encode('UTF-8'), method='POST')
+    with urllib.request.urlopen(req) as t:
+        token = json.load(t)
+        
+        logging.info("Token {}".format(token['access_token']))
+        
+        return token['access_token']    
+
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
@@ -57,6 +78,9 @@ class OpenEBenchUtils():
                 'accept': 'text/uri-list'
             }
         }
+        
+        self.oeb_token = getAccessToken(oeb_credentials)
+        
         self.schema_validators_local_config = local_config
 
         self.schema_validators = None
@@ -237,7 +261,7 @@ class OpenEBenchUtils():
         try:
             url = self.oeb_api
             # get challenges and input datasets for provided benchmarking event
-            r = requests.post(url=url, json=json_query, verify=False)
+            r = requests.post(url=url, json=json_query, headers={'Authorization': 'Bearer {}'.format(self.oeb_token)}, verify=False)
             response = r.json()
             if len(response["data"]["getChallenges"]) == 0:
 
@@ -409,10 +433,10 @@ class OpenEBenchUtils():
         
         logging.info("Report: {} duplicated keys in {} of {} documents".format(to_warning, to_obj_warning, len(val_res)))
 
-    def fetchStagedData(self, dataType, oeb_buffer_token):
+    def fetchStagedData(self, dataType):
         headers = {
             'Accept': 'application/json',
-            'Authorization': 'Bearer {}'.format(oeb_buffer_token)
+            'Authorization': 'Bearer {}'.format(self.oeb_token)
         }
         
         req = urllib.request.Request(self.oeb_submission_api + '/' + urllib.parse.quote(dataType), headers=headers, method='GET')
@@ -421,13 +445,13 @@ class OpenEBenchUtils():
             
             return datares
     
-    def submit_oeb_buffer(self, json_data, oeb_buffer_token, community_id):
+    def submit_oeb_buffer(self, json_data, community_id):
 
         logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}
         params = {
-                    'access_token': oeb_buffer_token,
+                    'access_token': self.oeb_token,
                     'community_id': community_id
                     
                 }

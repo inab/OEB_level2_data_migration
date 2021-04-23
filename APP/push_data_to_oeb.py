@@ -16,37 +16,13 @@ from argparse import ArgumentParser
 import sys
 import os
 import logging
-import urllib.parse
-import urllib.request
 
 
-DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
-DEFAULT_CLIENT_ID = 'THECLIENTID'
-DEFAULT_GRANT_TYPE = 'password'
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
 
-def getAccessToken(oeb_credentials):
-    authURI = oeb_credentials.get('authURI', DEFAULT_AUTH_URI)
-    payload = {
-        'client_id': oeb_credentials.get('clientId', DEFAULT_CLIENT_ID),
-        'grant_type': oeb_credentials.get('grantType', DEFAULT_GRANT_TYPE),
-        'username': oeb_credentials['user'],
-        'password': oeb_credentials['pass'],
-    }
-    
-    req = urllib.request.Request(authURI, data=urllib.parse.urlencode(payload).encode('UTF-8'), method='POST')
-    with urllib.request.urlopen(req) as t:
-        token = json.load(t)
-        
-        logging.info("Token {}".format(token['access_token']))
-        
-        return token['access_token']    
-
 def main(config_json, oeb_credentials, val_result_filename=None, output_filename=None):
-    
-    oeb_buffer_token = getAccessToken(oeb_credentials)
     
     # check whether config file exists and has all the required fields
     try:
@@ -139,8 +115,8 @@ def main(config_json, oeb_credentials, val_result_filename=None, output_filename
         bench_event_id, tool_id, community_id, "metrics_reference")
 
     # Needed to better consolidate
-    stagedEvents = migration_utils.fetchStagedData('TestAction', oeb_buffer_token)
-    stagedDatasets = migration_utils.fetchStagedData('Dataset', oeb_buffer_token)
+    stagedEvents = migration_utils.fetchStagedData('TestAction')
+    stagedDatasets = migration_utils.fetchStagedData('Dataset')
 
     # Needed to better consolidate
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
@@ -179,7 +155,7 @@ def main(config_json, oeb_credentials, val_result_filename=None, output_filename
     
     if output_filename is None:
         logging.info("Submitting...")
-        migration_utils.submit_oeb_buffer(final_data, oeb_buffer_token, community_id)
+        migration_utils.submit_oeb_buffer(final_data, community_id)
     else:
         logging.info("Submission was skipped, as data was stored at {}".format(output_filename))
 
