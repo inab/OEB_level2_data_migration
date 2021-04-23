@@ -349,15 +349,16 @@ class OpenEBenchUtils():
                                 break
             
             local_config['primary_key']['schema_prefix'] = schema_prefix
-            json.dump(local_config, sys.stderr)
+            logging.debug(json.dumps(local_config))
             
             self.schema_validators = FairGTracksValidator(config=local_config)
+        
         # create the cached json schemas for validation
         numSchemas = self.schema_validators.loadJSONSchemas(data_model_dir, verbose=False)
 
         if numSchemas == 0:
             print(
-                "FATAL ERROR: No schema was successfuly loaded. Exiting...\n", file=sys.stderr)
+                "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
             sys.exit(1)
         
         schemaMappings = {}
@@ -440,3 +441,4 @@ class OpenEBenchUtils():
         else:
             logging.info(
                 "\n\tData uploaded correctly...finalizing migration\n\n")
+            logging.debug(r.text)
