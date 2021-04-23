@@ -10,5 +10,6 @@
 		"endpoint": "STORAGE_ENDPOINT"
 	},
 	"graphqlURI": "GRAPHQL_ENDPOINT",
+	"accessURI": "PUBLIC_ACCESS_ENDPOINT",
 	"submissionURI": "SUBMISSION_ENDPOINT"
 }
