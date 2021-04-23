@@ -29,7 +29,7 @@ class OpenEBenchUtils():
     DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
-    def __init__(self, config_db, oeb_credentials, workdir):
+    def __init__(self, oeb_credentials, workdir):
 
         self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
         self.git_cmd = self.DEFAULT_GIT_CMD
@@ -45,13 +45,21 @@ class OpenEBenchUtils():
         requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         logging.basicConfig(level=logging.INFO)
+        
+        local_config = {
+            'primary_key': {
+                'provider': [
+                    oeb_credentials['accessURI'],
+                    oeb_credentials['submissionURI']
+                ],
+                # To be set on instantiation
+                # 'schema_prefix': None,
+                'accept': 'text/uri-list'
+            }
+        }
+        self.schema_validators_local_config = local_config
 
-        # load the remote OEB DB ids and the validator
-
-        with open(config_db, "r", encoding="utf-8") as cf:
-            local_config = yaml.load(cf, Loader=YAMLLoader)
-
-        self.schema_validators = FairGTracksValidator(config=local_config)
+        self.schema_validators = None
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
 
@@ -325,7 +333,25 @@ class OpenEBenchUtils():
             return data_doi
 
     def load_schemas(self, data_model_dir):
-
+        if self.schema_validators is None:
+            local_config = self.schema_validators_local_config
+            
+            # Now, guessing the prefix
+            schema_prefix = None
+            with os.scandir(data_model_dir) as dmit:
+                for entry in dmit:
+                    if entry.name.endswith('.json') and entry.is_file():
+                        with open(entry.path, mode="r", encoding="utf-8") as jschH:
+                            jsch = json.load(jschH)
+                            theId = jsch.get('$id')
+                            if theId is not None:
+                                schema_prefix = theId[0:theId.rindex('/')+1]
+                                break
+            
+            local_config['primary_key']['schema_prefix'] = schema_prefix
+            json.dump(local_config, sys.stderr)
+            
+            self.schema_validators = FairGTracksValidator(config=local_config)
         # create the cached json schemas for validation
         numSchemas = self.schema_validators.loadJSONSchemas(data_model_dir, verbose=False)
 

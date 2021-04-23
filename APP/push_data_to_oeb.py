@@ -44,7 +44,7 @@ def getAccessToken(oeb_credentials):
         
         return token['access_token']    
 
-def main(config_json, config_db, oeb_credentials, val_result_filename=None, output_filename=None):
+def main(config_json, oeb_credentials, val_result_filename=None, output_filename=None):
     
     oeb_buffer_token = getAccessToken(oeb_credentials)
     
@@ -112,7 +112,7 @@ def main(config_json, config_db, oeb_credentials, val_result_filename=None, outp
         #    sys.exit(2)
 
     # get data model to validate against
-    migration_utils = OpenEBenchUtils(config_db, oeb_credentials, config_json_dir)
+    migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir)
     data_model_repo_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
     data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
@@ -184,8 +184,6 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("-i", "--config_json",
                         help="json file which contains all parameters for migration", required=True)
-    parser.add_argument("-db", "--config_db",
-                        help="yaml file with configuration for remote OEB db validation", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
                         help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
     parser.add_argument("--val_output",
@@ -196,9 +194,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     config_json = args.config_json
-    config_db = args.config_db
     with open(args.oeb_submit_api_creds, mode='r', encoding='utf-8') as ac:
         oeb_credentials = json.load(ac)
 
     logging.basicConfig(level=logging.INFO)
-    main(config_json, config_db, oeb_credentials, args.val_output, args.output)
+    main(config_json, oeb_credentials, args.val_output, args.output)
