@@ -48,5 +48,5 @@ Create a `config.json` file declaring the partial dataset to be uplifted to the 
 
 ```bash
 # The command must be run with the virtual environment enabled
-python push_data_to_oeb.py -i config.json -db ./db_config.yaml -cr auth_config.json
+python push_data_to_oeb.py -i config.json -cr auth_config.json
 ```
