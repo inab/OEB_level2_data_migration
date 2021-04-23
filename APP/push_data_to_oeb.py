@@ -138,26 +138,31 @@ def main(config_json, oeb_credentials, val_result_filename=None, output_filename
     metrics_reference_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
 
+    # Needed to better consolidate
+    stagedEvents = migration_utils.fetchStagedData('TestAction', oeb_buffer_token)
+    stagedDatasets = migration_utils.fetchStagedData('Dataset', oeb_buffer_token)
+
+    # Needed to better consolidate
+    stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
+    
     process_assessments = Assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
-        metrics_reference_query_response, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
+        metrics_reference_query_response, stagedAssessmentDatasets, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
 
     valid_metrics_events = process_assessments.build_metrics_events(
-        metrics_reference_query_response, valid_assessment_datasets, tool_id, contacts)
+        metrics_reference_query_response, stagedEvents, valid_assessment_datasets, tool_id, contacts)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
     
     # Needed to better consolidate
-    stagedDatasets = migration_utils.fetchStagedData('Dataset', oeb_buffer_token)
     stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
     
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
         aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     
-    stagedEvents = migration_utils.fetchStagedData('TestAction', oeb_buffer_token)
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
 

@@ -69,14 +69,23 @@ class Aggregation():
 
                 # add new participant metrics to OEB aggregation dataset
                 tool_name = participant_data["participant_id"]
-
+                # insPos is the position within the array when it is inserted something
+                insPos = None
+                challenge_participants = valid_data["datalink"]["inline_data"]["challenge_participants"]
+                for iPart, cPart in enumerate(challenge_participants):
+                    if cPart["tool_id"] == tool_name:
+                        insPos = iPart
+                        break
+                
                 for participant in dataset["datalink"]["inline_data"]["challenge_participants"]:
-
-                    if participant["participant_id"] == tool_name:
-                        participant["tool_id"] = participant.pop(
-                            "participant_id")
-                        valid_data["datalink"]["inline_data"]["challenge_participants"].append(
-                            participant)
+                    participant_id = participant.get("participant_id")
+                    if participant_id == tool_name:
+                        participant["tool_id"] = participant.pop("participant_id")
+                        
+                        if insPos is not None:
+                            challenge_participants[insPos] = participant
+                        else:
+                            challenge_participants.append(participant)
                         break
 
                 # update modification date
@@ -90,24 +99,29 @@ class Aggregation():
                         oeb_metrics[metric["_id"]
                                     ] = metric["_metadata"]["level_2:metric_id"]
 
+                visualization_x_axis = valid_data["datalink"]["inline_data"]["visualization"]["x_axis"]
+                visualization_y_axis = valid_data["datalink"]["inline_data"]["visualization"]["y_axis"]
+                rel_dataset_ids = valid_data["depends_on"]["rel_dataset_ids"]
+                rel_dataset_ids_set = set(map(lambda d: d['dataset_id'], rel_dataset_ids))
+                
                 for assess_element in assessment_datasets:
-
-                    try:
-                        if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == valid_data["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
-                            valid_data["depends_on"]["rel_dataset_ids"].append(
-                                {"dataset_id": assess_element["_id"]})
-                        elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == valid_data["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
-                            valid_data["depends_on"]["rel_dataset_ids"].append(
-                                {"dataset_id": assess_element["_id"]})
-                        # also check for official oeb metrics, in case the aggregation dataset contains them
-                        elif assess_element["depends_on"]["metrics_id"] == valid_data["datalink"]["inline_data"]["visualization"]["x_axis"] and assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
-                            valid_data["depends_on"]["rel_dataset_ids"].append(
-                                {"dataset_id": assess_element["_id"]})
-                        elif assess_element["depends_on"]["metrics_id"] == valid_data["datalink"]["inline_data"]["visualization"]["y_axis"] and assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
-                            valid_data["depends_on"]["rel_dataset_ids"].append(
-                                {"dataset_id": assess_element["_id"]})
-                    except:
+                    assess_element_id = assess_element["_id"]
+                    # Fail early in case of repetition
+                    if assess_element_id in rel_dataset_ids_set:
                         continue
+                    
+                    if assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
+                        to_be_appended = False
+                        
+                        if oeb_metrics[assess_element["depends_on"]["metrics_id"]] in (visualization_x_axis,visualization_y_axis):
+                            to_be_appended = True
+                        # also check for official oeb metrics, in case the aggregation dataset contains them
+                        elif assess_element["depends_on"]["metrics_id"] in (visualization_x_axis, visualization_y_axis):
+                            to_be_appended = True
+                        
+                        if to_be_appended:
+                            rel_dataset_ids_set.add(assess_element_id)
+                            rel_dataset_ids.append({ "dataset_id": assess_element_id })
 
             valid_aggregation_datasets.append(valid_data)
             agg_by_id[valid_data["_id"]] = valid_data

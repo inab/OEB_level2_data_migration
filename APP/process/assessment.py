@@ -15,21 +15,35 @@ class Assessment():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, response, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts):
+    def build_assessment_datasets(self, response, stagedAssessmentDatasets, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts):
 
         logging.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
-
+        
+        stagedMap = dict()
+        for stagedAssessmentDataset in stagedAssessmentDatasets:
+            stagedMap[stagedAssessmentDataset['orig_id']] = stagedAssessmentDataset
+        
         valid_assessment_datasets = []
         for dataset in assessment_datasets:
 
             sys.stdout.write('Building object "' +
                              str(dataset["_id"]) + '"...\n')
             # initialize new dataset object
-            valid_data = {
-                "_id": dataset["_id"],
-                "type": "assessment"
-            }
+            stagedEntry = stagedMap.get(dataset["_id"])
+            if stagedEntry is None:
+                valid_data = {
+                    "_id": dataset["_id"],
+                    "type": "assessment"
+                }
+            else:
+                valid_data = {
+                    "_id": stagedEntry["_id"],
+                    "type": "assessment",
+                    "orig_id": dataset["_id"],
+                    "dates": stagedEntry["dates"]
+                }
+            
 
             # add dataset visibility
             valid_data["visibility"] = data_visibility
@@ -82,10 +96,9 @@ class Assessment():
             rel_oeb_datasets.add(participant_data["_id"])
 
             # add data registration dates
-            valid_data["dates"] = {
-                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
-                "modification": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
-            }
+            
+            modtime = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            valid_data.setdefault("dates", {"creation": modtime})["modification"] = modtime
 
             # add assessment metrics values, as inline data
             metric_value = dataset["metrics"]["value"]
@@ -138,7 +151,7 @@ class Assessment():
 
         return valid_assessment_datasets
 
-    def build_metrics_events(self, response, assessment_datasets, tool_id, contacts):
+    def build_metrics_events(self, response, stagedEvents, assessment_datasets, tool_id, contacts):
 
         logging.info(
             "\n\t==================================\n\t4. Generating Metrics Events\n\t==================================\n")
@@ -148,8 +161,8 @@ class Assessment():
 
         # an  new event object will be created for each of the previously generated assessment datasets
         for dataset in assessment_datasets:
-
-            event_id = rchop(dataset["_id"], "_A") + "_MetricsEvent"
+            orig_id = dataset.get("orig_id",dataset["_id"])
+            event_id = rchop(orig_id, "_A") + "_MetricsEvent"
             event = {
                 "_id": event_id,
                 "_schema": self.schemaMappings["TestAction"],
