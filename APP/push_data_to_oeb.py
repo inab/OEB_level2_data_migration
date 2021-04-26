@@ -175,7 +175,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         logging.info("Submitting...")
         migration_utils.submit_oeb_buffer(final_data, community_id)
     else:
-        logging.info("Submission was skipped, as data was stored at {}".format(output_filename))
+        logging.info("Data was stored at {} (submission was skipped)".format(output_filename))
 
 
 if __name__ == '__main__':
