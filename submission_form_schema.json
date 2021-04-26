@@ -5,8 +5,8 @@
 	"type": "object",
 	"properties": {
 		"consolidated_oeb_data": {
-			"title": "Consolidated dataset path",
-			"description": "Path to the consolidated dataset, coming from an OpenEBench standardized benchmarking workflow (e.g.https://github.com/inab/TCGA_benchmarking_workflow",
+			"title": "Consolidated dataset path or URL",
+			"description": "Path or publicly reachable URL to the consolidated dataset, coming from an OpenEBench standardized benchmarking workflow (e.g.https://github.com/inab/TCGA_benchmarking_workflow",
 			"type": "string",
 			"readonly": true
 		},

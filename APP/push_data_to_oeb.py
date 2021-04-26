@@ -15,6 +15,8 @@ import json
 from argparse import ArgumentParser
 import sys
 import os
+import urllib.parse
+import urllib.request
 import logging
 
 
@@ -33,11 +35,17 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         # When this path is relative, the reference is the directory
         # of the configuration file
         input_file = config_params["consolidated_oeb_data"]
-        if not os.path.isabs(input_file):
-            input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
-        if not os.path.exists(input_file):
-            logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json))
-            sys.exit(1)
+        input_parsed = urllib.parse.urlparse(input_file)
+        
+        if len(input_parsed.scheme) > 0:
+            input_url = input_file
+        else:
+            input_url = None
+            if not os.path.isabs(input_file):
+                input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
+            if not os.path.exists(input_file):
+                logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json))
+                sys.exit(1)
         
         
         data_visibility = config_params["data_visibility"]
@@ -64,13 +72,23 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
                       " is missing or has incorrect format")
         sys.exit(1)
     
-    try:
-        with open(input_file, 'r') as f:
-            data = json.load(f)
-    except Exception as e:
-        logging.fatal(e, "input file " + input_file +
-                      " is missing or has incorrect format")
-        sys.exit(1)
+    if input_url is not None:
+        try:
+            req = urllib.request.Request(input_url, method='GET')
+            with urllib.request.urlopen(req) as iu:
+                data = json.load(iu)
+        except Exception as e:
+            logging.fatal(e, "input url " + input_url +
+                          " is missing or has incorrect format")
+            sys.exit(1)
+    else:
+        try:
+            with open(input_file, 'r') as f:
+                data = json.load(f)
+        except Exception as e:
+            logging.fatal(e, "input file " + input_file +
+                          " is missing or has incorrect format")
+            sys.exit(1)
 
     # sort out dataset depending on 'type' property
     min_assessment_datasets = []
