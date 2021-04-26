@@ -22,7 +22,14 @@ class Aggregation():
 
         valid_aggregation_datasets = []
         agg_by_id = dict()
-        data = response["data"]["getChallenges"]
+        challenges = response["data"]["getChallenges"]
+
+        # This is needed to properly compare ids later
+        oeb_challenges = {}
+        for challenge in challenges:
+            oeb_challenges[challenge["_metadata"]
+                           ["level_2:challenge_id"]] = challenge["_id"]
+
         dataset_schema_uri = self.schemaMappings['Dataset']
         for dataset in aggregation_datasets:
 
@@ -42,16 +49,19 @@ class Aggregation():
             valid_data = agg_by_id.get(future_id)
             if (valid_data is None) and future_id!=orig_future_id:
                 valid_data = agg_by_id.get(orig_future_id)
+            
             if valid_data is None:
                 # Now, the aggregation datasets in the staging area
                 for agg_data in stagedAggregationDatasets:
                     if future_id == agg_data[agg_key]:
                         valid_data = agg_data
                         break
+                
             if valid_data is None:
                 # Last, the datasets associated to each challenge
-                for challenge in data:
-                    if challenge["_id"] in dataset["challenge_ids"]:
+                dataset_challenge_ids = set(map(lambda challenge_id: oeb_challenges[challenge_id],dataset["challenge_ids"]))
+                for challenge in challenges:
+                    if challenge["_id"] in dataset_challenge_ids:
                         for agg_data in challenge["datasets"]:
                             if future_id == agg_data[agg_key]:
                                 valid_data = agg_data
@@ -258,23 +268,23 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
 
     # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
 
-    data = response["data"]["getChallenges"]
+    challenges = response["data"]["getChallenges"]
 
     oeb_challenges = {}
-    for challenge in data:
+    for challenge in challenges:
         oeb_challenges[challenge["_metadata"]
                        ["level_2:challenge_id"]] = challenge["_id"]
 
     # replace dataset related challenges with oeb challenge ids
     execution_challenges = []
-    for id in dataset["challenge_ids"]:
+    for challenge_id in dataset["challenge_ids"]:
         try:
-            if id.startswith("OEB"):
-                execution_challenges.append(id)
+            if challenge_id.startswith("OEB"):
+                execution_challenges.append(challenge_id)
             else:
-                execution_challenges.append(oeb_challenges[id])
+                execution_challenges.append(oeb_challenges[challenge_id])
         except:
-            logging.info("No challenges associated to " + id +
+            logging.info("No challenges associated to " + challenge_id +
                          " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
             logging.info(dataset["_id"] + " not processed")
             sys.exit()
@@ -342,7 +352,7 @@ def new_aggregation(response, dataset, assessment_datasets, community_id, versio
 
     # add challenge managers as aggregation dataset contacts ids
     data_contacts = []
-    for challenge in data:
+    for challenge in challenges:
         if challenge["_id"] in valid_data["challenge_ids"]:
             data_contacts.extend(challenge["challenge_contact_ids"])
 
