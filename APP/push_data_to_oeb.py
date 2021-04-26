@@ -22,7 +22,7 @@ DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
 
-def main(config_json, oeb_credentials, val_result_filename=None, output_filename=None):
+def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None, output_filename=None):
     
     # check whether config file exists and has all the required fields
     try:
@@ -88,7 +88,7 @@ def main(config_json, oeb_credentials, val_result_filename=None, output_filename
         #    sys.exit(2)
 
     # get data model to validate against
-    migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir)
+    migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token)
     data_model_repo_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
     data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
@@ -167,6 +167,8 @@ if __name__ == '__main__':
                         help="json file which contains all parameters for migration", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
                         help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
+    parser.add_argument("-tk", "--oeb_submit_api_token",
+                        help="Token used for submission to oeb buffer DB. If it is not set, the credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file")
     parser.add_argument("-o", "--output",
@@ -179,4 +181,4 @@ if __name__ == '__main__':
         oeb_credentials = json.load(ac)
 
     logging.basicConfig(level=logging.INFO)
-    main(config_json, oeb_credentials, args.val_output, args.output)
+    main(config_json, oeb_credentials, args.oeb_submit_api_token, args.val_output, args.output)

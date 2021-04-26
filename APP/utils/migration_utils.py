@@ -50,7 +50,7 @@ class OpenEBenchUtils():
     DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
-    def __init__(self, oeb_credentials, workdir):
+    def __init__(self, oeb_credentials, workdir, oeb_token = None):
 
         self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
         self.git_cmd = self.DEFAULT_GIT_CMD
@@ -79,7 +79,8 @@ class OpenEBenchUtils():
             }
         }
         
-        self.oeb_token = getAccessToken(oeb_credentials)
+        
+        self.oeb_token = getAccessToken(oeb_credentials)  if oeb_token is None  else  oeb_token
         
         self.schema_validators_local_config = local_config
 

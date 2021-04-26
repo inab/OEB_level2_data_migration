@@ -92,10 +92,6 @@
 		}
 	},
 	"required": [
-		"authURI",
-		"clientId",
-		"user",
-		"pass",
 		"storageServer",
 		"graphqlURI",
 		"submissionURI"

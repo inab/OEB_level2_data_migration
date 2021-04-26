@@ -14,9 +14,9 @@ In order to use the migration tool, some requirements need to be fulfilled:
 ## Parameters
 
 ```
-usage: push_data_to_oeb.py [-h] -i CONFIG_JSON -db CONFIG_DB -cr
-                           OEB_SUBMIT_API_CREDS [--val_output VAL_OUTPUT]
-                           [-o OUTPUT]
+usage: push_data_to_oeb.py [-h] -i CONFIG_JSON -cr OEB_SUBMIT_API_CREDS
+                           [-tk OEB_SUBMIT_API_TOKEN]
+                           [--val_output VAL_OUTPUT] [-o OUTPUT]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -25,6 +25,11 @@ optional arguments:
   -cr OEB_SUBMIT_API_CREDS, --oeb_submit_api_creds OEB_SUBMIT_API_CREDS
                         Credentials and endpoints used to obtain a token for
                         submission to oeb buffer DB
+  -tk OEB_SUBMIT_API_TOKEN, --oeb_submit_api_token OEB_SUBMIT_API_TOKEN
+                        Token used for submission to oeb buffer DB. If it is
+                        not set, the credentials file provided with -cr must
+                        have defined 'clientId', 'grantType', 'user' and
+                        'pass'
   --val_output VAL_OUTPUT
                         Save the JSON Schema validation output to a file
   -o OUTPUT, --output OUTPUT
