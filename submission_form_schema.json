@@ -10,19 +10,14 @@
 			"type": "string",
 			"readonly": true
 		},
-		"visibility": {
+		"data_visibility": {
 			"title": "Datasets visibility",
 			"description": "The desired visibility of the submitted datasets, which must be acknowledged by the APIs",
 			"type": "string",
-			"enum": ["public", "community", "challenge", "participant"]
+			"enum": ["public", "community", "challenge", "participant"],
+			"default": "public"
 		},
-		"type": {
-			"title": "Dataset type",
-			"description": "Type of dataset to be submitted. See official benchmarking data model for more info",
-			"type": "string",
-			"mingLength": 1,
-			"enum": ["public_reference", "metrics_reference", "input", "participant", "workflow_results"]
-		},
+		
 		"benchmarking_event_id": {
 			"title": "Benchmarking event",
 			"description": "The unique id of the benchmarking event the dataset belongs to, as is returned by the API",
@@ -100,7 +95,6 @@
 	"required": [
 		"consolidated_oeb_data",
 		"visibility",
-		"type",
 		"benchmarking_event_id",
 		"participant_file",
 		"community_id",
