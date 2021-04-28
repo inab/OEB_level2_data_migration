@@ -94,7 +94,7 @@
 	},
 	"required": [
 		"consolidated_oeb_data",
-		"visibility",
+		"data_visibility",
 		"benchmarking_event_id",
 		"participant_file",
 		"community_id",
