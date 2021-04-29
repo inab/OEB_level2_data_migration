@@ -1,0 +1,27 @@
+{
+	"query": "query MetricsReferenceQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+    getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
+        _id
+        _metadata
+        datasets(datasetFilters: {type: \"metrics_reference\"}) {
+            _id
+        }
+    }
+    getTools(toolFilters: {id: $tool_id}) {
+        _id
+    }
+    getContacts(contactFilters:{community_id: $community_id}) {
+        _id
+        email
+    }
+    getMetrics {
+        _id
+        _metadata
+    }
+}",
+	"variables": {
+		"bench_event_id": "OEBE0020000002",
+		"community_id": "OEBC002",
+		"tool_id": "OEBT0020000012"
+	}
+}
