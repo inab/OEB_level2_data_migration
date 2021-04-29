@@ -155,52 +155,63 @@ class OpenEBenchUtils():
     def query_OEB_DB(self, bench_event_id, tool_id, community_id, data_type):
 
         if data_type == "input":
-            json_query = {'query': f"""{{
-    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+#            }
+            json_query = {'query': """query InputQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+    getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         _metadata
-        datasets(datasetFilters: {{type: "input"}}) {{
+        datasets(datasetFilters: {type: "input"}) {
             _id
-        }}
-    }}
-    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+        }
+    }
+    getTools(toolFilters: {id: $tool_id}) {
         _id
-    }}
-    getContacts(contactFilters:{{community_id:"{community_id}"}}) {{
+    }
+    getContacts(contactFilters: {community_id: $community_id}) {
         _id
         email
-    }}
-}}"""
+    }
+}""",
+                'variables': {
+                    'bench_event_id': bench_event_id,
+                    'community_id': community_id,
+                    'tool_id': tool_id
+                }
             }
         elif data_type == "metrics_reference":
-            json_query = {'query': f"""{{
-    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+            json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+    getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         _metadata
-        datasets(datasetFilters: {{type: "metrics_reference"}}) {{
+        datasets(datasetFilters: {type: "metrics_reference"}) {
             _id
-        }}
-    }}
-    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+        }
+    }
+    getTools(toolFilters: {id: $tool_id}) {
         _id
-    }}
-    getContacts(contactFilters:{{community_id: "{community_id}"}}) {{
+    }
+    getContacts(contactFilters:{community_id: $community_id}) {
         _id
         email
-    }}
-    getMetrics {{
+    }
+    getMetrics {
         _id
         _metadata
-    }}
-}}"""
+    }
+}""",
+                'variables': {
+                    'bench_event_id': bench_event_id,
+                    'community_id': community_id,
+                    'tool_id': tool_id
+                }
             }
         elif data_type == "aggregation":
-            json_query = {'query': f"""{{
-    getChallenges(challengeFilters: {{benchmarking_event_id: "{bench_event_id}"}}) {{
+            json_query = {'query': """query AggregationQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+    getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         _metadata
         challenge_contact_ids
-        datasets(datasetFilters: {{type: "aggregation"}}) {{
+        datasets(datasetFilters: {type: "aggregation"}) {
                 _id
                 _schema
                 orig_id
@@ -210,53 +221,58 @@ class OpenEBenchUtils():
                 name
                 version
                 description
-                dates {{
+                dates {
                     creation
                     modification
-                }}
+                }
                 type
-                datalink {{
+                datalink {
                     inline_data
-                }}
+                }
                 dataset_contact_ids
-                depends_on {{
+                depends_on {
                     tool_id
-                    rel_dataset_ids {{
+                    rel_dataset_ids {
                         dataset_id
-                    }}
-                }}
-        }}
-    }}
-    getTools(toolFilters: {{id: "{tool_id}"}}) {{
+                    }
+                }
+        }
+    }
+    getTools(toolFilters: {id: $tool_id}) {
         _id
-    }}
-    getContacts(contactFilters:{{community_id: "{community_id}"}}) {{
+    }
+    getContacts(contactFilters:{community_id: $community_id}) {
         _id
         email
-    }}
-    getMetrics {{
+    }
+    getMetrics {
         _id
         _metadata
-    }}
-    getTestActions {{
+    }
+    getTestActions {
         _id
         _schema
         orig_id
         tool_id
         action_type
-        involved_datasets {{
+        involved_datasets {
             dataset_id
             role
-        }}
+        }
         challenge_id
         test_contact_ids
-        dates {{
+        dates {
             creation
             modification
-        }}
-    }}
-}}"""
-                        }
+        }
+    }
+}""",
+                'variables': {
+                    'bench_event_id': bench_event_id,
+                    'community_id': community_id,
+                    'tool_id': tool_id
+                }
+            }
         else:
             logging.fatal("Unable to generate graphQL query: Unknown datatype {}".format(data_type))
             sys.exit(2)
@@ -265,13 +281,17 @@ class OpenEBenchUtils():
             # get challenges and input datasets for provided benchmarking event
             r = requests.post(url=url, json=json_query, headers={'Authorization': 'Bearer {}'.format(self.oeb_token)}, verify=False)
             response = r.json()
-            if len(response["data"]["getChallenges"]) == 0:
+            data = response.get("data")
+            if data is None:
+                logging.fatal("For {}, {}, {} got response error from graphql query: {}".format(community_id, bench_event_id, tool_id, r.text))
+                sys.exit(6)
+            if len(data["getChallenges"]) == 0:
 
                 logging.fatal("No challenges associated to benchmarking event " + bench_event_id +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit()
             # check if provided oeb tool actually exists
-            elif len(response["data"]["getTools"]) == 0:
+            elif len(data["getTools"]) == 0:
 
                 logging.fatal(
                     "No tool '" + tool_id + "' was found in OEB. Please contact OpenEBench support for information about how to register your tool")
