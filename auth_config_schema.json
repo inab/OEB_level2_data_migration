@@ -94,7 +94,8 @@
 	"required": [
 		"storageServer",
 		"graphqlURI",
-		"submissionURI"
+		"submissionURI",
+		"accessURI"
 	],
 	"additionalProperties": false
 }
