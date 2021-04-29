@@ -57,9 +57,10 @@ class OpenEBenchUtils():
         self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
 	
         storageServer = oeb_credentials.get('storageServer', {})
-        self.b2share_api_token = storageServer['token']
-        self.b2share_community = storageServer['community']
-        self.b2share_endpoint = storageServer['endpoint']
+        self.storage_server_type = storageServer['type']
+        self.storage_server_token = storageServer['token']
+        self.storage_server_community = storageServer['community']
+        self.storage_server_endpoint = storageServer['endpoint']
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
 
@@ -283,22 +284,23 @@ class OpenEBenchUtils():
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
     def upload_to_storage_service(self, participant_data, file_location, contact_email, data_version):
-
-        # check if file already has an assigned doi, if not, upload
-        if "doi.org" in file_location:
+        # First, check whether file_location is an URL
+        file_location_parsed = urllib.parse.urlparse(file_location)
+        
+        if len(file_location_parsed.scheme) > 0:
             logging.info(
-                "Participant's predictions file already has an assigned DOI: " + file_location)
+                "Participant's predictions file already has an assigned URI: " + file_location)
             return file_location
-
-        else:
-            endpoint = self.b2share_endpoint
+        
+        if self.storage_server_type == 'b2share':
+            endpoint = self.storage_server_endpoint
             # 1. create new record
             logging.info("Uploading participant's predictions file to " +
                          endpoint + " for permanent storage")
             header = {"Content-Type": "application/json"}
-            params = {'access_token': self.b2share_api_token}
+            params = {'access_token': self.storage_server_token}
             metadata = {"titles": [{"title": "Predictions made by " + participant_data["participant_id"] + " participant in OpenEBench Virtual Research Environment"}],
-                        "community": self.b2share_community,
+                        "community": self.storage_server_community,
                         "community_specific": {},
                         "contact_email": contact_email,
                         "version": str(data_version),
@@ -338,10 +340,17 @@ class OpenEBenchUtils():
 
             # 3. publish the new record
             header = {'Content-Type': 'application/json-patch+json'}
-            commit = '[{"op": "add", "path":"/publication_state", "value": "submitted"}]'
+            commit_msg = [
+                {
+                    "op": "add",
+                    "path": "/publication_state",
+                    "value": "submitted"
+                }
+            ]
+            commit_str = json.dumps(commit_msg)
 
             url = endpoint + "records/" + record_id + "/draft"
-            r = requests.patch(url, data=commit, params=params, headers=header)
+            r = requests.patch(url, data=commit_str, params=params, headers=header)
 
             # check whether request was succesful
             if r.status_code != 200:
@@ -356,6 +365,9 @@ class OpenEBenchUtils():
             logging.info("File '" + file_location +
                          "' uploaded and permanent ID assigned: " + data_doi)
             return data_doi
+        else:
+            logging.fatal('Unsupported storage server type {}'.format(self.storage_server_type))
+            sys.exit(5)
 
     def load_schemas(self, data_model_dir):
         if self.schema_validators is None:
