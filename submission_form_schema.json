@@ -92,40 +92,8 @@
 			"format": "uri",
 			"minLength": 1,
 			"default": "https://trng-b2share.eudat.eu/api/"
-		},
-		"communityy_id": {
-				type: "object",
-			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-				options: {
-					disable_collapse: true,
-					disable_edit_json: true,
-					disable_properties: true
-				},
-				properties: {
-					autotext: {
-						type: "string",
-						format: "typeahead",
-						title: "OEB community",
-						description:
-							"The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-						options: {
-							typeahead: {
-								config: {
-									autoselect: true,
-									highlight: true,
-									hint: true,
-									minLength: 3
-								},
-								datasets: {
-									name: "communities_id",
-									display: "_id",
-									source: roadEngine.ttAdapter()
-								}
-							}
-						}
-					}
-				}
-			}
+		}
+		
 	},
 	"required": [
 		"consolidated_oeb_data",
