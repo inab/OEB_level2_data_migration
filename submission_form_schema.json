@@ -32,7 +32,7 @@
 		"community_id": {
 			"title": "OEB community",
 			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-			"type": "string",
+			"type": "autocomplete",
 			"pattern": "^OEBC[0-9]{3}$"
 		},
 		"tool_id": {
