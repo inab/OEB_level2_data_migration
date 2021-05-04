@@ -36,10 +36,19 @@
 			"pattern": "^OEBC[0-9]{3}$"
 		},
 		"tool_id": {
-			"title": "Participant Tool",
-			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
+			"title": "UUID",
+        		"type": "string",
+        		"description": "reference (autocomplete)",
 			"type": "string",
-			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$"
+			"format": "autocomplete",
+			"options": {
+			    "autocomplete": {
+				"search": "search_za",
+				"getResultValue": "getResultValue_za",
+				"renderResult": "renderResult_za",
+				"autoSelect": true
+			    }
+			}
 		},
 		"data_version": {
 			"title": "Version",
@@ -92,24 +101,7 @@
 			"format": "uri",
 			"minLength": 1,
 			"default": "https://trng-b2share.eudat.eu/api/"
-		},
-		"tool_idd": {
-			"title": "UUID",
-        		"type": "string",
-        		"description": "reference (autocomplete)",
-			"type": "string",
-			"format": "autocomplete",
-			"options": {
-			    "autocomplete": {
-				"search": "search_za",
-				"getResultValue": "getResultValue_za",
-				"renderResult": "renderResult_za",
-				"autoSelect": true
-			    }
-			}
 		}
-		
-		
 	},
 	"required": [
 		"consolidated_oeb_data",
