@@ -36,9 +36,8 @@
 			"pattern": "^OEBC[0-9]{3}$"
 		},
 		"tool_id": {
-			"title": "UUID",
-        		"type": "string",
-        		"description": "reference (autocomplete)",
+			"title": "Participant Tool",
+			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"format": "autocomplete",
 			"options": {
