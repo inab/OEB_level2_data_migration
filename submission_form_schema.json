@@ -70,7 +70,7 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"format": "autocomplete",
+				"format": "autocomplete2",
 				"options": {
 				    "autocomplete": {
 					"search": "search_zza",
