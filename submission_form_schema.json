@@ -93,40 +93,20 @@
 			"minLength": 1,
 			"default": "https://trng-b2share.eudat.eu/api/"
 		},
-		"communityy_id": {
-				"type": "object",
-			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-				"options": {
-					"disable_collapse": true,
-					"disable_edit_json": true,
-					"disable_properties": true
-				},
-				"properties": {
-					"autotext": {
-						"type": "string",
-						"format": "typeahead",
-						"title": "OEB community",
-						"description":
-							"The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-						"options": {
-							"typeahead": {
-								"config": {
-									"autoselect": true,
-									"highlight": true,
-									"hint": true,
-									"minLength": 3
-								},
-								"datasets": {
-									"name": "communities_id",
-									"display": "_id",
-									"source": "roadEngine.ttAdapter()"
-								}
-							}
-						}
-					}
-				}
+		"tool_idd": {
+			"title": "Participant Tool",
+			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
+			"type": "string",
+			"options": {
+			    "autocomplete": {
+				"search": "search_za",
+				"getResultValue": "getResultValue_za",
+				"renderResult": "renderResult_za",
+				"autoSelect": true
+			    }
 			}
-	
+		}
+		
 		
 	},
 	"required": [
