@@ -32,7 +32,7 @@
 		"community_id": {
 			"title": "OEB community",
 			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow",
-			"type": "autocomplete",
+			"type": "string",
 			"pattern": "^OEBC[0-9]{3}$"
 		},
 		"tool_id": {
@@ -70,9 +70,9 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"format": "autocomplete2",
+				"format": "autocomplete",
 				"options": {
-				    "autocomplete": {
+				    "autocomplete2": {
 					"search": "search_zza",
 					"getResultValue": "getResultValue_zza",
 					"renderResult": "renderResult_zza",
