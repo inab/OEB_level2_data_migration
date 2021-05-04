@@ -39,6 +39,7 @@
 			"title": "Participant Tool",
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
+			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
@@ -68,7 +69,16 @@
 			"minItems": 1,
 			"uniqueItems": true,
 			"items": {
-				"type": "string"
+				"type": "string",
+				"format": "autocomplete",
+				"options": {
+				    "autocomplete2": {
+					"search": "search_za",
+					"getResultValue": "getResultValue_za",
+					"renderResult": "renderResult_za",
+					"autoSelect": true
+				    }
+				}
 			}
 		},
 		"data_model_repo": {
