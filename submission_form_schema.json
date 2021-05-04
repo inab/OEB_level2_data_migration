@@ -73,9 +73,9 @@
 				"format": "autocomplete",
 				"options": {
 				    "autocomplete": {
-					"search": "search_za",
-					"getResultValue": "getResultValue_za",
-					"renderResult": "renderResult_za",
+					"search": "search_zza",
+					"getResultValue": "getResultValue_zza",
+					"renderResult": "renderResult_zza",
 					"autoSelect": true
 				    }
 				}
