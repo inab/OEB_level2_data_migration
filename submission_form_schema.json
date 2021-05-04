@@ -72,7 +72,7 @@
 				"type": "string",
 				"format": "autocomplete",
 				"options": {
-				    "autocomplete2": {
+				    "autocomplete": {
 					"search": "search_za",
 					"getResultValue": "getResultValue_za",
 					"renderResult": "renderResult_za",
