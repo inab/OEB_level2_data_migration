@@ -47,7 +47,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
                 logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json))
                 sys.exit(1)
         
-        
+        #Collect data
         data_visibility = config_params["data_visibility"]
         bench_event_id = config_params["benchmarking_event_id"]
         file_location = config_params["participant_file"]
@@ -116,6 +116,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     input_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "input")
 
+
     # upload predicitions file to stable server and get permanent identifier
     data_doi = migration_utils.upload_to_storage_service(
         min_participant_data, file_location, contacts[0], version)
@@ -124,7 +125,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
         input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
-
+    
     valid_test_events = process_participant.build_test_events(
         input_query_response, min_participant_data, tool_id, contacts)
 

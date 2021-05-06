@@ -231,7 +231,7 @@ class Aggregation():
                             challenge["challenge_contact_ids"])
 
                 event["test_contact_ids"] = data_contacts
-
+                
                 aggregation_events.append(event)
 
         return aggregation_events

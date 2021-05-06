@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timezone
 import json
 from .benchmarking_dataset import BenchmarkingDataset
+import re
 
 
 class Assessment():
@@ -142,8 +143,26 @@ class Assessment():
             valid_data["version"] = str(version)
 
             # add dataset contacts ids
-            valid_data["dataset_contact_ids"] = [contact["_id"]
-                                                 for contact in response["data"]["getContacts"] if contact["email"][0] in contacts]
+            # CHECK IF EMAIL IS GIVEN
+            # Make a regular expression
+            # for validating an Email
+            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
+            contacts_ids = []
+            for contact in contacts:
+                if(re.search(regex, contact)):
+                    for x in response["data"]["getContacts"]:
+                        if x["email"][0] in contacts:
+                            contacts_ids.append(x["_id"]) 
+                else:
+                    for x in response["data"]["getContacts"]:
+                        if x["_id"] in contacts:
+                            contacts_ids.append(contact) 
+                            
+            if not contacts_ids:
+                logging.error("Contacts {}, does not exist in database".format(contacts))
+                sys.exit(1)
+            else:
+                valid_data["dataset_contact_ids"] = contacts_ids
 
             sys.stdout.write('Processed "' + str(dataset["_id"]) + '"...\n')
 
@@ -201,8 +220,26 @@ class Assessment():
             }
 
             # add dataset contacts ids
-            event["test_contact_ids"] = [contact["_id"] for contact in response["data"]
-                                         ["getContacts"] if contact["email"][0] in contacts]
+            # CHECK IF EMAIL IS GIVEN
+            # Make a regular expression
+            # for validating an Email
+            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
+            contacts_ids = []
+            for contact in contacts:
+                if(re.search(regex, contact)):
+                    for x in response["data"]["getContacts"]:
+                        if x["email"][0] in contacts:
+                            contacts_ids.append(x["_id"]) 
+                else:
+                    for x in response["data"]["getContacts"]:
+                        if x["_id"] in contacts:
+                            contacts_ids.append(contact) 
+                            
+            if not contacts_ids:
+                logging.error("Contacts {}, does not exist in database".format(contacts))
+                sys.exit(1)
+            else:
+                event["test_contact_ids"] = contacts_ids
 
             metrics_events.append(event)
 
