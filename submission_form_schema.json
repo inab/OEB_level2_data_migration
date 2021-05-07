@@ -50,6 +50,11 @@
 			    }
 			}
 		},
+		"dataset_submission_id": {
+			"title": "Dataset submission id",
+			"description": "The unique identifier of the dataset which will hold the identifiers of all the loaded/updated datasets. Beware, this id should be unique! If it is not set, a UUIDv1 is used",
+			"type": "string"
+		},
 		"data_version": {
 			"title": "Version",
 			"description": "Version (or release date) of the dataset",

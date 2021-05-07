@@ -18,6 +18,7 @@ import os
 import urllib.parse
 import urllib.request
 import logging
+import uuid
 
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
@@ -65,6 +66,13 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         else:
             raise Exception('Unknown server type "{}"'.format(storageServer['type']))
         workflow_id = config_params["workflow_oeb_id"]
+        
+        dataset_submission_id = config_params.get("dataset_submission_id")
+        if not dataset_submission_id:
+            # This unique identifier depends on the machine, the current
+            # timestamp and a random element
+            ts = uuid.uuid1()
+            dataset_submission_id = str(ts)
 
     except Exception as e:
 
@@ -164,6 +172,10 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
         valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
+    
+    # Generate the umbrella dataset
+    umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, community_id, bench_event_id, version, data_visibility, final_data)
+    final_data.append(umbrella)
     
     if output_filename is not None:
         logging.info("Storing output before validation at {}".format(output_filename))

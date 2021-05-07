@@ -2,6 +2,7 @@
 
 import os
 import sys
+import datetime
 import hashlib
 import tempfile
 import subprocess
@@ -86,6 +87,8 @@ class OpenEBenchUtils():
         self.schema_validators_local_config = local_config
 
         self.schema_validators = None
+        
+        self.schemaMappings = None
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
 
@@ -424,6 +427,8 @@ class OpenEBenchUtils():
             if concept:
                 schemaMappings[concept] = key
         
+        self.schemaMappings = schemaMappings
+        
         return schemaMappings
 
     def schemas_validation(self, jsonSchemas_array, val_result_filename):
@@ -477,6 +482,58 @@ class OpenEBenchUtils():
             datares = json.load(t)
             
             return datares
+    
+    def generate_manifest_dataset(self, dataset_submission_id, community_id, benchmarking_event_id, version, data_visibility, final_data):
+        """
+        This method receives both a dataset submission id and
+        the array of data elements (datasets, testactions) to
+        be stored in the database
+        """
+        
+        dataset_schema = self.schemaMappings['Dataset']
+        umbrella_assembling_timestamp = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
+        
+        unique_contacts = set()
+        unique_challenges = set()
+        rel_dataset_ids = []
+        for elem in final_data:
+            if elem['_schema'] == dataset_schema:
+                for dataset_contact_id in elem['dataset_contact_ids']:
+                    unique_contacts.add(dataset_contact_id)
+                for challenge_id in elem['challenge_ids']:
+                    unique_challenges.add(challenge_id)
+                rel_dataset_ids.append({
+                    'dataset_id': elem['_id'],
+                    'role': 'dependency'
+                })
+        
+        umbrella = {
+            '_id': dataset_submission_id,
+            '_schema': dataset_schema,
+            'community_ids': [ community_id ],
+            'challenge_ids': list(unique_challenges),
+            'visibility': data_visibility,
+            'name': dataset_submission_id,
+            'version': str(version),
+            'description': 'Manifest dataset {} from consolidated data'.format(dataset_submission_id),
+            'dates': {
+                'creation': umbrella_assembling_timestamp,
+                'modification': umbrella_assembling_timestamp,
+            },
+            'type': 'other',
+            'datalink': {
+                'uri': 'oeb:{}'.format(benchmarking_event_id),
+                'attrs': [
+                    'curie'
+                ]
+            },
+            'dataset_contact_ids': list(unique_contacts),
+            'depends_on': {
+                'rel_dataset_ids': rel_dataset_ids,
+            }
+        }
+        
+        return umbrella
     
     def submit_oeb_buffer(self, json_data, community_id):
 
