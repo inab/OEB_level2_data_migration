@@ -300,6 +300,32 @@ class OpenEBenchUtils():
                     "No tool '" + tool_id + "' was found in OEB. Please contact OpenEBench support for information about how to register your tool")
                 sys.exit(2)
             else:
+                # Deserializing _metadata
+                challenges = data.get('getChallenges')
+                if challenges is not None:
+                    for challenge in challenges:
+                        metadata = challenge.get('_metadata')
+                        # Deserialize the metadata
+                        if isinstance(metadata,str):
+                            challenge['_metadata'] = json.loads(metadata)
+                        
+                        # Deserializing inline_data
+                        datasets = challenge.get('datasets',[])
+                        for dataset in datasets:
+                            datalink = dataset.get('datalink')
+                            if datalink is not None:
+                                inline_data = datalink.get('inline_data')
+                                if isinstance(inline_data, str):
+                                    datalink['inline_data'] = json.loads(inline_data)
+                
+                metrics = data.get('getMetrics')
+                if metrics is not None:
+                    for metric in metrics:
+                        metadata = metric.get('_metadata')
+                        # Deserialize the metadata
+                        if isinstance(metadata,str):
+                            metric['_metadata'] = json.loads(metadata)
+                
                 return response
         except Exception as e:
 
