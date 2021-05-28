@@ -32,7 +32,8 @@
 		"participant_file": {
 			"title": "Participant file associated",
 			"description": "Path or URI (e.g. DOI) to the participant file associated with the consolidated results",
-			"type": "string"
+			"type": "string",
+			"readonly": true
 		},
 		"community_id": {
 			"title": "OEB community",
