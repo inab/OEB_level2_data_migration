@@ -69,10 +69,14 @@ class OpenEBenchUtils():
 
         logging.basicConfig(level=logging.INFO)
         
+        oebIdProviders = oeb_credentials['accessURI']
+        if not isinstance(oebIdProviders, list):
+            oebIdProviders = [ oebIdProviders ]
+        
         local_config = {
             'primary_key': {
                 'provider': [
-                    oeb_credentials['accessURI'],
+                    *oebIdProviders,
                     oeb_credentials['submissionURI']
                 ],
                 # To be set on instantiation

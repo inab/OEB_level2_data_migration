@@ -79,9 +79,22 @@
 		"accessURI": {
 			"title": "OpenEBench access endpoint",
 			"description": "This endpoint is used to query existing identifiers, needed for validations",
-			"type": "string",
-			"format": "uri",
-			"minLength": 1
+			"oneOf": [
+				{
+					"type": "string",
+					"format": "uri",
+					"minLength": 1
+				},
+				{
+					"type": "array",
+					"items": {
+						"type": "string",
+						"format": "uri",
+						"minLength": 1
+					},
+					"minItems": 1
+				}
+			]
 		},
 		"submissionURI": {
 			"title": "OpenEBench submission endpoint",
