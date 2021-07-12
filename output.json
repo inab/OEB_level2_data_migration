@@ -1,0 +1,590 @@
+[
+  {
+    "json": {
+      "_id": "OEBD002tV0LRDD",
+      "type": "assessment",
+      "orig_id": "QfO:GO_NR_ORTHOLOGS_NEW_PREDICTOR_A",
+      "dates": {
+        "creation": "2021-07-12T09:43:46+00:00",
+        "modification": "2021-07-12T10:00:03+00:00"
+      },
+      "visibility": "public",
+      "name": "Metric 'NR_ORTHOLOGS' in challenge 'GO' applied to participant 'NEW_PREDICTOR'",
+      "description": "Assessment dataset of applying metric 'NR_ORTHOLOGS' in challenge 'GO' to 'NEW_PREDICTOR' participant",
+      "challenge_ids": [
+        "OEBX002000000B"
+      ],
+      "datalink": {
+        "inline_data": {
+          "value": 37437,
+          "error": 0
+        }
+      },
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+      "community_ids": [
+        "OEBC002"
+      ],
+      "depends_on": {
+        "tool_id": "OEBT0020000007",
+        "rel_dataset_ids": [
+          {
+            "dataset_id": "OEBD00200001QE"
+          },
+          {
+            "dataset_id": "OEBD00200001QG"
+          },
+          {
+            "dataset_id": "QfO:NEW_PREDICTOR_P"
+          },
+          {
+            "dataset_id": "OEBD00200001QC"
+          },
+          {
+            "dataset_id": "OEBD00200001QJ"
+          }
+        ],
+        "metrics_id": "OEBM0020000002"
+      },
+      "version": "1",
+      "dataset_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineOEBD002tV0LRDD",
+    "errors": [
+      {
+        "reason": "dup_pk",
+        "description": "Path: / . Message: Duplicated primary_key value -=> OEBD002tV0LRDD <=-  (appeared in 
+https://dev-openebench.bsc.es/api/scientific/submission/Dataset/)",
+        "path": "/"
+      }
+    ],
+    "schema_hash": "2e3d0fb0df1b3fc8aa9195b5d47a0a1c930670eb",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+  },
+  {
+    "json": {
+      "_id": "OEBD002t89H3OH",
+      "type": "assessment",
+      "orig_id": "QfO:GO_avg Schlicker_NEW_PREDICTOR_A",
+      "dates": {
+        "creation": "2021-07-12T09:43:46+00:00",
+        "modification": "2021-07-12T10:00:03+00:00"
+      },
+      "visibility": "public",
+      "name": "Metric 'avg Schlicker' in challenge 'GO' applied to participant 'NEW_PREDICTOR'",
+      "description": "Assessment dataset of applying metric 'avg Schlicker' in challenge 'GO' to 'NEW_PREDICTOR' participant",
+      "challenge_ids": [
+        "OEBX002000000B"
+      ],
+      "datalink": {
+        "inline_data": {
+          "value": 0.52502787,
+          "error": 0.0023850125
+        }
+      },
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+      "community_ids": [
+        "OEBC002"
+      ],
+      "depends_on": {
+        "tool_id": "OEBT0020000007",
+        "rel_dataset_ids": [
+          {
+            "dataset_id": "OEBD00200001QE"
+          },
+          {
+            "dataset_id": "OEBD00200001QG"
+          },
+          {
+            "dataset_id": "QfO:NEW_PREDICTOR_P"
+          },
+          {
+            "dataset_id": "OEBD00200001QC"
+          },
+          {
+            "dataset_id": "OEBD00200001QJ"
+          }
+        ],
+        "metrics_id": "OEBM0020000001"
+      },
+      "version": "1",
+      "dataset_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineOEBD002t89H3OH",
+    "errors": [
+      {
+        "reason": "dup_pk",
+        "description": "Path: / . Message: Duplicated primary_key value -=> OEBD002t89H3OH <=-  (appeared in 
+https://dev-openebench.bsc.es/api/scientific/submission/Dataset/)",
+        "path": "/"
+      }
+    ],
+    "schema_hash": "2e3d0fb0df1b3fc8aa9195b5d47a0a1c930670eb",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+  },
+  {
+    "json": {
+      "_id": "OEBD002tEXA534",
+      "type": "aggregation",
+      "visibility": "public",
+      "name": "Summary dataset for challenge: GO. Metrics: NR_ORTHOLOGS - avg Schlicker",
+      "description": "Summary dataset that aggregates all results from participants in challenge: GO. Metrics: NR_ORTHOLOGS - avg 
+Schlicker",
+      "challenge_ids": [
+        "OEBX002000000B"
+      ],
+      "dates": {
+        "creation": "2021-07-12T09:43:58+00:00",
+        "modification": "2021-07-12T10:00:16+00:00"
+      },
+      "datalink": {
+        "inline_data": {
+          "challenge_participants": [
+            {
+              "metric_x": 85240,
+              "metric_y": 0.50666218,
+              "stderr_x": 0,
+              "stderr_y": 0.0015586173,
+              "tool_id": "BBH"
+            },
+            {
+              "metric_x": 351359,
+              "metric_y": 0.44556121,
+              "stderr_x": 0,
+              "stderr_y": 0.00073660471,
+              "tool_id": "Ensembl_Compara"
+            },
+            {
+              "metric_x": 130511,
+              "metric_y": 0.48777625,
+              "stderr_x": 0,
+              "stderr_y": 0.0012541511,
+              "tool_id": "Hieranoid2"
+            },
+            {
+              "metric_x": 154587,
+              "metric_y": 0.48478159,
+              "stderr_x": 0,
+              "stderr_y": 0.0011553547,
+              "tool_id": "InParanoid"
+            },
+            {
+              "metric_x": 936482,
+              "metric_y": 0.41161343,
+              "stderr_x": 0,
+              "stderr_y": 0.0004233331,
+              "tool_id": "OMA_GETHOGs_2.0"
+            },
+            {
+              "metric_x": 58918,
+              "metric_y": 0.51354724,
+              "stderr_x": 0,
+              "stderr_y": 0.0018876193,
+              "tool_id": "OMA_Groups_2.0"
+            },
+            {
+              "metric_x": 105205,
+              "metric_y": 0.49670295,
+              "stderr_x": 0,
+              "stderr_y": 0.0014143819,
+              "tool_id": "OMA_Pairs_2.0"
+            },
+            {
+              "metric_x": 154358,
+              "metric_y": 0.48523881,
+              "stderr_x": 0,
+              "stderr_y": 0.0011606191,
+              "tool_id": "OrthoFinder_2_BLAST__DendroBLAST_"
+            },
+            {
+              "metric_x": 150884,
+              "metric_y": 0.48883612,
+              "stderr_x": 0,
+              "stderr_y": 0.0011665263,
+              "tool_id": "OrthoFinder_2_BLAST__MSA"
+            },
+            {
+              "metric_x": 145550,
+              "metric_y": 0.48924289,
+              "stderr_x": 0,
+              "stderr_y": 0.0011904026,
+              "tool_id": "OrthoFinder_2_Defaults_DIAMOND__MSA"
+            },
+            {
+              "metric_x": 147339,
+              "metric_y": 0.48860826,
+              "stderr_x": 0,
+              "stderr_y": 0.0011810298,
+              "tool_id": "OrthoFinder_2_DIAMOND__MSA"
+            },
+            {
+              "metric_x": 155915,
+              "metric_y": 0.48712107,
+              "stderr_x": 0,
+              "stderr_y": 0.0011447947,
+              "tool_id": "OrthoInspector_3.0"
+            },
+            {
+              "metric_x": 189576,
+              "metric_y": 0.47613713,
+              "stderr_x": 0,
+              "stderr_y": 0.0010360055,
+              "tool_id": "PANTHER_14.1_all"
+            },
+            {
+              "metric_x": 73809,
+              "metric_y": 0.51134838,
+              "stderr_x": 0,
+              "stderr_y": 0.0016869987,
+              "tool_id": "PANTHER_14.1_LDO_only"
+            },
+            {
+              "metric_x": 78139,
+              "metric_y": 0.50522715,
+              "stderr_x": 0,
+              "stderr_y": 0.0016415068,
+              "tool_id": "RSD"
+            },
+            {
+              "metric_x": 160390,
+              "metric_y": 0.48205884,
+              "stderr_x": 0,
+              "stderr_y": 0.0011337045,
+              "tool_id": "SonicParanoid_default"
+            },
+            {
+              "metric_x": 166884,
+              "metric_y": 0.48386737,
+              "stderr_x": 0,
+              "stderr_y": 0.001108074,
+              "tool_id": "SonicParanoid_most"
+            },
+            {
+              "metric_x": 164967,
+              "metric_y": 0.4841653,
+              "stderr_x": 0,
+              "stderr_y": 0.0011150718,
+              "tool_id": "SonicParanoid_sensitive"
+            },
+            {
+              "metric_x": 37437,
+              "metric_y": 0.52502787,
+              "stderr_x": 0,
+              "stderr_y": 0.0023850125,
+              "tool_id": "NEW_PREDICTOR"
+            }
+          ],
+          "visualization": {
+            "optimization": "top-right",
+            "type": "2D-plot",
+            "x_axis": "NR_ORTHOLOGS",
+            "y_axis": "avg Schlicker"
+          }
+        },
+        "schema_url": 
+"https://raw.githubusercontent.com/inab/OpenEBench_scientific_visualizer/master/benchmarking_data_model/aggregation_dataset_json_schema.json"
+      },
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+      "community_ids": [
+        "OEBC002"
+      ],
+      "depends_on": {
+        "tool_id": "OEBT0020000002",
+        "rel_dataset_ids": [
+          {
+            "dataset_id": "OEBD002tV0LRDD"
+          },
+          {
+            "dataset_id": "OEBD002t89H3OH"
+          }
+        ]
+      },
+      "version": "1",
+      "dataset_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+      ],
+      "orig_id": "QfO:GO_agg_NR_ORTHOLOGS+avg Schlicker"
+    },
+    "file": "inlineOEBD002tEXA534",
+    "errors": [
+      {
+        "reason": "dup_pk",
+        "description": "Path: / . Message: Duplicated primary_key value -=> OEBD002tEXA534 <=-  (appeared in 
+https://dev-openebench.bsc.es/api/scientific/submission/Dataset/)",
+        "path": "/"
+      }
+    ],
+    "schema_hash": "2e3d0fb0df1b3fc8aa9195b5d47a0a1c930670eb",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+  },
+  {
+    "json": {
+      "_id": "OEBA002t0UF1ET",
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+      "action_type": "AggregationEvent",
+      "tool_id": "OEBT0020000002",
+      "challenge_id": "OEBX002000000B",
+      "involved_datasets": [
+        {
+          "dataset_id": "OEBD002tV0LRDD",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD002t89H3OH",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD002tEXA534",
+          "role": "outgoing"
+        }
+      ],
+      "dates": {
+        "creation": "2021-07-12T09:43:58+00:00",
+        "reception": "2021-07-12T09:43:58+00:00",
+        "modification": "2021-07-12T10:00:16+00:00"
+      },
+      "test_contact_ids": [
+        "Christophe.Dessimoz",
+        "Adrian.Altenhoff"
+      ],
+      "orig_id": "QfO:GO_agg_NR_ORTHOLOGS+avg Schlicker_Event"
+    },
+    "file": "inlineOEBA002t0UF1ET",
+    "errors": [
+      {
+        "reason": "dup_pk",
+        "description": "Path: / . Message: Duplicated primary_key value -=> OEBA002t0UF1ET <=-  (appeared in 
+https://dev-openebench.bsc.es/api/scientific/submission/TestAction/)",
+        "path": "/"
+      }
+    ],
+    "schema_hash": "acc45f8f3dc580ab12027fda0548e31d32b2f82b",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction"
+  },
+  {
+    "json": {
+      "_id": "QfO:NEW_PREDICTOR_P",
+      "type": "participant",
+      "visibility": "public",
+      "name": "Predictions made by NEW_PREDICTOR participant",
+      "description": "Predictions made by NEW_PREDICTOR participant",
+      "challenge_ids": [
+        "OEBX002000000B"
+      ],
+      "dates": {
+        "creation": "2021-07-12T10:00:03+00:00",
+        "modification": "2021-07-12T10:00:03+00:00"
+      },
+      "datalink": {
+        "attrs": [
+          "archive"
+        ],
+        "status": "ok",
+        "validation_date": "2019-12-19T15:23:40+00:00",
+        "uri": "https://doi.org/10.1093/nar/gkaa308"
+      },
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+      "community_ids": [
+        "OEBC002"
+      ],
+      "depends_on": {
+        "tool_id": "OEBT0020000007",
+        "rel_dataset_ids": [
+          {
+            "dataset_id": "OEBD00200001FC"
+          }
+        ]
+      },
+      "version": "1",
+      "dataset_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineQfO:NEW_PREDICTOR_P",
+    "errors": [],
+    "schema_hash": "2e3d0fb0df1b3fc8aa9195b5d47a0a1c930670eb",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+  },
+  {
+    "json": {
+      "_id": "GO_testEvent_NEW_PREDICTOR",
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+      "action_type": "TestEvent",
+      "tool_id": "OEBT0020000007",
+      "challenge_id": "OEBX002000000B",
+      "involved_datasets": [
+        {
+          "dataset_id": "OEBD00200001FC",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "QfO:NEW_PREDICTOR_P",
+          "role": "outgoing"
+        }
+      ],
+      "dates": {
+        "creation": "2021-07-12T10:00:03+00:00",
+        "reception": "2021-07-12T10:00:03+00:00"
+      },
+      "test_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineGO_testEvent_NEW_PREDICTOR",
+    "errors": [],
+    "schema_hash": "acc45f8f3dc580ab12027fda0548e31d32b2f82b",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction"
+  },
+  {
+    "json": {
+      "_id": "QfO:GO_NR_ORTHOLOGS_NEW_PREDICTOR_MetricsEvent",
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+      "action_type": "MetricsEvent",
+      "tool_id": "OEBT0020000007",
+      "challenge_id": "OEBX002000000B",
+      "involved_datasets": [
+        {
+          "dataset_id": "OEBD00200001QE",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QG",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "QfO:NEW_PREDICTOR_P",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QC",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QJ",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD002tV0LRDD",
+          "role": "outgoing"
+        }
+      ],
+      "dates": {
+        "creation": "2021-07-12T10:00:03+00:00",
+        "reception": "2021-07-12T10:00:03+00:00"
+      },
+      "test_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineQfO:GO_NR_ORTHOLOGS_NEW_PREDICTOR_MetricsEvent",
+    "errors": [],
+    "schema_hash": "acc45f8f3dc580ab12027fda0548e31d32b2f82b",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction"
+  },
+  {
+    "json": {
+      "_id": "QfO:GO_avg Schlicker_NEW_PREDICTOR_MetricsEvent",
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction",
+      "action_type": "MetricsEvent",
+      "tool_id": "OEBT0020000007",
+      "challenge_id": "OEBX002000000B",
+      "involved_datasets": [
+        {
+          "dataset_id": "OEBD00200001QE",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QG",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "QfO:NEW_PREDICTOR_P",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QC",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD00200001QJ",
+          "role": "incoming"
+        },
+        {
+          "dataset_id": "OEBD002t89H3OH",
+          "role": "outgoing"
+        }
+      ],
+      "dates": {
+        "creation": "2021-07-12T10:00:03+00:00",
+        "reception": "2021-07-12T10:00:03+00:00"
+      },
+      "test_contact_ids": [
+        "Javier.Garrayo"
+      ]
+    },
+    "file": "inlineQfO:GO_avg Schlicker_NEW_PREDICTOR_MetricsEvent",
+    "errors": [],
+    "schema_hash": "acc45f8f3dc580ab12027fda0548e31d32b2f82b",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/TestAction"
+  },
+  {
+    "json": {
+      "_id": "ed20017e-e2f7-11eb-9647-df049f73dd25",
+      "_schema": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset",
+      "community_ids": [
+        "OEBC002"
+      ],
+      "challenge_ids": [
+        "OEBX002000000B"
+      ],
+      "visibility": "public",
+      "name": "ed20017e-e2f7-11eb-9647-df049f73dd25",
+      "version": "1",
+      "description": "Manifest dataset ed20017e-e2f7-11eb-9647-df049f73dd25 from consolidated data",
+      "dates": {
+        "creation": "2021-07-12T10:00:16+00:00",
+        "modification": "2021-07-12T10:00:16+00:00"
+      },
+      "type": "other",
+      "datalink": {
+        "uri": "oeb:OEBE0020000001",
+        "attrs": [
+          "curie"
+        ]
+      },
+      "dataset_contact_ids": [
+        "Adrian.Altenhoff",
+        "Javier.Garrayo",
+        "Christophe.Dessimoz"
+      ],
+      "depends_on": {
+        "rel_dataset_ids": [
+          {
+            "dataset_id": "QfO:NEW_PREDICTOR_P",
+            "role": "dependency"
+          },
+          {
+            "dataset_id": "OEBD002tV0LRDD",
+            "role": "dependency"
+          },
+          {
+            "dataset_id": "OEBD002t89H3OH",
+            "role": "dependency"
+          },
+          {
+            "dataset_id": "OEBD002tEXA534",
+            "role": "dependency"
+          }
+        ]
+      }
+    },
+    "file": "inlineed20017e-e2f7-11eb-9647-df049f73dd25",
+    "errors": [],
+    "schema_hash": "2e3d0fb0df1b3fc8aa9195b5d47a0a1c930670eb",
+    "schema_id": "https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Dataset"
+  }
+]
