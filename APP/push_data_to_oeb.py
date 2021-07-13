@@ -9,6 +9,7 @@
 """
 from process.participant import Participant
 from process.assessment import Assessment
+from process.participantAssessments import Participant_Assessments
 from process.aggregation import Aggregation
 from utils.migration_utils import OpenEBenchUtils
 import json
@@ -21,7 +22,7 @@ import logging
 import uuid
 
 
-DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
+DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","2.0.x")
 
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
 
@@ -59,12 +60,16 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         data_model_repo = config_params["data_model_repo"]
         data_model_tag = config_params["data_model_tag"]
         data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
+        
+        
         storageServer = oeb_credentials.get('storageServer', {})
         if storageServer['type'] == 'b2share':
             if 'endpoint' not in storageServer:
                 storageServer['endpoint'] = config_params["data_storage_endpoint"]
         else:
             raise Exception('Unknown server type "{}"'.format(storageServer['type']))
+            
+        
         workflow_id = config_params["workflow_oeb_id"]
         
         dataset_submission_id = config_params.get("dataset_submission_id")
@@ -107,8 +112,10 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             min_participant_data = dataset
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
+            '''
         elif dataset_type == "aggregation":
             min_aggregation_datasets.append(dataset)
+            '''
         elif dataset_type is not None:
             logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
         #    sys.exit(2)
@@ -128,19 +135,23 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     # upload predicitions file to stable server and get permanent identifier
     data_doi = migration_utils.upload_to_storage_service(
         min_participant_data, file_location, contacts[0], version)
+    
 
-    # generate all required objects
+    ### generate all required objects
+    #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
         input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
     
+    #TEST EVENT
     valid_test_events = process_participant.build_test_events(
         input_query_response, min_participant_data, tool_id, contacts)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     metrics_reference_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
-
+    
+    #ASSESSMENT DATASETS & METRICS EVENT
     # Needed to better consolidate
     stagedEvents = migration_utils.fetchStagedData('TestAction')
     stagedDatasets = migration_utils.fetchStagedData('Dataset')
@@ -154,7 +165,18 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
 
     valid_metrics_events = process_assessments.build_metrics_events(
         metrics_reference_query_response, stagedEvents, valid_assessment_datasets, tool_id, contacts)
-
+    
+    #PARTICIPANT ASSESSMENTS DATASET & PARTICIPANT ASSESSMENT EVENT
+    process_participantAssessments = Participant_Assessments(schemaMappings)
+    valid_participantAssessments_data = process_participantAssessments.build_participantAssessments_dataset(
+        valid_assessment_datasets, valid_participant_data, data_visibility, community_id, tool_id, version, contacts) 
+    valid_participantAssessments_events = process_participantAssessments.build_participantAssessments_events(
+        valid_assessment_datasets, valid_participantAssessments_data)
+    
+    
+    
+    '''
+    #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
@@ -168,11 +190,11 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
-
+    '''
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
-        valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
-    
+        valid_metrics_events + [valid_participantAssessments_data] + valid_participantAssessments_events
+
     # Generate the umbrella dataset
     umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, community_id, bench_event_id, version, data_visibility, final_data)
     final_data.append(umbrella)
