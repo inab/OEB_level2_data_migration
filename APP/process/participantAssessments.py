@@ -3,6 +3,7 @@
 import logging
 import sys
 import datetime
+import uuid
 
 class Participant_Assessments():
     
@@ -42,9 +43,10 @@ class Participant_Assessments():
                     'role': 'dependency'
             })
         
-        
+        ts = uuid.uuid1()
+        dataset_id = str(ts)
         participantAssessments_dataset = {
-            '_id': 'PASSESSMENTS01',
+            '_id': dataset_id+"_ParticipantAssessments",
             '_schema': self.schemaMappings["Dataset"],
             'type': 'participant_assessments',
             'challenge_ids': list(execution_challenges),
@@ -81,6 +83,7 @@ class Participant_Assessments():
          # initialize the array of test events
          participantAssessments_events = []
          for dataset in assessment_datasets:
+             
              involved_data = []
              involved_data.append({
                     "dataset_id": dataset['_id'],
@@ -91,8 +94,10 @@ class Participant_Assessments():
                     "role": "outgoing"
              })
              for challenge in dataset["challenge_ids"]:
+                 orig_id = dataset.get("orig_id",dataset["_id"])
+                 event_id = orig_id + "_ParticipantAssessmentsEvent"
                  event = {
-                    '_id': "nose",
+                    '_id': event_id,
                     '_schema': self.schemaMappings["TestAction"],
                     'action_type': 'ParticipantAssessmentsEvent',
                     'dates': {
@@ -107,3 +112,5 @@ class Participant_Assessments():
 
 
          return participantAssessments_events
+     
+     

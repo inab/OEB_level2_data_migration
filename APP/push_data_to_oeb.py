@@ -20,7 +20,7 @@ import urllib.parse
 import urllib.request
 import logging
 import uuid
-
+import validators
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","2.0.x")
 
@@ -61,15 +61,6 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         data_model_tag = config_params["data_model_tag"]
         data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
         
-        
-        storageServer = oeb_credentials.get('storageServer', {})
-        if storageServer['type'] == 'b2share':
-            if 'endpoint' not in storageServer:
-                storageServer['endpoint'] = config_params["data_storage_endpoint"]
-        else:
-            raise Exception('Unknown server type "{}"'.format(storageServer['type']))
-            
-        
         workflow_id = config_params["workflow_oeb_id"]
         
         dataset_submission_id = config_params.get("dataset_submission_id")
@@ -78,6 +69,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             # timestamp and a random element
             ts = uuid.uuid1()
             dataset_submission_id = str(ts)
+            
+        #check partiicpant file location is a valid url
+        valid = validators.url(file_location)
+        if not valid:
+            logging.fatal("Participant file location invalid: "+file_location)
+            sys.exit(1)
 
     except Exception as e:
 
@@ -132,16 +129,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         bench_event_id, tool_id, community_id, "input")
 
 
-    # upload predicitions file to stable server and get permanent identifier
-    data_doi = migration_utils.upload_to_storage_service(
-        min_participant_data, file_location, contacts[0], version)
-    
-
+     
     ### generate all required objects
     #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
-        input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
+        input_query_response, min_participant_data, data_visibility, file_location, community_id, tool_id, version, contacts)
     
     #TEST EVENT
     valid_test_events = process_participant.build_test_events(
@@ -174,8 +167,8 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         valid_assessment_datasets, valid_participantAssessments_data)
     
     
-    
     '''
+    
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     aggregation_query_response = migration_utils.query_OEB_DB(
