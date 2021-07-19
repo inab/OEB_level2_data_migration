@@ -27,8 +27,11 @@ class Aggregation():
         # This is needed to properly compare ids later
         oeb_challenges = {}
         for challenge in challenges:
-            oeb_challenges[challenge["_metadata"]
-                           ["level_2:challenge_id"]] = challenge["_id"]
+            _metadata = challenge.get("_metadata")
+            if (_metadata is None):
+                oeb_challenges[challenge["_id"]] = challenge["_id"]
+            else:
+                oeb_challenges[_metadata["level_2:challenge_id"]] = challenge["_id"]
 
         dataset_schema_uri = self.schemaMappings['Dataset']
         for dataset in aggregation_datasets:
