@@ -1,9 +1,8 @@
 #!/usr/bin/env python
-
 import logging
 import sys
 import datetime
-import uuid
+import hashlib
 
 class Participant_Assessments():
     
@@ -26,6 +25,7 @@ class Participant_Assessments():
         #challenges and contacts
         execution_challenges = set()
         contacts_ids = set()
+        cadena = valid_participant_data['_id']+":"
         rel_dataset_ids = []
         rel_dataset_ids.append({
                     'dataset_id': valid_participant_data['_id'],
@@ -42,11 +42,17 @@ class Participant_Assessments():
                     'dataset_id': dataset['_id'],
                     'role': 'dependency'
             })
+            cadena += dataset.get('_id')+":"
         
-        ts = uuid.uuid1()
-        dataset_id = str(ts)
+        #Generate unique origin id
+        cadena += tool_id
+        dataset_id = hashlib.md5(cadena.encode('utf-8'))
+        
+      
         participantAssessments_dataset = {
-            '_id': dataset_id+"_ParticipantAssessments",
+
+            #QfO:NEW_PREDICTOR_P:QfO:GO_NR_ORTHOLOGS_NEW_PREDICTOR_A:QfO:GO_avg Schlicker_NEW_PREDICTOR_A_OEBT0020000007_OEBX002000000B
+            '_id': dataset_id.hexdigest()+"_ParticipantAssessments",
             '_schema': self.schemaMappings["Dataset"],
             'type': 'participant_assessments',
             'challenge_ids': list(execution_challenges),
