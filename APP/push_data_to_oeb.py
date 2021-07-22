@@ -167,13 +167,13 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         valid_assessment_datasets, valid_participantAssessments_data)
     
     
-    '''
+    
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
-    
+
     # Needed to better consolidate
     stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
     
@@ -183,10 +183,11 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
-    '''
+    
+    
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
-        valid_metrics_events + [valid_participantAssessments_data] + valid_participantAssessments_events
+        valid_metrics_events + [valid_participantAssessments_data] + valid_participantAssessments_events +valid_aggregation_datasets
 
     # Generate the umbrella dataset
     umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, community_id, bench_event_id, version, data_visibility, final_data)

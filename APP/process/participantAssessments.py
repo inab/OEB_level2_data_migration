@@ -88,21 +88,25 @@ class Participant_Assessments():
         
          # initialize the array of test events
          participantAssessments_events = []
-         for dataset in assessment_datasets:
+         
+         for challenge in valid_participantAssessments_data['challenge_ids']:
+            involved_data = []
+            orig_id = ""
+            for dataset in assessment_datasets:
+                if dataset['challenge_ids'][0] == challenge:
+                     involved_data.append({
+                            "dataset_id": dataset['_id'],
+                            "role": "incoming"
+                     })
+                     orig_id += dataset['_id']
              
-             involved_data = []
-             involved_data.append({
-                    "dataset_id": dataset['_id'],
-                    "role": "incoming"
-             })
-             involved_data.append({
-                    "dataset_id": valid_participantAssessments_data['_id'],
-                    "role": "outgoing"
-             })
-             for challenge in dataset["challenge_ids"]:
-                 orig_id = dataset.get("orig_id",dataset["_id"])
-                 event_id = orig_id + "_ParticipantAssessmentsEvent"
-                 event = {
+            involved_data.append({
+                "dataset_id": valid_participantAssessments_data['_id'],
+                "role": "outgoing"
+            })
+            
+            event_id = orig_id + "_ParticipantAssessmentsEvent"
+            event = {
                     '_id': event_id,
                     '_schema': self.schemaMappings["TestAction"],
                     'action_type': 'ParticipantAssessmentsEvent',
@@ -110,11 +114,11 @@ class Participant_Assessments():
                         'creation': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
                         'modification': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
                     },
-                    'test_contact_ids': dataset['dataset_contact_ids'],
+                    'test_contact_ids': valid_participantAssessments_data['dataset_contact_ids'],
                     'involved_datasets': involved_data,
                     'challenge_id': challenge
                  }
-                 participantAssessments_events.append(event)
+            participantAssessments_events.append(event)
 
 
          return participantAssessments_events
