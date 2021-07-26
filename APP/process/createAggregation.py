@@ -16,7 +16,7 @@ class Aggregation():
         self.schemaMappings = schemaMappings
         
         
-    def build_aggregation_datasets(self, response, stagedAggregationDatasets, valid_participant_data, 
+    def build_aggregation_datasets(self, response, valid_participant_data, 
                                    assessment_datasets, community_id, tool_id, version, workflow_id):
         logging.info(
             "\n\t==================================\n\t7. Processing aggregation datasets\n\t==================================\n")
@@ -98,6 +98,7 @@ class Aggregation():
                   
                        
                    i['_schema'] =  self.schemaMappings["Dataset"]
+                   i["dates"]["modification"] =  datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
                    if participant_results_challenge not in i['datalink']['inline_data']['challenge_participants']:
                        i['datalink']['inline_data']['challenge_participants'].append(participant_results_challenge)
                    valid_aggregation_datasets.append(i)

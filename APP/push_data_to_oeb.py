@@ -176,12 +176,10 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
 
-    # Needed to better consolidate
-    stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
-    
+      
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, stagedAggregationDatasets, valid_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+        aggregation_query_response, valid_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
     
