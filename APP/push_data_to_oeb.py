@@ -10,7 +10,8 @@
 from process.participant import Participant
 from process.assessment import Assessment
 from process.participantAssessments import Participant_Assessments
-from process.aggregation import Aggregation
+#from process.aggregation import Aggregation
+from process.createAggregation import Aggregation
 from utils.migration_utils import OpenEBenchUtils
 import json
 from argparse import ArgumentParser
@@ -171,6 +172,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
+    
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
 
@@ -179,15 +181,14 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
-    
+        aggregation_query_response, stagedAggregationDatasets, valid_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
     
     
     # join all elements in a single list, validate, and push them to OEB tmp database
     final_data = [valid_participant_data] + valid_test_events + valid_assessment_datasets + \
-        valid_metrics_events + [valid_participantAssessments_data] + valid_participantAssessments_events +valid_aggregation_datasets
+        valid_metrics_events + [valid_participantAssessments_data] + valid_participantAssessments_events + valid_aggregation_datasets + valid_aggregation_events
 
     # Generate the umbrella dataset
     umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, community_id, bench_event_id, version, data_visibility, final_data)

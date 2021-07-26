@@ -105,7 +105,7 @@ class Participant_Assessments():
                 "role": "outgoing"
             })
             
-            event_id = orig_id + "_ParticipantAssessmentsEvent"
+            event_id = ":"+orig_id + "_ParticipantAssessmentsEvent"
             event = {
                     '_id': event_id,
                     '_schema': self.schemaMappings["TestAction"],

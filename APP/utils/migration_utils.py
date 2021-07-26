@@ -47,7 +47,7 @@ def getAccessToken(oeb_credentials):
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
-    DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
+    DEFAULT_OEB_SUBMISSION_API = "https://dev2-openebench.bsc.es/api/scientific/sandbox/"
     DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
@@ -465,7 +465,7 @@ class OpenEBenchUtils():
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         logging.info(
-            "\n\t==================================\n\t7. Validating datasets and TestActions\n\t==================================\n")
+            "\n\t==================================\n\t9. Validating datasets and TestActions\n\t==================================\n")
 
         cached_jsons = []
         for element in jsonSchemas_array:
@@ -567,7 +567,7 @@ class OpenEBenchUtils():
     
     def submit_oeb_buffer(self, json_data, community_id):
 
-        logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")
+        logging.info("\n\t==================================\n\t10. Uploading workflow results to "+self.oeb_submission_api+"\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}
         params = {
