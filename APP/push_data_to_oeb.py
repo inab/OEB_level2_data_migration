@@ -103,17 +103,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
 
     # sort out dataset depending on 'type' property
     min_assessment_datasets = []
-    min_aggregation_datasets = []
     for i_dataset, dataset in enumerate(data):
         dataset_type = dataset.get("type")
         if dataset_type == "participant":
             min_participant_data = dataset
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
-            '''
-        elif dataset_type == "aggregation":
-            min_aggregation_datasets.append(dataset)
-            '''
         elif dataset_type is not None:
             logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
         #    sys.exit(2)
@@ -131,7 +126,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
 
 
      
-    ### generate all required objects
+    ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
@@ -166,16 +161,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         valid_assessment_datasets, valid_participant_data, data_visibility, community_id, tool_id, version, contacts) 
     valid_participantAssessments_events = process_participantAssessments.build_participantAssessments_events(
         valid_assessment_datasets, valid_participantAssessments_data)
-    
-    
-    
+
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
-
       
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(

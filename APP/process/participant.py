@@ -76,11 +76,11 @@ class Participant():
         }
 
         # add participant's file permanent location
-        valid_participant_data["datalink"] = participant_data["datalink"]
-        valid_participant_data["datalink"]["uri"] = file_location
-
-        # change date format for compatibility with Java validator (temporary solution)
-        valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
+        datalink = { "uri": file_location,
+                    "attrs": ["archive"],
+                    "kind": "mirror",
+                    "status": "ok"}
+        valid_participant_data["datalinks"] = [datalink]
 
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = self.schemaMappings["Dataset"]

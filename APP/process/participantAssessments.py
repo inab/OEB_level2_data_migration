@@ -64,12 +64,10 @@ class Participant_Assessments():
                 'creation': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
                 'modification': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
             },
-            'datalink': {
+            'datalinks': [{
                 'uri': 'oeb:{}'.format(tool_id),
-                'attrs': [
-                    'curie'
-                ]
-            },
+                'attrs': ['curie']
+            }],
             'depends_on': {
                 'rel_dataset_ids': rel_dataset_ids,
             },

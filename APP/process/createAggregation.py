@@ -36,14 +36,14 @@ class Aggregation():
                     r['metrics_id'] = j['depends_on']['metrics_id']
                     r['metrics_name'] = j['_id']
                     r['assess_id'] = j['_id']
-                    r.update(j['datalink']['inline_data'])
+                    r.update(j['datalinks'][0]['inline_data'])
                     challenge_results['metrics'].append(r)
             valid_results.append(challenge_results)
         
         print(valid_results)
         
         aggregation_datasets_existed = []
-        ##Check if aggregation datasets already exists for each challenge
+        ##Check if aggregation datasets already exists in OEB for each challenge
         #Get list of aggregation datasets whose challenge belong to that benchmarking_event
         aggregation_datasets = response["data"]["getChallenges"]
         
@@ -58,13 +58,19 @@ class Aggregation():
                     break
                 
               
-        #Once we have existed aggregation datasets, add assessments to them
+        #Once we have the list of existed aggregation datasets, add assessments to them
         for elem in valid_results:
             for i in aggregation_datasets_existed:
                if (elem['challenge'] == i['challenge_ids'][0]):
                    participant_results_challenge = dict()
-                   metrics_id = i['datalink']['inline_data']['visualization']
+                   #check if schema is 2.0 or 1.0 
+                   if ("1.0" in i['_schema']):
+                       i['datalinks'] = [i['datalink']]
+                       del i['datalink']
+                       
+                   metrics_id = i['datalinks'][0]['inline_data']['visualization']
                    
+                   #As not always in visualitzation object, metrics_id is a real id. Sometimes is its metrics name
                    if not metrics_id['x_axis'].startswith("OEB"):
                            for metric in elem['metrics']:
                                if metrics_id['x_axis'] in metric['metrics_name']:
@@ -75,6 +81,7 @@ class Aggregation():
                                if metrics_id['y_axis'] in metric['metrics_name']:
                                    metrics_id['y_axis'] = metric['metrics_id']
                        
+                   
                    for metric in elem['metrics']:
                         if metrics_id['x_axis'] == metric['metrics_id']:
                            participant_results_challenge["metric_x"] = metric['value']
@@ -96,21 +103,24 @@ class Aggregation():
                            if ("tool_id" not in participant_results_challenge.keys()):
                                participant_results_challenge['tool_id'] = valid_participant_data["_id"].split(":")[-1]
                   
-                       
+                   #update also schema, as still some datasets refer to old schema
                    i['_schema'] =  self.schemaMappings["Dataset"]
+                   #update modification date
                    i["dates"]["modification"] =  datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
-                   if participant_results_challenge not in i['datalink']['inline_data']['challenge_participants']:
-                       i['datalink']['inline_data']['challenge_participants'].append(participant_results_challenge)
+                   
+                   if participant_results_challenge not in i['datalinks'][0]['inline_data']['challenge_participants']:
+                       i['datalinks'][0]['inline_data']['challenge_participants'].append(participant_results_challenge)
                    valid_aggregation_datasets.append(i)
                    break    
         
         
-        #Check all challenges has an aggregation dataset
+        #Check if all participant challenges have already an aggregation dataset
         challenges_done = []
         for j in valid_aggregation_datasets:
             challenges_done.append(j['challenge_ids'][0])
         
         for i in valid_participant_data['challenge_ids']:
+            #Challege does not have an aggregation, then build it
             if not i in challenges_done:
                 sys.stdout.write(
                     'Challenge "' + str(i) + '" has not an aggregation dataset in OpenEBench... Building new object\n')
@@ -145,12 +155,12 @@ class Aggregation():
                                     "challenge_ids":[i],
                                     "community_ids": community_id,
                                     "type": "aggregation",
-                                    "datalink": {
+                                    "datalinks": [{
                                             "inline_data":{
                                                     "challenge_participants":[obj_results],
                                                     "visualitzation": obj_visualitzation
                                             }
-                                    },
+                                    }],
                                     "dataset_contact_ids": data_contacts,
                                     'dates': {
                                         'creation': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
@@ -170,6 +180,7 @@ class Aggregation():
                 
               
         return valid_aggregation_datasets
+    
     
     def build_aggregation_events(self, response, stagedEvents, aggregation_datasets, workflow_id):
 

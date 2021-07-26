@@ -105,8 +105,8 @@ class Assessment():
             metric_value = dataset["metrics"]["value"]
             error_value = dataset["metrics"]["stderr"]
 
-            valid_data["datalink"] = {"inline_data": {
-                "value": metric_value, "error": error_value}}
+            valid_data["datalinks"] = [{"inline_data": {
+                "value": metric_value, "error": error_value}}]
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
