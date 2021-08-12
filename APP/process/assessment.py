@@ -69,8 +69,11 @@ class Assessment():
 
             oeb_challenges = {}
             for challenge in data:
-                oeb_challenges[challenge["_metadata"]
-                               ["level_2:challenge_id"]] = challenge["_id"]
+                _metadata = challenge.get("_metadata")
+                if (_metadata is None):
+                    oeb_challenges[challenge["acronym"]] = challenge["_id"]
+                else:
+                    oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
 
             # replace dataset related challenges with oeb challenge ids
             execution_challenges = []

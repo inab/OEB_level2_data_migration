@@ -49,9 +49,9 @@ class Participant():
         for challenge in data:
             _metadata = challenge.get("_metadata")
             if (_metadata is None):
-                oeb_challenges[challenge["_id"]] = challenge["_id"]
-            else:
-                oeb_challenges[_metadata["level_2:challenge_id"]] = challenge["_id"]
+                oeb_challenges[challenge["acronym"]] = challenge["_id"]
+            else: oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
+            #oeb_challenges[_metadata["level_2:challenge_id"]] = challenge["_id"]
 
         # replace dataset related challenges with oeb challenge ids
         execution_challenges = []
@@ -60,9 +60,9 @@ class Participant():
             try:
                 execution_challenges.append(oeb_challenges[challenge])
             except:
-                logging.fatal("No challenges associated to " + challenge +
+                logging.error("No challenges associated to " + challenge +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                sys.exit()
+                sys.exit(1)
 
         valid_participant_data["challenge_ids"] = execution_challenges
 
@@ -160,8 +160,11 @@ class Participant():
             data = response["data"]["getChallenges"]
             oeb_challenges = {}
             for oeb_challenge in data:
-                oeb_challenges[oeb_challenge["_metadata"]
-                               ["level_2:challenge_id"]] = oeb_challenge["_id"]
+                _metadata = oeb_challenge.get("_metadata")
+                if (_metadata is None):
+                    oeb_challenges[oeb_challenge["acronym"]] = oeb_challenge["_id"]
+                else: oeb_challenges[oeb_challenge["_metadata"]["level_2:challenge_id"]] = oeb_challenge["_id"]
+
 
             try:
                 event["challenge_id"] = oeb_challenges[challenge]

@@ -160,6 +160,7 @@ class OpenEBenchUtils():
             json_query = {'query': """query InputQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
+        acronym
         _metadata
         datasets(datasetFilters: {type: "input"}) {
             _id
@@ -183,6 +184,7 @@ class OpenEBenchUtils():
             json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
+        acronym
         _metadata
         datasets(datasetFilters: {type: "metrics_reference"}) {
             _id
@@ -545,12 +547,12 @@ class OpenEBenchUtils():
                 'modification': umbrella_assembling_timestamp,
             },
             'type': 'other',
-            'datalink': {
+            'datalinks':[{
                 'uri': 'oeb:{}'.format(benchmarking_event_id),
                 'attrs': [
                     'curie'
                 ]
-            },
+            }],
             'dataset_contact_ids': list(unique_contacts),
             'depends_on': {
                 'rel_dataset_ids': rel_dataset_ids,
