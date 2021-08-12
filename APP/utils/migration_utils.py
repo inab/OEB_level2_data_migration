@@ -56,12 +56,6 @@ class OpenEBenchUtils():
         self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
         self.git_cmd = self.DEFAULT_GIT_CMD
         self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
-	
-        storageServer = oeb_credentials.get('storageServer', {})
-        self.storage_server_type = storageServer['type']
-        self.storage_server_token = storageServer['token']
-        self.storage_server_community = storageServer['community']
-        self.storage_server_endpoint = storageServer['endpoint']
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
 

@@ -1,5 +1,6 @@
 requests
 jsonschema
 uritools
+validators
 # Json schemas validator developed for the genomics fairtracks project
 git+https://github.com/fairtracks/fairtracks_validator.git@acecfad8d8e8e8776e29460e0e487d365e81cd1b#egg=fairtracks-validator&subdirectory=python
