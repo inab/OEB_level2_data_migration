@@ -200,6 +200,7 @@ class OpenEBenchUtils():
     getMetrics {
         _id
         _metadata
+        orig_id
     }
 }""",
                 'variables': {
@@ -573,7 +574,8 @@ class OpenEBenchUtils():
                 }
         r = requests.post(self.oeb_submission_api, params=params,
                           data=json.dumps(json_data), headers=header)
-
+        print(r.headers)
+        print(r.request)
         if r.status_code != 200:
             logging.fatal("Error in uploading data to OpenEBench. Bad request: " +
                           str(r.status_code) + str(r.text))

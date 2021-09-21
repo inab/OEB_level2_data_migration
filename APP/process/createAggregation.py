@@ -17,7 +17,7 @@ class Aggregation():
         
         
     def build_aggregation_datasets(self, response, valid_participant_data, 
-                                   assessment_datasets, community_id, tool_id, version, workflow_id):
+                                   valid_assessments_datasets, community_id, tool_id, version, workflow_id):
         logging.info(
             "\n\t==================================\n\t7. Processing aggregation datasets\n\t==================================\n")
 
@@ -30,7 +30,7 @@ class Aggregation():
             challenge_results = dict()
             challenge_results['metrics'] = []
             challenge_results["challenge"] = i
-            for j in assessment_datasets:
+            for j in valid_assessments_datasets:
                 if (j['challenge_ids'][0] == i):
                     r = dict()
                     r['metrics_id'] = j['depends_on']['metrics_id']
@@ -47,7 +47,7 @@ class Aggregation():
         #Get list of aggregation datasets whose challenge belong to that benchmarking_event
         aggregation_datasets = response["data"]["getChallenges"]
         
-        for assessment in assessment_datasets:
+        for assessment in valid_assessments_datasets:
             for i in aggregation_datasets:
                 if i['_id'] == assessment['challenge_ids'][0]:
                     #exists an aggregation dataset for that challenge

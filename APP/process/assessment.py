@@ -125,9 +125,10 @@ class Assessment():
                 })
 
             for metric in response["data"]["getMetrics"]:
-
-                if metric["_metadata"] != None and metric["_metadata"]["level_2:metric_id"] == dataset["metrics"]["metric_id"]:
-                    metric_id = metric["_id"]
+                if dataset['community_id'] in metric['orig_id']:
+                    if dataset["metrics"]["metric_id"].upper() in metric['orig_id'].upper():
+                         metric_id = metric["_id"]
+             
 
             try:
                 metric_id

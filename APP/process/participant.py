@@ -42,9 +42,8 @@ class Participant():
             valid_participant_data["description"] = participant_data["description"]
 
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
-
+        
         data = response["data"]["getChallenges"]
-
         oeb_challenges = {}
         for challenge in data:
             _metadata = challenge.get("_metadata")
