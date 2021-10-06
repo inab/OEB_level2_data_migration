@@ -128,8 +128,11 @@ class Assessment():
                 if dataset['community_id'] in metric['orig_id']:
                     if dataset["metrics"]["metric_id"].upper() in metric['orig_id'].upper():
                          metric_id = metric["_id"]
-                    elif dataset["metrics"]["metric_id"].upper() in metric['_metadata']['level_2:metric_id'].upper():
-                    	  metric_id = metric["_id"]
+                    if metric['_metadata']:
+                    	  if dataset["metrics"]["metric_id"].upper() in metric['_metadata']['level_2:metric_id'].upper():
+                    	     metric_id = metric["_id"]
+                    
+                    
              
 
             try:
