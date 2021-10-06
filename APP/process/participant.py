@@ -22,7 +22,7 @@ class Participant():
 
         # initialize new dataset object
         valid_participant_data = {
-            "_id": participant_data["_id"]+"_participant",
+            "_id": participant_data["_id"],
             "type": "participant"
         }
 
