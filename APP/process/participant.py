@@ -15,7 +15,8 @@ class Participant():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_participant_dataset(self, response, participant_data, data_visibility, file_location, community_id, tool_id, version, contacts):
+    def build_participant_dataset(self, response, participant_data, data_visibility, 
+                                  file_location, community_id, tool_id, version, contacts):
        
         logging.info(
             "\n\t==================================\n\t1. Processing participant dataset\n\t==================================\n")
@@ -47,8 +48,10 @@ class Participant():
 
         oeb_challenges = {}
         for challenge in data:
-            oeb_challenges[challenge["_metadata"]
-                           ["level_2:challenge_id"]] = challenge["_id"]
+            _metadata = challenge.get("_metadata")
+            if (_metadata is None):
+                oeb_challenges[challenge["acronym"]] = challenge["_id"]
+            else: oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
 
         # replace dataset related challenges with oeb challenge ids
         execution_challenges = []
@@ -80,7 +83,7 @@ class Participant():
         valid_participant_data["datalink"]["uri"] = file_location
 
         # change date format for compatibility with Java validator (temporary solution)
-        valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
+        #valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
 
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = self.schemaMappings["Dataset"]
@@ -157,8 +160,11 @@ class Participant():
             data = response["data"]["getChallenges"]
             oeb_challenges = {}
             for oeb_challenge in data:
-                oeb_challenges[oeb_challenge["_metadata"]
-                               ["level_2:challenge_id"]] = oeb_challenge["_id"]
+                _metadata = oeb_challenge.get("_metadata")
+                if (_metadata is None):
+                    oeb_challenges[oeb_challenge["acronym"]] = oeb_challenge["_id"]
+                else: oeb_challenges[oeb_challenge["_metadata"]["level_2:challenge_id"]] = oeb_challenge["_id"]
+
 
             try:
                 event["challenge_id"] = oeb_challenges[challenge]

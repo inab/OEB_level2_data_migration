@@ -19,6 +19,7 @@ import urllib.parse
 import urllib.request
 import logging
 import uuid
+import validators
 
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
@@ -59,12 +60,15 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         data_model_repo = config_params["data_model_repo"]
         data_model_tag = config_params["data_model_tag"]
         data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
+        
+        '''
         storageServer = oeb_credentials.get('storageServer', {})
         if storageServer['type'] == 'b2share':
             if 'endpoint' not in storageServer:
                 storageServer['endpoint'] = config_params["data_storage_endpoint"]
         else:
             raise Exception('Unknown server type "{}"'.format(storageServer['type']))
+        '''
         workflow_id = config_params["workflow_oeb_id"]
         
         dataset_submission_id = config_params.get("dataset_submission_id")
@@ -73,6 +77,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             # timestamp and a random element
             ts = uuid.uuid1()
             dataset_submission_id = str(ts)
+            
+        #check partiicpant file location is a valid url
+        valid = validators.url(file_location)
+        if not valid:
+            logging.fatal("Participant file location invalid: "+file_location)
+            sys.exit(1)
 
     except Exception as e:
 
@@ -107,8 +117,9 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             min_participant_data = dataset
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
-        elif dataset_type == "aggregation":
-            min_aggregation_datasets.append(dataset)
+            
+        #elif dataset_type == "aggregation":
+            #min_aggregation_datasets.append(dataset)
         elif dataset_type is not None:
             logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
         #    sys.exit(2)
@@ -123,17 +134,21 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     input_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "input")
-
-
+    
+    '''
     # upload predicitions file to stable server and get permanent identifier
     data_doi = migration_utils.upload_to_storage_service(
         min_participant_data, file_location, contacts[0], version)
-
-    # generate all required objects
+    '''
+    
+    ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
+    #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
-        input_query_response, min_participant_data, data_visibility, data_doi, community_id, tool_id, version, contacts)
+        input_query_response, min_participant_data, data_visibility, file_location, 
+        community_id, tool_id, version, contacts)
     
+    #TEST EVENT
     valid_test_events = process_participant.build_test_events(
         input_query_response, min_participant_data, tool_id, contacts)
 
@@ -141,7 +156,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     metrics_reference_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "metrics_reference")
 
-    # Needed to better consolidate
+    #ASSESSMENT DATASETS & METRICS EVENT
     stagedEvents = migration_utils.fetchStagedData('TestAction')
     stagedDatasets = migration_utils.fetchStagedData('Dataset')
 
@@ -150,21 +165,22 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     process_assessments = Assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
-        metrics_reference_query_response, stagedAssessmentDatasets, min_assessment_datasets, data_visibility, min_participant_data, community_id, tool_id, version, contacts)
+        metrics_reference_query_response, stagedAssessmentDatasets, min_assessment_datasets, 
+        data_visibility, min_participant_data, community_id, tool_id, version, contacts)
 
     valid_metrics_events = process_assessments.build_metrics_events(
         metrics_reference_query_response, stagedEvents, valid_assessment_datasets, tool_id, contacts)
-
+    
+    
+    #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
     
-    # Needed to better consolidate
-    stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
-    
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+        aggregation_query_response, valid_participant_data, valid_assessment_datasets, 
+        community_id, tool_id, version, workflow_id)
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
@@ -174,7 +190,9 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         valid_metrics_events + valid_aggregation_datasets + valid_aggregation_events
     
     # Generate the umbrella dataset
-    umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, community_id, bench_event_id, version, data_visibility, final_data)
+    umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, 
+                                                         community_id, bench_event_id, 
+                                                         version, data_visibility, final_data)
     final_data.append(umbrella)
     
     if output_filename is not None:
