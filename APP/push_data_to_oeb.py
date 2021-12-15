@@ -215,13 +215,16 @@ if __name__ == '__main__':
     parser.add_argument("-i", "--config_json",
                         help="json file which contains all parameters for migration", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
-                        help="Credentials and endpoints used to obtain a token for submission to oeb buffer DB", required=True)
+                        help="Credentials and endpoints used to obtain a token for submission \
+                        to oeb buffer DB", required=True)
     parser.add_argument("-tk", "--oeb_submit_api_token",
-                        help="Token used for submission to oeb buffer DB. If it is not set, the credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
+                        help="Token used for submission to oeb buffer DB. If it is not set, the \
+                        credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file")
     parser.add_argument("-o", "--output",
-                        help="Save what it was going to be submitted in this file, instead of sending them (like a dry-run)")
+                        help="Save what it was going to be submitted in this file, instead of \
+                        sending them (like a dry-run)")
 
     args = parser.parse_args()
 

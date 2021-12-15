@@ -25,7 +25,8 @@ class Aggregation():
         
         #Group assessments(metrics) for the same challenge:                  
         valid_results = []
-        
+        print(valid_participant_data)
+        print("-----\n")
         for i in valid_participant_data['challenge_ids']:
             challenge_results = dict()
             challenge_results['metrics'] = []
@@ -34,13 +35,11 @@ class Aggregation():
                 if (j['challenge_ids'][0] == i):
                     r = dict()
                     r['metrics_id'] = j['depends_on']['metrics_id']
-                    r['metrics_name'] = j['_id']
+                    r['metrics_name'] = j['orig_id']
                     r['assess_id'] = j['_id']
                     r.update(j['datalink']['inline_data'])
                     challenge_results['metrics'].append(r)
             valid_results.append(challenge_results)
-        
-        print(valid_results)
         
         aggregation_datasets_existed = []
         ##Check if aggregation datasets already exists in OEB for each challenge
@@ -56,8 +55,7 @@ class Aggregation():
                             if elem not in valid_aggregation_datasets:
                                 aggregation_datasets_existed.append(elem)
                     break
-                
-              
+                  
         #Once we have the list of existed aggregation datasets, add assessments to them
         for elem in valid_results:
             for i in aggregation_datasets_existed:
@@ -66,7 +64,8 @@ class Aggregation():
                        
                    metrics_id = i['datalink']['inline_data']['visualization']
                    
-                   #As not always in visualitzation object, metrics_id is a real id. Sometimes is its metrics name
+                   #As not always in visualitzation object, metrics_id is a real id. 
+                   #Sometimes is its metrics name
                    if not metrics_id['x_axis'].startswith("OEB"):
                            for metric in elem['metrics']:
                                if metrics_id['x_axis'] in metric['metrics_name']:
@@ -98,9 +97,7 @@ class Aggregation():
                            
                            if ("tool_id" not in participant_results_challenge.keys()):
                                participant_results_challenge['tool_id'] = valid_participant_data["_id"].split(":")[-1]
-                  
-                   #update also schema, as still some datasets refer to old schema
-                   i['_schema'] =  self.schemaMappings["Dataset"]
+
                    #update modification date
                    i["dates"]["modification"] =  datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
                    
