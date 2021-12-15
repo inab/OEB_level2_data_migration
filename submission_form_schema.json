@@ -120,7 +120,7 @@
 			"description": "Either the tag, branch or checkout hash needed to fetch the right version of the data model",
 			"type": "string",
 			"minLength": 1,
-			"default": "584200576539f72e2b1fe4cdf3a47dcfed7c2975",
+			"default": "6495b7317f830ad739591be2de1e279ea6c4c0d8",
 			"options": {
 			    "hidden": true
 			 }
@@ -131,17 +131,6 @@
 			"type": "string",
 			"format": "uri-reference",
 			"default": "json-schemas/1.0.x",
-			"options": {
-			    "hidden": true
-			 }
-		},
-		"data_storage_endpoint": {
-			"title": "Data storage endpoint (deprecated)",
-			"description": "The endpoint representing the data preservation service to be used to upload the consolidated dataset descriptions and events",
-			"type": "string",
-			"format": "uri",
-			"minLength": 1,
-			"default": "https://trng-b2share.eudat.eu/api/",
 			"options": {
 			    "hidden": true
 			 }
