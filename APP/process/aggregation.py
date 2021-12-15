@@ -35,7 +35,7 @@ class Aggregation():
                 if (j['challenge_ids'][0] == i):
                     r = dict()
                     r['metrics_id'] = j['depends_on']['metrics_id']
-                    r['metrics_name'] = j['orig_id']
+                    r['metrics_name'] = j['_id']
                     r['assess_id'] = j['_id']
                     r.update(j['datalink']['inline_data'])
                     challenge_results['metrics'].append(r)
