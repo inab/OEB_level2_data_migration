@@ -81,11 +81,11 @@ class Participant():
         # add participant's file permanent location
         valid_participant_data["datalink"] = participant_data["datalink"]
         valid_participant_data["datalink"]["uri"] = file_location
-                                                                
-        valid_participant_data["datalink"]["validation_date"] = str(datetime.fromisoformat(participant_data["datalink"]["validation_date"]).utcnow().replace(microsecond=0).isoformat())+"+00:00"
-        # change date format for compatibility with Java validator (temporary solution)
-        #valid_participant_data["datalink"]["validation_date"] = valid_participant_data["datalink"]["validation_date"] + "+00:00"
-
+        
+        #check validation date is iso format, otherwise fix it
+        if not (re.search("\+\d{2}:\d{2}$", participant_data["datalink"]["validation_date"])):
+            valid_participant_data["datalink"]["validation_date"] = participant_data["datalink"]["validation_date"]+"+00:00"
+       
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = self.schemaMappings["Dataset"]
 
