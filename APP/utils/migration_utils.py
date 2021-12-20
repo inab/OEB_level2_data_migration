@@ -46,7 +46,7 @@ def getAccessToken(oeb_credentials):
         return token['access_token']    
 
 class OpenEBenchUtils():
-    DEFAULT_OEB_API = "https://dev-openebench.bsc.es/sciapi/graphql"
+    DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
     DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
