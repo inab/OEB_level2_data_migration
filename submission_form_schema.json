@@ -149,7 +149,6 @@
 		"data_model_repo",
 		"data_model_tag"
 	],
-	"additionalProperties": false,
-	"show_errors": "interaction"
+	"additionalProperties": false
 
 }
