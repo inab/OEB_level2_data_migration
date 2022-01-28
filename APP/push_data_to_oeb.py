@@ -20,6 +20,7 @@ import urllib.request
 import logging
 import uuid
 import validators
+import requests
 
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
@@ -91,13 +92,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         sys.exit(1)
     
     if input_url is not None:
-        try:
-            req = urllib.request.Request(input_url, method='GET')
-            with urllib.request.urlopen(req) as iu:
-                data = json.load(iu)
-        except Exception as e:
-            logging.fatal(e, "input url " + input_url +
-                          " is missing or has incorrect format")
+        
+        response = requests.request("GET", input_url)
+        if (response.status_code == 200):
+            data = json.loads(response.text)
+        else:
+            logging.fatal(str(response.status_code) +" input url " + input_url + " is missing or has incorrect format")
             sys.exit(1)
     else:
         try:
