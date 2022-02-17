@@ -59,6 +59,11 @@
 			    }
 			}
 		},
+		"tool_name": {
+			"title": "Tool name",
+			"description": "The name of the participant tool",
+			"type": "string"
+		},
 		"dataset_submission_id": {
 			"title": "Dataset submission id",
 			"description": "The unique identifier of the dataset which will hold the identifiers of all the loaded/updated datasets. Beware, this id should be unique! If it is not set, a UUIDv1 is used",
