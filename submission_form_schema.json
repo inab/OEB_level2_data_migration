@@ -65,8 +65,11 @@
 			"description": "The name of the participant tool",
 			"type": "string",
 			"format": "select2",
+			 "enum": ["black","red","green","blue","yellow","orange","purple","brown","white","cyan","maagenta"],
 			"options": {
-			    "select2"
+			    "select2": {
+				  "width": "off"
+				}
 			}
 		},
 		"dataset_submission_id": {
