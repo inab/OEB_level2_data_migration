@@ -49,12 +49,10 @@
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
-			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
 				    "search": "search_za",
-				"getResultValue": "getResultValue_za2",
-				    "autoSelect": true
+				"getResultValue": "getResultValue_za2"
 				
 			    }
 			}
