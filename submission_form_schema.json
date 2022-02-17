@@ -49,6 +49,15 @@
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
+			"options": {
+			    "hidden": true
+			 }
+		
+		},
+		"tool_name": {
+			"title": "Tool name",
+			"description": "The name of the participant tool",
+			"type": "string",
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
@@ -58,11 +67,6 @@
 				"autoSelect": true
 			    }
 			}
-		},
-		"tool_name": {
-			"title": "Tool name",
-			"description": "The name of the participant tool",
-			"type": "string"
 		},
 		"dataset_submission_id": {
 			"title": "Dataset submission id",
