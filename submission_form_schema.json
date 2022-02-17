@@ -45,10 +45,9 @@
 			 }
 		},
 		"tool_id": {
-			"title": "Participant Tool",
+			"title": "Tool id",
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
-			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
@@ -64,13 +63,16 @@
 			"title": "Tool name",
 			"description": "The name of the participant tool",
 			"type": "string",
-			"format": "select2",
-			 "enum": ["black","red","green","blue","yellow","orange","purple","brown","white","cyan","maagenta"],
+			"format": "autocomplete",
 			"options": {
-			    "select2": {
-				  "width": "off"
-				}
+			    "autocomplete": {
+				"search": "search_za",
+				"getResultValue": "getResultValue_za",
+				"renderResult": "renderResult_za",
+				"autoSelect": true
+			    }
 			}
+		
 		},
 		"dataset_submission_id": {
 			"title": "Dataset submission id",
