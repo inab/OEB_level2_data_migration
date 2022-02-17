@@ -49,9 +49,13 @@
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
+			"format": "autocomplete",
 			"options": {
-			    "hidden": true
-			 }
+			    "autocomplete": {
+				"getResultValue": "getResultValue_za",
+				
+			    }
+			}
 		
 		},
 		"tool_name": {
