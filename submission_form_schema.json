@@ -53,7 +53,8 @@
 			"options": {
 			    "autocomplete": {
 				    "search": "search_za",
-				"getResultValue": "getResultValue_za2"
+				"getResultValue": "getResultValue_za2",
+				    "autoSelect": true
 				
 			    }
 			}
