@@ -49,19 +49,6 @@
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
-			"options": {
-			    "autocomplete": {
-				    "search": "search_za",
-				"getResultValue": "getResultValue_za2"
-				
-			    }
-			}
-		
-		},
-		"tool_name": {
-			"title": "Tool name",
-			"description": "The name of the participant tool",
-			"type": "string",
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
@@ -70,6 +57,16 @@
 				"renderResult": "renderResult_za",
 				"autoSelect": true
 			    }
+			}
+		
+		},
+		"tool_name": {
+			"title": "Tool name",
+			"description": "The name of the participant tool",
+			"type": "string",
+			"format": "select2",
+			"options": {
+			    "select2"
 			}
 		},
 		"dataset_submission_id": {
