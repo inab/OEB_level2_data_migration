@@ -52,6 +52,7 @@
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
+				    "search": "search_za",
 				"getResultValue": "getResultValue_za2"
 				
 			    }
