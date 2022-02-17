@@ -52,7 +52,7 @@
 			"format": "autocomplete",
 			"options": {
 			    "autocomplete": {
-				"getResultValue": "getResultValue_za",
+				"getResultValue": "getResultValue_za2"
 				
 			    }
 			}
