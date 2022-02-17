@@ -44,21 +44,6 @@
 			    "hidden": true
 			 }
 		},
-		"tool_id": {
-			"title": "Tool id",
-			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
-			"type": "string",
-			"format": "autocomplete",
-			"options": {
-			    "autocomplete": {
-				"search": "search_za",
-				"getResultValue": "getResultValue_za",
-				"renderResult": "renderResult_za",
-				"autoSelect": true
-			    }
-			}
-		
-		},
 		"tool_name": {
 			"title": "Tool name",
 			"description": "The name of the participant tool",
@@ -74,6 +59,22 @@
 			}
 		
 		},
+		"tool_id": {
+			"title": "Tool id",
+			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
+			"type": "string",
+			"format": "autocomplete",
+			"options": {
+			    "autocomplete": {
+				"search": "search_za",
+				"getResultValue": "getResultValue_za",
+				"renderResult": "renderResult_za",
+				"autoSelect": true
+			    }
+			}
+		
+		},
+		
 		"dataset_submission_id": {
 			"title": "Dataset submission id",
 			"description": "The unique identifier of the dataset which will hold the identifiers of all the loaded/updated datasets. Beware, this id should be unique! If it is not set, a UUIDv1 is used",
