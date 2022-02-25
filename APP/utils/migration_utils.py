@@ -157,7 +157,7 @@ class OpenEBenchUtils():
 
         if data_type == "input":
 #            }
-            json_query = {'query': """query InputQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+            json_query = {'query': """query InputQuery($bench_event_id: String, $tool_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         acronym
@@ -169,19 +169,18 @@ class OpenEBenchUtils():
     getTools(toolFilters: {id: $tool_id}) {
         _id
     }
-    getContacts(contactFilters: {community_id: $community_id}) {
+    getContacts {
         _id
         email
     }
 }""",
                 'variables': {
                     'bench_event_id': bench_event_id,
-                    'community_id': community_id,
                     'tool_id': tool_id
                 }
             }
         elif data_type == "metrics_reference":
-            json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+            json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String, $tool_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         acronym
@@ -193,7 +192,7 @@ class OpenEBenchUtils():
     getTools(toolFilters: {id: $tool_id}) {
         _id
     }
-    getContacts(contactFilters:{community_id: $community_id}) {
+    getContacts {
         _id
         email
     }
@@ -205,12 +204,11 @@ class OpenEBenchUtils():
 }""",
                 'variables': {
                     'bench_event_id': bench_event_id,
-                    'community_id': community_id,
                     'tool_id': tool_id
                 }
             }
         elif data_type == "aggregation":
-            json_query = {'query': """query AggregationQuery($bench_event_id: String, $tool_id: String, $community_id: String) {
+            json_query = {'query': """query AggregationQuery($bench_event_id: String, $tool_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         _metadata
@@ -245,7 +243,7 @@ class OpenEBenchUtils():
     getTools(toolFilters: {id: $tool_id}) {
         _id
     }
-    getContacts(contactFilters:{community_id: $community_id}) {
+    getContacts {
         _id
         email
     }
@@ -273,7 +271,6 @@ class OpenEBenchUtils():
 }""",
                 'variables': {
                     'bench_event_id': bench_event_id,
-                    'community_id': community_id,
                     'tool_id': tool_id
                 }
             }
