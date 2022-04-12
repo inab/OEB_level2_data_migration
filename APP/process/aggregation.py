@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import logging
 import sys
 import os
@@ -6,175 +7,191 @@ from datetime import datetime, timezone
 import datetime
 import json
 from .benchmarking_dataset import BenchmarkingDataset
-from itertools import combinations
 
 
 class Aggregation():
+
     def __init__(self, schemaMappings):
 
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
-        
-        
-    def build_aggregation_datasets(self, response, valid_participant_data, 
-                                   valid_assessments_datasets, community_id, tool_id, version, workflow_id):
+
+    def build_aggregation_datasets(self, response, stagedAggregationDatasets, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
+
         logging.info(
             "\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
 
         valid_aggregation_datasets = []
-        
-        #Group assessments(metrics) for the same challenge:                  
-        valid_results = []
-        print(valid_participant_data)
-        print("-----\n")
-        for i in valid_participant_data['challenge_ids']:
-            challenge_results = dict()
-            challenge_results['metrics'] = []
-            challenge_results["challenge"] = i
-            for j in valid_assessments_datasets:
-                if (j['challenge_ids'][0] == i):
-                    r = dict()
-                    r['metrics_id'] = j['depends_on']['metrics_id']
-                    r['metrics_name'] = j['_id']
-                    r['assess_id'] = j['_id']
-                    r.update(j['datalink']['inline_data'])
-                    challenge_results['metrics'].append(r)
-            valid_results.append(challenge_results)
-        
-        aggregation_datasets_existed = []
-        ##Check if aggregation datasets already exists in OEB for each challenge
-        #Get list of aggregation datasets whose challenge belong to that benchmarking_event
-        aggregation_datasets = response["data"]["getChallenges"]
-        
-        for assessment in valid_assessments_datasets:
-            for i in aggregation_datasets:
-                if i['_id'] == assessment['challenge_ids'][0]:
-                    #exists an aggregation dataset for that challenge
-                    if(i['datasets']):
-                        for elem in i['datasets']:
-                            if elem not in valid_aggregation_datasets:
-                                aggregation_datasets_existed.append(elem)
-                    break
-                  
-        #Once we have the list of existed aggregation datasets, add assessments to them
-        for elem in valid_results:
-            for i in aggregation_datasets_existed:
-               if (elem['challenge'] == i['challenge_ids'][0]):
-                   participant_results_challenge = dict()
-                       
-                   metrics_id = i['datalink']['inline_data']['visualization']
-                   
-                   #As not always in visualitzation object, metrics_id is a real id. 
-                   #Sometimes is its metrics name
-                   if not metrics_id['x_axis'].startswith("OEB"):
-                           for metric in elem['metrics']:
-                               if metrics_id['x_axis'] in metric['metrics_name']:
-                                   metrics_id['x_axis'] = metric['metrics_id']
-                                   
-                   if not metrics_id['y_axis'].startswith("OEB"):
-                           for metric in elem['metrics']:
-                               if metrics_id['y_axis'] in metric['metrics_name']:
-                                   metrics_id['y_axis'] = metric['metrics_id']
-                       
-                   
-                   for metric in elem['metrics']:
-                        if metrics_id['x_axis'] == metric['metrics_id']:
-                           participant_results_challenge["metric_x"] = metric['value']
-                           participant_results_challenge["stderr_x"] = metric['error']
-                           
-                           assess_dataset = {"dataset_id": metric['assess_id']}
-                           i['depends_on']['rel_dataset_ids'].append(assess_dataset)
-                       
-                           if ("tool_id" not in participant_results_challenge.keys()):
-                               participant_results_challenge['tool_id'] = valid_participant_data["_id"].split(":")[-1]
-                       
-                        elif  metrics_id['y_axis'] == metric['metrics_id']:
-                           participant_results_challenge["metric_y"] = metric['value']
-                           participant_results_challenge["stderr_y"] = metric['error']
-                           
-                           assess_dataset = {"dataset_id": metric['assess_id']}
-                           i['depends_on']['rel_dataset_ids'].append(assess_dataset)
-                           
-                           if ("tool_id" not in participant_results_challenge.keys()):
-                               participant_results_challenge['tool_id'] = valid_participant_data["_id"].split(":")[-1]
+        agg_by_id = dict()
+        challenges = response["data"]["getChallenges"]
 
-                   #update modification date
-                   i["dates"]["modification"] =  datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
-                   
-                   if participant_results_challenge not in i['datalink']['inline_data']['challenge_participants']:
-                       i['datalink']['inline_data']['challenge_participants'].append(participant_results_challenge)
-                   valid_aggregation_datasets.append(i)
-                   break    
+        # This is needed to properly compare ids later
+        oeb_challenges = {}
+        for challenge in challenges:
+            _metadata = challenge.get("_metadata")
+            if (_metadata is not None):
+                oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
+            else:
+                oeb_challenges[challenge["acronym"]] = challenge["_id"]
+        dataset_schema_uri = self.schemaMappings['Dataset']
+        
+        # get orig_id datasets
+        orig_id_aggr = []
+        for i in challenges:
+            for elem in i['datasets']:
+                orig_id_aggr.append(elem)
         
         
-        #Check if all participant challenges have already an aggregation dataset
-        challenges_done = []
-        for j in valid_aggregation_datasets:
-            challenges_done.append(j['challenge_ids'][0])
-        
-        for i in valid_participant_data['challenge_ids']:
-            #Challege does not have an aggregation, then build it
-            if not i in challenges_done:
+        for dataset in aggregation_datasets:
+            orig_future_id = build_new_aggregation_id(dataset)
+            agg_key = ""
+            future_id = ""
+            for d in orig_id_aggr:
+                #check challenge
+                if dataset['challenge_ids'][0] in d['orig_id']:
+                    #check metrics
+                    if (dataset['datalink']['inline_data']['visualization']['type'] == "2D-plot"):
+                        if (dataset['datalink']['inline_data']['visualization']['x_axis'] in d['orig_id']):
+                            agg_key = "_id"
+                            future_id = d["_id"]
+                            sys.stdout.write(
+                    'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
+                            break
+                        elif (dataset['datalink']['inline_data']['visualization']['x_axis'] == d['datalink']['inline_data']['visualization']['x_axis']):
+                            agg_key = "_id"
+                            future_id = d["_id"]
+                            sys.stdout.write(
+                    'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
+                            break
+                        else:
+                            agg_key = "orig_id"
+                            future_id = build_new_aggregation_id(dataset)
+                    #bar plot
+                    else:
+                        if (dataset['datalink']['inline_data']['visualization']['metric'] in d['orig_id']):
+                            agg_key = "_id"
+                            future_id = d["_id"]
+                            break
+                        else:
+                            agg_key = "orig_id"
+                            future_id = orig_future_id
+                        
+
+            # check if assessment datasets already exist in OEB for the provided bench event id
+            # in that case, there is no need to generate new datasets, just adding the new metrics to the existing one
+            
+            '''orig_future_id = build_new_aggregation_id(dataset)
+            
+            if orig_future_id in orig_id_aggr:
                 sys.stdout.write(
-                    'Challenge "' + str(i) + '" has not an aggregation dataset in OpenEBench... Building new object\n')
-                #Build as many aggregations datasets as combinations of metrics
-                #Combinatorial: Cm,n = (m/n) = m!/n!(m-n)! where always n =2
-                #Get all metrics results for that challenge
-                for m in valid_results:
-                    if (m['challenge'] == i): 
-                       comb = combinations(m['metrics'], 2) 
-                       for j in list(comb):
-                           obj_results = dict()
-                           obj_visualitzation = {
-                               "type": "2D-plot",
-                               "x_axis": j[0]['metrics_id'],
-                               "y_axis": j[1]['metrics_id']
-                            }
-                           obj_results = { "metric_x" : j[0]['value'],
-                                           "metric_y" : j[1]['value'],
-                                           "stderr_x" : j[0]['error'],
-                                           "stderr_y" : j[1]['error'],
-                                           "tool_id" : valid_participant_data["_id"].split(":")[-1] }    
-                           rel_dataset = [{"dataset_id":j[0]['assess_id']}, {"dataset_id":j[1]['assess_id']}]
-                           # add challenge managers as aggregation dataset contacts ids
-                           data_contacts = []
-                           for challenge in aggregation_datasets:
-                              if challenge["_id"] == i:
-                                  data_contacts.extend(challenge["challenge_contact_ids"])
+                    'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
+                agg_key = "_id"
+                future_id = dataset["_id"]
+            else:
+                agg_key = "orig_id"
+                future_id = orig_future_id
+            '''
+            # This cache is very useful when assembling a bunch of new data from several participants
+            valid_data = agg_by_id.get(future_id)
+            if (valid_data is None) and future_id!=orig_future_id:
+                valid_data = agg_by_id.get(orig_future_id)
+            
+            if valid_data is None:
+                # Now, the aggregation datasets in the staging area
+                for agg_data in stagedAggregationDatasets:
+                    if future_id == agg_data[agg_key]:
+                        valid_data = agg_data
+                        break
+                    
+            if valid_data is None:
+                # Last, the datasets associated to each challenge
+                #dataset_challenge_ids = set(map(lambda challenge_id: oeb_challenges[challenge_id],dataset["challenge_ids"]))
+                dataset_challenge_ids = set(oeb_challenges.values())
+                for challenge in challenges:
+                    if challenge["_id"] in dataset_challenge_ids:
+                        for agg_data in challenge["datasets"]:
+                            if future_id == agg_data[agg_key]:
+                                valid_data = agg_data
+                                break
+                        if valid_data is not None:
+                            break
+            
+            # If dataset could not be found, then store new one
+            if valid_data is None:
+                sys.stdout.write(
+                    'Dataset "' + str(dataset["_id"]) + '" is not registered in OpenEBench... Building new object\n')
+                valid_data = new_aggregation(self,
+                    response, dataset, assessment_datasets, community_id, version, workflow_id, dataset_schema_uri)
+            else:
+
+                # add new participant metrics to OEB aggregation dataset
+                tool_name = participant_data["participant_id"]
+                # insPos is the position within the array when it is inserted something
+                insPos = None
+                challenge_participants = valid_data["datalink"]["inline_data"]["challenge_participants"]
+                for iPart, cPart in enumerate(challenge_participants):
+                    if cPart["tool_id"] == tool_name:
+                        insPos = iPart
+                        break
                 
-                           new_aggregation = {
-                                    "_id": j[0]['metrics_name']+j[1]['metrics_name']+"_Aggregation",
-                                    "_schema": self.schemaMappings["Dataset"],
-                                    "challenge_ids":[i],
-                                    "community_ids": community_id,
-                                    "type": "aggregation",
-                                    "datalink": {
-                                            "inline_data":{
-                                                    "challenge_participants":[obj_results],
-                                                    "visualitzation": obj_visualitzation
-                                            }
-                                    },
-                                    "dataset_contact_ids": data_contacts,
-                                    'dates': {
-                                        'creation': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
-                                        'modification': datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
-                                    }, 
-                                    "depends_on": {
-                                            "rel_dataset_ids": rel_dataset,
-                                            "tool_id": workflow_id
-                                            
-                                    },
-                                    "description": "Summary dataset with information about challenge "+ i+" (e.g. input/output datasets, metrics...)",
-                                    "name" : "Summary dataset for challenge: "+i,
-                                    "version" : str(version),
-                                    "visibility" : "public"
-                                }
-                           valid_aggregation_datasets.append(new_aggregation)
+                for participant in dataset["datalink"]["inline_data"]["challenge_participants"]:
+                    participant_id = participant.get("participant_id")
+                    if participant_id == tool_name:
+                        participant["tool_id"] = participant.pop("participant_id")
+                        
+                        if insPos is not None:
+                            challenge_participants[insPos] = participant
+                        else:
+                            challenge_participants.append(participant)
+                        break
+
+                # update modification date
+                valid_data["dates"]["modification"] = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
+
+                # add referenced assessment datasets ids
+                oeb_metrics = {}
+                for metric in response["data"]["getMetrics"]:
+                    if metric["_metadata"] != None:
+                        oeb_metrics[metric["_id"]
+                                    ] = metric["_metadata"]["level_2:metric_id"]
+                visualitzation_metric = ""
+                visualization_x_axis =""
+                visualization_y_axis = ""
+                vis = valid_data['datalink']['inline_data']['visualization']
+                if (vis.get("x_axis") is not None):
+                    visualization_x_axis = valid_data["datalink"]["inline_data"]["visualization"]["x_axis"]
+                    visualization_y_axis = valid_data["datalink"]["inline_data"]["visualization"]["y_axis"]
+                else:
+                    visualitzation_metric = valid_data["datalink"]["inline_data"]["visualization"]["metric"]
+                    
+                rel_dataset_ids = valid_data["depends_on"]["rel_dataset_ids"]
+                rel_dataset_ids_set = set(map(lambda d: d['dataset_id'], rel_dataset_ids))
                 
-              
+                for assess_element in assessment_datasets:
+                    assess_element_id = assess_element["_id"]
+                    # Fail early in case of repetition
+                    if assess_element_id in rel_dataset_ids_set:
+                        continue
+                    
+                    if assess_element["challenge_ids"][0] == valid_data["challenge_ids"][0]:
+                        to_be_appended = False
+                        
+                        if oeb_metrics[assess_element["depends_on"]["metrics_id"]] in (visualization_x_axis,visualization_y_axis, visualitzation_metric):
+                            to_be_appended = True
+                        # also check for official oeb metrics, in case the aggregation dataset contains them
+                        elif assess_element["depends_on"]["metrics_id"] in (visualization_x_axis, visualization_y_axis, visualitzation_metric):
+                            to_be_appended = True
+                        
+                        if to_be_appended:
+                            rel_dataset_ids_set.add(assess_element_id)
+                            rel_dataset_ids.append({ "dataset_id": assess_element_id })
+
+            valid_aggregation_datasets.append(valid_data)
+            agg_by_id[valid_data["_id"]] = valid_data
+
+
         return valid_aggregation_datasets
-    
-    
+
     def build_aggregation_events(self, response, stagedEvents, aggregation_datasets, workflow_id):
 
         logging.info(
@@ -215,7 +232,7 @@ class Aggregation():
                 for agg_dataset_id in (item for item in dataset["depends_on"]["rel_dataset_ids"] if not item["dataset_id"].startswith('OEB')):
                     event["involved_datasets"].append(
                         {"dataset_id": agg_dataset_id["dataset_id"], "role": "incoming"})
-                event['_schema'] = self.schemaMappings["TestAction"]
+
                 aggregation_events.append(event)
 
             else:  # if datset is not in oeb a  new event object will be created
@@ -271,8 +288,152 @@ class Aggregation():
 
         return aggregation_events
 
-        
-        
-        
-        
+
+def build_new_aggregation_id(dataset):
+    d = dataset["datalink"]["inline_data"]["visualization"]
+    if (d.get("metric") is not None):
+        return dataset["_id"] + "_" + dataset["datalink"]["inline_data"]["visualization"]["metric"]
     
+    else :
+        metrics = [dataset["datalink"]["inline_data"]["visualization"]["x_axis"], 
+                   dataset["datalink"]["inline_data"]["visualization"]["y_axis"]]
+    
+        return dataset["_id"] + "_" + metrics[0] + "+" + metrics[1]
+
+def new_aggregation(self, response, dataset, assessment_datasets, community_id, version, workflow_id, dataset_schema_uri):
+
+    # initialize new dataset object
+    metrics = ""
+    d = dataset["datalink"]["inline_data"]["visualization"]
+    if (d.get("metric") is not None):
+        metrics = dataset["datalink"]["inline_data"]["visualization"]['metric']
+    else:
+        metrics = dataset["datalink"]["inline_data"]["visualization"]["x_axis"]+ " - " + dataset["datalink"]["inline_data"]["visualization"]["y_axis"]
+        
+    valid_data = {
+        "_id": build_new_aggregation_id(dataset),
+        "type": "aggregation"
+    }
+
+    # add dataset visibility. AGGREGATION DATASETS ARE ALWAYS EXPECTED TO BE PUBLIC
+    valid_data["visibility"] = "public"
+
+    # add name and description, if workflow did not provide them
+    if "name" not in dataset:
+        valid_data["name"] = "Summary dataset for challenge: " + \
+            dataset["challenge_ids"][0] + ". Metrics: " + metrics
+    else:
+        valid_data["name"] = dataset["name"]
+    if "description" not in dataset:
+        valid_data["description"] = "Summary dataset that aggregates all results from participants in challenge: " + \
+            dataset["challenge_ids"][0] + ". Metrics: " + metrics
+    else:
+        valid_data["description"] = dataset["description"]
+
+    # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
+
+    challenges = response["data"]["getChallenges"]
+
+    oeb_challenges = {}
+    for challenge in challenges:
+        _metadata = challenge.get("_metadata")
+        if (_metadata is not None):
+            oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
+        else:
+            oeb_challenges[challenge["acronym"]] = challenge["_id"]
+
+    # replace dataset related challenges with oeb challenge ids
+    execution_challenges = []
+    for challenge_id in dataset["challenge_ids"]:
+        try:
+            if challenge_id.startswith("OEB"):
+                execution_challenges.append(challenge_id)
+            else:
+                execution_challenges.append(oeb_challenges[challenge_id])
+        except:
+            logging.info("No challenges associated to " + challenge_id +
+                         " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+            logging.info(dataset["_id"] + " not processed")
+            sys.exit()
+
+    valid_data["challenge_ids"] = execution_challenges
+
+    # add referenced assessment datasets ids
+    rel_data = []
+    oeb_metrics = {}
+    for metric in response["data"]["getMetrics"]:
+        if metric["_metadata"] != None:
+            oeb_metrics[metric["_id"]] = metric["_metadata"]["level_2:metric_id"]
+        else:
+            oeb_challenges[challenge["acronym"]] = challenge["_id"]
+    print(oeb_metrics)
+    for assess_element in assessment_datasets:
+
+        try:
+            vis = dataset["datalink"]["inline_data"]["visualization"]
+            if (vis.get("metric") is None):
+                if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                #check for not 'oeb' challenges ids, in case the datasets is still not uploaded
+                elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["x_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["y_axis"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                # also check for official oeb metrics, in case the aggregation dataset contains them
+                elif assess_element["depends_on"]["metrics_id"] == vis["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif assess_element["depends_on"]["metrics_id"] == vis["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+            else:
+                if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["metric"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["metric"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif assess_element["depends_on"]["metrics_id"] == vis["metric"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+        except:
+            continue
+
+    # add data registration dates
+    valid_data["dates"] = {
+        "creation":datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
+        "modification":datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
+    }
+
+    # add assessment metrics values, as inline data
+    datalink = dataset["datalink"]
+    for participant in datalink["inline_data"]["challenge_participants"]:
+        participant["tool_id"] = participant.pop("participant_id")
+
+    datalink["schema_url"] = "https://raw.githubusercontent.com/inab/OpenEBench_scientific_visualizer/master/benchmarking_data_model/aggregation_dataset_json_schema.json"
+
+    valid_data["datalink"] = datalink
+
+    # add Benchmarking Data Model Schema Location
+    valid_data["_schema"] = self.schemaMappings["Dataset"]
+
+    # add OEB id for the community
+    valid_data["community_ids"] = [community_id]
+
+    # add dataset dependencies: metric id, tool and reference datasets
+    valid_data["depends_on"] = {
+        "tool_id": workflow_id,
+        "rel_dataset_ids": rel_data,
+    }
+
+    # add data version
+    valid_data["version"] = str(version)
+
+    # add challenge managers as aggregation dataset contacts ids
+    data_contacts = []
+    for challenge in challenges:
+        if challenge["_id"] in valid_data["challenge_ids"]:
+            data_contacts.extend(challenge["challenge_contact_ids"])
+
+    valid_data["dataset_contact_ids"] = data_contacts
+
+    sys.stdout.write('Processed "' + str(dataset["_id"]) + '"...\n')
+
+    return valid_data

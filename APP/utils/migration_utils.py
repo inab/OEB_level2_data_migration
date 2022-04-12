@@ -211,7 +211,9 @@ class OpenEBenchUtils():
             json_query = {'query': """query AggregationQuery($bench_event_id: String, $tool_id: String) {
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
+        acronym
         _metadata
+        orig_id
         challenge_contact_ids
         datasets(datasetFilters: {type: "aggregation"}) {
                 _id

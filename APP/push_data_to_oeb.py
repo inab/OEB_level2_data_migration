@@ -118,11 +118,11 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
             
-        #elif dataset_type == "aggregation":
-            #min_aggregation_datasets.append(dataset)
+        elif dataset_type == "aggregation":
+            min_aggregation_datasets.append(dataset)
         elif dataset_type is not None:
             logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
-        #    sys.exit(2)
+            sys.exit(2)
 
     # get data model to validate against
     migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token)
@@ -177,10 +177,12 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     aggregation_query_response = migration_utils.query_OEB_DB(
         bench_event_id, tool_id, community_id, "aggregation")
     
+    # Needed to better consolidate
+    stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
+    
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, valid_participant_data, valid_assessment_datasets, 
-        community_id, tool_id, version, workflow_id)
+        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
