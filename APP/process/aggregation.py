@@ -366,11 +366,12 @@ def new_aggregation(self, response, dataset, assessment_datasets, community_id, 
             oeb_metrics[metric["_id"]] = metric["_metadata"]["level_2:metric_id"]
         else:
             oeb_challenges[challenge["acronym"]] = challenge["_id"]
-    print(oeb_metrics)
-    for assess_element in assessment_datasets:
 
+    for assess_element in assessment_datasets:
+        
         try:
             vis = dataset["datalink"]["inline_data"]["visualization"]
+
             if (vis.get("metric") is None):
                 if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["x_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                     rel_data.append({"dataset_id": assess_element["_id"]})
@@ -386,12 +387,16 @@ def new_aggregation(self, response, dataset, assessment_datasets, community_id, 
                     rel_data.append({"dataset_id": assess_element["_id"]})
                 elif assess_element["depends_on"]["metrics_id"] == vis["y_axis"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                     rel_data.append({"dataset_id": assess_element["_id"]})
+                elif vis["metric"].upper() in assess_element["_id"].upper() and dataset["challenge_ids"][0] in assess_element["_id"]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
             else:
                 if oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["metric"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
                     rel_data.append({"dataset_id": assess_element["_id"]})
                 elif oeb_metrics[assess_element["depends_on"]["metrics_id"]] == vis["metric"] and assess_element["challenge_ids"][0] == oeb_challenges[dataset["challenge_ids"][0]]:
                     rel_data.append({"dataset_id": assess_element["_id"]})
                 elif assess_element["depends_on"]["metrics_id"] == vis["metric"] and assess_element["challenge_ids"][0] == dataset["challenge_ids"][0]:
+                    rel_data.append({"dataset_id": assess_element["_id"]})
+                elif vis["metric"].upper() in assess_element["_id"].upper() and dataset["challenge_ids"][0] in assess_element["_id"]:
                     rel_data.append({"dataset_id": assess_element["_id"]})
         except:
             continue
@@ -437,3 +442,4 @@ def new_aggregation(self, response, dataset, assessment_datasets, community_id, 
     sys.stdout.write('Processed "' + str(dataset["_id"]) + '"...\n')
 
     return valid_data
+
