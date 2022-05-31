@@ -41,7 +41,6 @@ class Aggregation():
             for elem in i['datasets']:
                 orig_id_aggr.append(elem)
         
-        
         for dataset in aggregation_datasets:
             orig_future_id = build_new_aggregation_id(dataset)
             agg_key = ""
@@ -51,30 +50,32 @@ class Aggregation():
                 if dataset['challenge_ids'][0] in d['orig_id']:
                     #check metrics
                     if (dataset['datalink']['inline_data']['visualization']['type'] == "2D-plot"):
-                        if (dataset['datalink']['inline_data']['visualization']['x_axis'] in d['orig_id']):
-                            agg_key = "_id"
-                            future_id = d["_id"]
-                            sys.stdout.write(
-                    'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
-                            break
-                        elif (dataset['datalink']['inline_data']['visualization']['x_axis'] == d['datalink']['inline_data']['visualization']['x_axis']):
-                            agg_key = "_id"
-                            future_id = d["_id"]
-                            sys.stdout.write(
-                    'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
-                            break
-                        else:
-                            agg_key = "orig_id"
-                            future_id = build_new_aggregation_id(dataset)
+                    	if(d['datalink']['inline_data']['visualization']['type'] == "2D-plot"):
+                            if (dataset['datalink']['inline_data']['visualization']['x_axis'] in d['orig_id']):
+                                agg_key = "_id"
+                                future_id = d["_id"]
+                                sys.stdout.write(
+                        'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
+                                break
+                            elif (dataset['datalink']['inline_data']['visualization']['x_axis'] == d['datalink']['inline_data']['visualization']['x_axis']):
+                                agg_key = "_id"
+                                future_id = d["_id"]
+                                sys.stdout.write(
+                        'Dataset "' + str(dataset["_id"]) + '" is already in OpenEBench... Adding new participant data\n')
+                                break
+                            else:
+                                agg_key = "orig_id"
+                                future_id = build_new_aggregation_id(dataset)
                     #bar plot
                     else:
-                        if (dataset['datalink']['inline_data']['visualization']['metric'] in d['orig_id']):
-                            agg_key = "_id"
-                            future_id = d["_id"]
-                            break
-                        else:
-                            agg_key = "orig_id"
-                            future_id = orig_future_id
+                        if (d['datalink']['inline_data']['visualization']['type'] == "bar-plot"):
+                            if (dataset['datalink']['inline_data']['visualization']['metric'] in d['orig_id']):
+                                agg_key = "_id"
+                                future_id = d["_id"]
+                                break
+                            else:
+                                agg_key = "orig_id"
+                                future_id = orig_future_id
                         
 
             # check if assessment datasets already exist in OEB for the provided bench event id
@@ -95,7 +96,6 @@ class Aggregation():
             valid_data = agg_by_id.get(future_id)
             if (valid_data is None) and future_id!=orig_future_id:
                 valid_data = agg_by_id.get(orig_future_id)
-            
             if valid_data is None:
                 # Now, the aggregation datasets in the staging area
                 for agg_data in stagedAggregationDatasets:
@@ -110,6 +110,7 @@ class Aggregation():
                 for challenge in challenges:
                     if challenge["_id"] in dataset_challenge_ids:
                         for agg_data in challenge["datasets"]:
+                            if (agg_key == ''): agg_key = "orig_id"
                             if future_id == agg_data[agg_key]:
                                 valid_data = agg_data
                                 break
