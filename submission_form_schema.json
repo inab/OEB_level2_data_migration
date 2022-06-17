@@ -49,16 +49,30 @@
 			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
 			"type": "string",
 			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
-			"format": "autocomplete",
 			"options": {
-			    "autocomplete": {
-				"search": "search_za",
-				"getResultValue": "getResultValue_za",
-				"renderResult": "renderResult_za",
-				"autoSelect": true
+			    "hidden": true
+			 }
+			
+		},
+		"tool_selection": {
+			"title": "Participant Tool",
+			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
+			"type": "string",
+			"format": "selectize",
+			"enum": [""],
+			"options": {
+			    "selectize": {
+					"load": "load",
+					"render": "render",
+					"placeholder": "Name of your tool",
+					"valueField": "_id",
+					"labelField": "name",
+					"searchField": "name",
+					"options": []
 			    }
 			}
 		},
+
 		"dataset_submission_id": {
 			"title": "Dataset submission id",
 			"description": "The unique identifier of the dataset which will hold the identifiers of all the loaded/updated datasets. Beware, this id should be unique! If it is not set, a UUIDv1 is used",
@@ -142,7 +156,6 @@
 		"benchmarking_event_id",
 		"participant_file",
 		"community_id",
-		"tool_id",
 		"data_version",
 		"workflow_oeb_id",
 		"data_contacts",
@@ -152,3 +165,4 @@
 	"additionalProperties": false
 
 }
+
