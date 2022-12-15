@@ -10,7 +10,7 @@ import logging
 import json
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from fairtracks_validator.validator import FairGTracksValidator
+from fairtracks_validator.fairtracks_validator import FairGTracksValidator
 
 import urllib.request
 import urllib.parse
