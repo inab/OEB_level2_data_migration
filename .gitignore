@@ -1,2 +1,6 @@
+.py3env/
 APP/.py3env/
+benchmarking_data_model/
 APP/benchmarking_data_model/
+*.json
+__pycache__
