@@ -1,2 +1,2 @@
 requests
-extended-json-schema-validator >= 0.11.1
+extended-json-schema-validator >= 0.11.2
