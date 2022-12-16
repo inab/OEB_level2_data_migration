@@ -567,7 +567,7 @@ class OpenEBenchUtils():
     
     def submit_oeb_buffer(self, json_data, community_id):
 
-        logging.info("\n\t==================================\n\t8. Uploading workflow results to https://dev-openebench.bsc.es/api/scientific/submission/\n\t==================================\n")
+        logging.info(f"\n\t==================================\n\t8. Uploading workflow results to {self.oeb_submission_api}\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}
         params = {
