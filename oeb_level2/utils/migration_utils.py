@@ -288,7 +288,7 @@ class OpenEBenchUtils():
         try:
             url = self.oeb_api
             # get challenges and input datasets for provided benchmarking event
-            r = requests.post(url=url, json=json_query, headers={'Authorization': 'Bearer {}'.format(self.oeb_token)}, verify=False)
+            r = requests.post(url=url, json=json_query, headers={'Authorization': 'Bearer {}'.format(self.oeb_token)})
             response = r.json()
             data = response.get("data")
             if data is None:
