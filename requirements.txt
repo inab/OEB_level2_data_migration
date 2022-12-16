@@ -1,6 +1,2 @@
 requests
-jsonschema
-uritools
-validators
-# Json schemas validator developed for the genomics fairtracks project
-fairtracks-validator
+extended-json-schema-validator >= 0.11.1
