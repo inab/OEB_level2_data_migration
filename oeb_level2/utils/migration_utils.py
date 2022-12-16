@@ -79,6 +79,7 @@ class OpenEBenchUtils():
                 ],
                 # To be set on instantiation
                 # 'schema_prefix': None,
+                "allow_provider_duplicates": True,
                 'accept': 'text/uri-list'
             }
         }
