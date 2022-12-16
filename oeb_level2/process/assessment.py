@@ -5,9 +5,9 @@ import sys
 import os
 from datetime import datetime, timezone
 import json
-from .benchmarking_dataset import BenchmarkingDataset
 import re
 
+from .benchmarking_dataset import BenchmarkingDataset
 
 class Assessment():
 
@@ -16,7 +16,7 @@ class Assessment():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, response, stagedAssessmentDatasets, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version, contacts):
+    def build_assessment_datasets(self, response, stagedAssessmentDatasets, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version: "str", contacts):
 
         logging.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
@@ -149,7 +149,7 @@ class Assessment():
             }
 
             # add data version
-            valid_data["version"] = str(version)
+            valid_data["version"] = version
 
             # add dataset contacts ids
             # CHECK IF EMAIL IS GIVEN

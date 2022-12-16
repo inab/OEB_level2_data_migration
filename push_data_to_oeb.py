@@ -3,37 +3,89 @@
 """
 #########################################################
 	    VRE Level 2 to OpenEBench migration tool 
-		Author: Javier Garrayo Ventas
-		Barcelona Supercomputing Center. Spain. 2020
+		Authors:
+            Javier Garrayo Ventas (2020)
+            Meritxell Ferret (2020-2022)
+            José Mª Fernández (2020-2022)
+		Barcelona Supercomputing Center. Spain. 2022
 #########################################################
 """
-from process.participant import Participant
-from process.assessment import Assessment
-from process.aggregation import Aggregation
-from utils.migration_utils import OpenEBenchUtils
 import json
 from argparse import ArgumentParser
 import sys
 import os
+import os.path
 import urllib.parse
 import urllib.request
 import logging
 import uuid
-import validators
 import requests
+
+# Just to get the directory through __file__
+import oeb_level2.schemas
+
+from oeb_level2.process.participant import Participant
+from oeb_level2.process.assessment import Assessment
+from oeb_level2.process.aggregation import Aggregation
+from oeb_level2.utils.migration_utils import (
+    OpenEBenchUtils,
+)
 
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
+def validate_url(the_url: "str") -> "bool":
+    """
+    Inspired in https://stackoverflow.com/a/38020041
+    """
+    try:
+        result = urllib.parse.urlparse(the_url)
+        return all([result.scheme in ('http' ,'https', 'ftp'), result.netloc != "", result.path]) or all([result.scheme in ('file' ,'data'), result.netloc == "", result.path])
+    except:
+        return False    
+
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
 
-def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None, output_filename=None):
+def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token: "Optional[str]" = None, val_result_filename: "Optional[str]" = None, output_filename: "Optional[str]" = None):
     
     # check whether config file exists and has all the required fields
+    oeb_validator, num_level2_schemas = oeb_level2.schemas.create_validator_for_oeb_level2()
+    if num_level2_schemas < 2:
+        logging.error("OEB level2 operational JSON Schemas not found")
+        sys.exit(1)
+    
     try:
-        config_json_dir = os.path.dirname(os.path.abspath(config_json))
-        with open(config_json, 'r') as f:
-            config_params = json.load(f)
+        config_json_dir = os.path.dirname(os.path.abspath(config_json_filename))
+        # with open(config_json_filename, mode='r', encoding="utf-8") as f:
+        #     config_params = json.load(f)
+        
+        # Loading and checking the dataset configuration file
+        config_val_list = oeb_validator.jsonValidate(config_json_filename, guess_unmatched=True)
+        assert len(config_val_list) > 0
+        config_val_block = config_val_list[0]
+        if len(config_val_block.get("errors", [])) > 0:
+            logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block['errors']}")
+            sys.exit(2)
+        
+        if config_val_block["schema_id"] != oeb_level2.schemas.SUBMISSION_FORM_SCHEMA_ID:
+            logging.error(f"Wrong configuration file {config_json_filename}, as it matches schema {config_val_block['schema_id']}")
+            sys.exit(2)
+        
+        config_params = config_val_block["json"]
+        
+        # Loading and checking the authentication and endpoints file
+        oeb_credentials_val_list = oeb_validator.jsonValidate(oeb_credentials_filename, guess_unmatched=True)
+        assert len(oeb_credentials_val_list) > 0
+        oeb_credentials_val_block = oeb_credentials_val_list[0]
+        if len(oeb_credentials_val_block.get("errors", [])) > 0:
+            logging.error(f"Errors in configuration file {oeb_credentials_filename}\n{oeb_credentials_val_block['errors']}")
+            sys.exit(2)
+        
+        if oeb_credentials_val_block["schema_id"] != oeb_level2.schemas.AUTH_CONFIG_SCHEMA_ID:
+            logging.error(f"Wrong configuration file {oeb_credentials_filename}, as it matches schema {oeb_credentials_val_block['schema_id']}")
+            sys.exit(2)
+        
+        oeb_credentials = oeb_credentials_val_block["json"]
         
         # When this path is relative, the reference is the directory
         # of the configuration file
@@ -47,7 +99,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             if not os.path.isabs(input_file):
                 input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
             if not os.path.exists(input_file):
-                logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json))
+                logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json_filename))
                 sys.exit(1)
         
         #Collect data
@@ -57,6 +109,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
         community_id = config_params["community_id"]
         tool_id = config_params["tool_id"]
         version = config_params["data_version"]
+        version_str = str(version)
         contacts = config_params["data_contacts"]
         data_model_repo = config_params["data_model_repo"]
         data_model_tag = config_params["data_model_tag"]
@@ -80,14 +133,14 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
             dataset_submission_id = str(ts)
             
         #check partiicpant file location is a valid url
-        valid = validators.url(file_location)
+        valid = validate_url(file_location)
         if not valid:
             logging.fatal("Participant file location invalid: "+file_location)
             sys.exit(1)
 
     except Exception as e:
 
-        logging.fatal(e, "config file " + config_json +
+        logging.fatal(e, "config file " + config_json_filename +
                       " is missing or has incorrect format")
         sys.exit(1)
     
@@ -138,7 +191,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     '''
     # upload predicitions file to stable server and get permanent identifier
     data_doi = migration_utils.upload_to_storage_service(
-        min_participant_data, file_location, contacts[0], version)
+        min_participant_data, file_location, contacts[0], version_str)
     '''
     
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
@@ -146,7 +199,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     process_participant = Participant(schemaMappings)
     valid_participant_data = process_participant.build_participant_dataset(
         input_query_response, min_participant_data, data_visibility, file_location, 
-        community_id, tool_id, version, contacts)
+        community_id, tool_id, version_str, contacts)
     
     #TEST EVENT
     valid_test_events = process_participant.build_test_events(
@@ -166,7 +219,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     process_assessments = Assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
         metrics_reference_query_response, stagedAssessmentDatasets, min_assessment_datasets, 
-        data_visibility, min_participant_data, community_id, tool_id, version, contacts)
+        data_visibility, min_participant_data, community_id, tool_id, version_str, contacts)
 
     valid_metrics_events = process_assessments.build_metrics_events(
         metrics_reference_query_response, stagedEvents, valid_assessment_datasets, tool_id, contacts)
@@ -182,7 +235,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version, workflow_id)
+        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version_str, workflow_id)
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
@@ -194,7 +247,7 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
     # Generate the umbrella dataset
     umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, 
                                                          community_id, bench_event_id, 
-                                                         version, data_visibility, final_data)
+                                                         version_str, data_visibility, final_data)
     final_data.append(umbrella)
     
     if output_filename is not None:
@@ -214,25 +267,23 @@ def main(config_json, oeb_credentials, oeb_token=None, val_result_filename=None,
 if __name__ == '__main__':
 
     parser = ArgumentParser()
-    parser.add_argument("-i", "--config_json",
-                        help="json file which contains all parameters for migration", required=True)
+    parser.add_argument("-i", "--dataset_config_json",
+                        help="json file which contains all parameters for dataset consolidation and migration", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
                         help="Credentials and endpoints used to obtain a token for submission \
-                        to oeb buffer DB", required=True)
+                        to oeb sandbox DB", required=True)
     parser.add_argument("-tk", "--oeb_submit_api_token",
                         help="Token used for submission to oeb buffer DB. If it is not set, the \
                         credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file")
-    parser.add_argument("-o", "--output",
+    parser.add_argument("-o", "--dry-run",
                         help="Save what it was going to be submitted in this file, instead of \
                         sending them (like a dry-run)")
 
     args = parser.parse_args()
 
-    config_json = args.config_json
-    with open(args.oeb_submit_api_creds, mode='r', encoding='utf-8') as ac:
-        oeb_credentials = json.load(ac)
+    config_json_filename = args.dataset_config_json
 
     logging.basicConfig(level=logging.INFO)
-    main(config_json, oeb_credentials, args.oeb_submit_api_token, args.val_output, args.output)
+    main(config_json_filename, args.oeb_submit_api_creds, args.oeb_submit_api_token, args.val_output, args.dry_run)

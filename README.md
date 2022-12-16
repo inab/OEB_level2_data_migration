@@ -42,14 +42,13 @@ optional arguments:
 First, install the Python dependencies in a virtual environment:
 
 ```bash
-cd APP
 python3 -m venv .py3env
 source .py3env/bin/activate
 pip install --upgrade pip wheel
 pip install -r requirements.txt
 ```
 
-Create a `config.json` file declaring the partial dataset to be uplifted to the benchmarking data model (JSON Schema [available here](submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [available here](auth_config_schema.json)).
+Create a `config.json` file declaring the partial dataset to be uplifted to the benchmarking data model (JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
 
 ```bash
 # The command must be run with the virtual environment enabled

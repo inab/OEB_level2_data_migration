@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import logging
 import sys
 import os
@@ -16,7 +18,7 @@ class Participant():
         self.schemaMappings = schemaMappings
 
     def build_participant_dataset(self, response, participant_data, data_visibility, 
-                                  file_location, community_id, tool_id, version, contacts):
+                                  file_location, community_id, tool_id, version: "str", contacts):
        
         logging.info(
             "\n\t==================================\n\t1. Processing participant dataset\n\t==================================\n")
@@ -105,7 +107,7 @@ class Participant():
         }
 
         # add data version
-        valid_participant_data["version"] = str(version)
+        valid_participant_data["version"] = version
         
         # add dataset contacts ids
         # CHECK IF EMAIL IS GIVEN

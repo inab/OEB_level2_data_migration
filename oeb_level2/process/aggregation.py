@@ -6,6 +6,7 @@ import os
 from datetime import datetime, timezone
 import datetime
 import json
+
 from .benchmarking_dataset import BenchmarkingDataset
 
 
@@ -16,7 +17,7 @@ class Aggregation():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_aggregation_datasets(self, response, stagedAggregationDatasets, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version, workflow_id):
+    def build_aggregation_datasets(self, response, stagedAggregationDatasets, aggregation_datasets, participant_data, assessment_datasets, community_id, tool_id, version: "str", workflow_id):
 
         logging.info(
             "\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
@@ -301,7 +302,7 @@ def build_new_aggregation_id(dataset):
     
         return dataset["_id"] + "_" + metrics[0] + "+" + metrics[1]
 
-def new_aggregation(self, response, dataset, assessment_datasets, community_id, version, workflow_id, dataset_schema_uri):
+def new_aggregation(self, response, dataset, assessment_datasets, community_id, version: "str", workflow_id, dataset_schema_uri):
 
     # initialize new dataset object
     metrics = ""
@@ -430,7 +431,7 @@ def new_aggregation(self, response, dataset, assessment_datasets, community_id, 
     }
 
     # add data version
-    valid_data["version"] = str(version)
+    valid_data["version"] = version
 
     # add challenge managers as aggregation dataset contacts ids
     data_contacts = []

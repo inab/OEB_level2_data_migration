@@ -8,12 +8,10 @@ import tempfile
 import subprocess
 import logging
 import json
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from fairtracks_validator.fairtracks_validator import FairGTracksValidator
-
 import urllib.request
 import urllib.parse
+
+import requests
 
 import yaml
 # We have preference for the C based loader and dumper, but the code
@@ -22,6 +20,8 @@ try:
     from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
 except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
+
+from ..schemas import create_validator_for_directory
 
 
 DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
@@ -51,15 +51,19 @@ class OpenEBenchUtils():
     DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
-    def __init__(self, oeb_credentials, workdir, oeb_token = None):
+    def __init__(self, oeb_credentials: "Mapping[str, Any]", workdir: "str", oeb_token: "Optional[str]" = None):
 
         self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
         self.git_cmd = self.DEFAULT_GIT_CMD
         self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
-
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        
+        storage_server_block = oeb_credentials.get('storageServer', {})
+        self.storage_server_type = storage_server_block.get("type")
+        self.storage_server_endpoint = storage_server_block.get("endpoint")
+        self.storage_server_community = storage_server_block.get("community")
+        self.storage_server_token = storage_server_block.get("token")
 
         logging.basicConfig(level=logging.INFO)
         
@@ -85,6 +89,7 @@ class OpenEBenchUtils():
         self.schema_validators_local_config = local_config
 
         self.schema_validators = None
+        self.num_schemas = 0
         
         self.schemaMappings = None
 
@@ -332,7 +337,7 @@ class OpenEBenchUtils():
             logging.exception(e)
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
-    def upload_to_storage_service(self, participant_data, file_location, contact_email, data_version):
+    def upload_to_storage_service(self, participant_data, file_location, contact_email, data_version: "str"):
         # First, check whether file_location is an URL
         file_location_parsed = urllib.parse.urlparse(file_location)
         
@@ -352,7 +357,7 @@ class OpenEBenchUtils():
                         "community": self.storage_server_community,
                         "community_specific": {},
                         "contact_email": contact_email,
-                        "version": str(data_version),
+                        "version": data_version,
                         "open_access": True}
             r = requests.post(endpoint + "records/", params=params,
                               data=json.dumps(metadata), headers=header)
@@ -418,7 +423,7 @@ class OpenEBenchUtils():
             logging.fatal('Unsupported storage server type {}'.format(self.storage_server_type))
             sys.exit(5)
 
-    def load_schemas(self, data_model_dir):
+    def load_schemas(self, data_model_dir: "str") -> "Mapping[str, str]":
         if self.schema_validators is None:
             local_config = self.schema_validators_local_config
             
@@ -437,25 +442,23 @@ class OpenEBenchUtils():
             local_config['primary_key']['schema_prefix'] = schema_prefix
             logging.debug(json.dumps(local_config))
             
-            self.schema_validators = FairGTracksValidator(config=local_config)
-        
-        # create the cached json schemas for validation
-        numSchemas = self.schema_validators.loadJSONSchemas(data_model_dir, verbose=False)
+            # create the cached json schemas for validation
+            self.schema_validators, self.num_schemas = create_validator_for_directory(data_model_dir, config=local_config)
 
-        if numSchemas == 0:
-            print(
-                "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
-            sys.exit(1)
+            if self.num_schemas == 0:
+                print(
+                    "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
+                sys.exit(1)
+            
+            schemaMappings = {}
+            for key in self.schema_validators.getValidSchemas().keys():
+                concept = key[key.rindex('/')+1:]
+                if concept:
+                    schemaMappings[concept] = key
+            
+            self.schemaMappings = schemaMappings
         
-        schemaMappings = {}
-        for key in self.schema_validators.getValidSchemas().keys():
-            concept = key[key.rindex('/')+1:]
-            if concept:
-                schemaMappings[concept] = key
-        
-        self.schemaMappings = schemaMappings
-        
-        return schemaMappings
+        return self.schemaMappings
 
     def schemas_validation(self, jsonSchemas_array, val_result_filename):
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
@@ -509,7 +512,7 @@ class OpenEBenchUtils():
             
             return datares
     
-    def generate_manifest_dataset(self, dataset_submission_id, community_id, benchmarking_event_id, version, data_visibility, final_data):
+    def generate_manifest_dataset(self, dataset_submission_id, community_id, benchmarking_event_id, version: "str", data_visibility, final_data):
         """
         This method receives both a dataset submission id and
         the array of data elements (datasets, testactions) to
@@ -540,7 +543,7 @@ class OpenEBenchUtils():
             'challenge_ids': list(unique_challenges),
             'visibility': data_visibility,
             'name': dataset_submission_id,
-            'version': str(version),
+            'version': version,
             'description': 'Manifest dataset {} from consolidated data'.format(dataset_submission_id),
             'dates': {
                 'creation': umbrella_assembling_timestamp,
