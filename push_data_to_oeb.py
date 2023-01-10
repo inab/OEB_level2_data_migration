@@ -266,7 +266,7 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser()
+    parser = ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--dataset_config_json",
                         help="json file which contains all parameters for dataset consolidation and migration", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",
