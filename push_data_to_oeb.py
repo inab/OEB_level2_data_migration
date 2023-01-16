@@ -11,7 +11,7 @@
 #########################################################
 """
 import json
-from argparse import ArgumentParser
+import argparse
 import sys
 import os
 import os.path
@@ -19,7 +19,9 @@ import urllib.parse
 import urllib.request
 import logging
 import uuid
+
 import requests
+from rfc3339_validator import validate_rfc3339
 
 # Just to get the directory through __file__
 import oeb_level2.schemas
@@ -50,9 +52,12 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     
     # check whether config file exists and has all the required fields
     oeb_validator, num_level2_schemas = oeb_level2.schemas.create_validator_for_oeb_level2()
-    if num_level2_schemas < 2:
+    if num_level2_schemas < 3:
         logging.error("OEB level2 operational JSON Schemas not found")
         sys.exit(1)
+    
+    # This is to avoid too much verbosity
+    logging.getLogger(oeb_validator.__class__.__name__).setLevel(logging.CRITICAL)
     
     try:
         config_json_dir = os.path.dirname(os.path.abspath(config_json_filename))
@@ -63,12 +68,13 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
         config_val_list = oeb_validator.jsonValidate(config_json_filename, guess_unmatched=True)
         assert len(config_val_list) > 0
         config_val_block = config_val_list[0]
-        if len(config_val_block.get("errors", [])) > 0:
-            logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block['errors']}")
+        config_val_block_errors = list(filter(lambda ve: ve.get("schema_id") == oeb_level2.schemas.SUBMISSION_FORM_SCHEMA_ID, config_val_block.get("errors", [])))
+        if len(config_val_block_errors) > 0:
+            logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
             sys.exit(2)
         
-        if config_val_block["schema_id"] != oeb_level2.schemas.SUBMISSION_FORM_SCHEMA_ID:
-            logging.error(f"Wrong configuration file {config_json_filename}, as it matches schema {config_val_block['schema_id']}")
+        if config_val_block.get("schema_id") != oeb_level2.schemas.SUBMISSION_FORM_SCHEMA_ID:
+            logging.error(f"Wrong configuration file {config_json_filename}, as it wrongly matches schema {config_val_block['schema_id']}")
             sys.exit(2)
         
         config_params = config_val_block["json"]
@@ -77,12 +83,13 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
         oeb_credentials_val_list = oeb_validator.jsonValidate(oeb_credentials_filename, guess_unmatched=True)
         assert len(oeb_credentials_val_list) > 0
         oeb_credentials_val_block = oeb_credentials_val_list[0]
-        if len(oeb_credentials_val_block.get("errors", [])) > 0:
-            logging.error(f"Errors in configuration file {oeb_credentials_filename}\n{oeb_credentials_val_block['errors']}")
+        oeb_credentials_val_block_errors = list(filter(lambda ve: ve.get("schema_id") == oeb_level2.schemas.AUTH_CONFIG_SCHEMA_ID, oeb_credentials_val_block.get("errors", [])))
+        if len(oeb_credentials_val_block_errors) > 0:
+            logging.error(f"Errors in configuration file {oeb_credentials_filename}\n{oeb_credentials_val_block_errors}")
             sys.exit(2)
         
-        if oeb_credentials_val_block["schema_id"] != oeb_level2.schemas.AUTH_CONFIG_SCHEMA_ID:
-            logging.error(f"Wrong configuration file {oeb_credentials_filename}, as it matches schema {oeb_credentials_val_block['schema_id']}")
+        if oeb_credentials_val_block.get("schema_id") != oeb_level2.schemas.AUTH_CONFIG_SCHEMA_ID:
+            logging.error(f"Wrong configuration file {oeb_credentials_filename}, as it wrongly matches schema {oeb_credentials_val_block['schema_id']}")
             sys.exit(2)
         
         oeb_credentials = oeb_credentials_val_block["json"]
@@ -161,6 +168,38 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
                           " is missing or has incorrect format")
             sys.exit(1)
 
+    # Some data have incomplete timestamps (hence, incorrect)
+    for data_i, data_entry in enumerate(data):
+        if data_entry.get("type") == "participant":
+            val_date_b = data_entry.get("datalink", {})
+            if val_date_b:
+                val_date = val_date_b.get("validation_date")
+                if val_date is not None and not validate_rfc3339(val_date):
+                    # Guessing the problem is incomplete timestamp
+                    new_val_date = val_date + 'Z'
+                    if validate_rfc3339(new_val_date):
+                        logging.warning(f"Patching date in entry {data_i}")
+                        val_date_b["validation_date"] = new_val_date
+                    
+    # Now, it is time to validate the fetched data
+    # in inline mode
+    validable_data = {
+        "file": input_file if input_url is None else input_url,
+        "json": data,
+        "errors": []
+    }
+    validated_data = oeb_validator.jsonValidate(validable_data, guess_unmatched=True)
+    assert len(validated_data) > 0
+    validated_data_block = validated_data[0]
+    validated_data_block_errors = list(filter(lambda ve: ve.get("schema_id") == oeb_level2.schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID, validated_data_block.get("errors", [])))
+    if len(validated_data_block_errors) > 0:
+        logging.error(f"Errors in data file {validated_data_block['file']}\n{json.dumps(validated_data_block_errors, indent=4)}")
+        sys.exit(2)
+    
+    if validated_data_block.get("schema_id") != oeb_level2.schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID:
+        logging.error(f"Wrong data file {validated_data_block['file']}, as it wrongly matches schema {validated_data_block['schema_id']}")
+        sys.exit(2)
+    
     # sort out dataset depending on 'type' property
     min_assessment_datasets = []
     min_aggregation_datasets = []
@@ -266,7 +305,7 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--dataset_config_json",
                         help="json file which contains all parameters for dataset consolidation and migration", required=True)
     parser.add_argument("-cr", "--oeb_submit_api_creds",

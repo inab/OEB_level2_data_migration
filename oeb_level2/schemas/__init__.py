@@ -15,6 +15,8 @@ AUTH_CONFIG_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/confi
 
 SUBMISSION_FORM_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/submission-form-json-schemas"
 
+MINIMAL_DATA_BLOCK_SCHEMA_ID = "https://github.com/inab/benchmarking/minimal-json-schemas"
+
 def create_validator_for_directory(schemas_dir: "str", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
     schema_validators = ExtensibleValidator(config=config)
         
