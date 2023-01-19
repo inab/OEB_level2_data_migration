@@ -75,7 +75,7 @@ class OpenEBenchUtils():
             'primary_key': {
                 'provider': [
                     *oebIdProviders,
-                    oeb_credentials['submissionURI']
+#                    self.oeb_submission_api
                 ],
                 # To be set on instantiation
                 # 'schema_prefix': None,
@@ -483,18 +483,33 @@ class OpenEBenchUtils():
         
         # check for errors in the validation results
         # skipping the duplicate keys case
+        to_error = 0
         to_warning = 0
         to_obj_warning = 0
+        to_obj_error = 0
         for val_obj in val_res:
+            to_p_error = 0
+            to_p_warning = 0
             for error in val_obj['errors']:
                 if error['reason'] not in ("dup_pk",):
-                    logging.fatal("\nObjects validation Failed:\n " + str(val_obj))
+                    logging.fatal("\nObjects validation Failed:\n " + json.dumps(val_obj, indent=4))
                     # logging.fatal("\nSee full validation logs:\n " + str(val_res))
-                    sys.exit(3)
-                
-                to_warning += 1
-            if len(val_obj['errors']) > 0:
+                    to_p_error += 1
+                else:
+                    to_p_warning += 1
+            to_warning += to_p_warning
+            to_error += to_p_error
+            if to_p_warning > 0:
                 to_obj_warning += 1
+            if to_p_error > 0:
+                to_obj_error += 1
+        
+        if to_error > 0:
+            logging.error(
+                "\n\t==================================\n\t Some objects did not validate\n\t==================================\n")
+            
+            logging.error("Report: {} errors in {} of {} documents".format(to_error, to_obj_error, len(val_res)))
+            sys.exit(3)
         
         logging.info(
             "\n\t==================================\n\t Objects validated\n\t==================================\n")
