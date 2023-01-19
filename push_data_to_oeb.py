@@ -201,11 +201,16 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
         sys.exit(2)
     
     # sort out dataset depending on 'type' property
+    min_participant_data = None
     min_assessment_datasets = []
     min_aggregation_datasets = []
     for i_dataset, dataset in enumerate(data):
         dataset_type = dataset.get("type")
         if dataset_type == "participant":
+            if min_participant_data is not None:
+                logging.error(f"More than one dataset of type {dataset_type}. There must be only one")
+                sys.exit(2)
+                
             min_participant_data = dataset
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
@@ -213,9 +218,14 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
         elif dataset_type == "aggregation":
             min_aggregation_datasets.append(dataset)
         elif dataset_type is not None:
-            logging.warning("Dataset {} is of unknown type {}. Skipping".format(i_dataset, dataset_type))
+            logging.warning("Dataset {} is of unknown type {}. Finishing".format(i_dataset, dataset_type))
             sys.exit(2)
-
+    
+    if min_participant_data is None:
+        logging.error(f"No dataset of type participant was available. There must be always one")
+        sys.exit(2)
+        
+    
     # get data model to validate against
     migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token)
     data_model_repo_dir = migration_utils.doMaterializeRepo(
@@ -236,13 +246,23 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
-    valid_participant_data = process_participant.build_participant_dataset(
-        input_query_response, min_participant_data, data_visibility, file_location, 
-        community_id, tool_id, version_str, contacts)
-    
+    valid_participant_data, challenge_pairs = process_participant.build_participant_dataset(
+        input_query_response["data"]["getChallenges"],
+        input_query_response["data"]["getContacts"],
+        min_participant_data,
+        data_visibility,
+        file_location, 
+        community_id,
+        tool_id,
+        version_str,
+        contacts
+    )
     #TEST EVENT
     valid_test_events = process_participant.build_test_events(
-        input_query_response, min_participant_data, tool_id, contacts)
+        min_participant_data["participant_id"],
+        valid_participant_data,
+        challenge_pairs
+    )
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     metrics_reference_query_response = migration_utils.query_OEB_DB(

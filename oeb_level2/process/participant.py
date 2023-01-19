@@ -17,7 +17,7 @@ class Participant():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_participant_dataset(self, response, participant_data, data_visibility, 
+    def build_participant_dataset(self, challenges_graphql, contacts_graphql, min_participant_data, data_visibility, 
                                   file_location, community_id, tool_id, version: "str", contacts):
        
         logging.info(
@@ -25,7 +25,7 @@ class Participant():
 
         # initialize new dataset object
         valid_participant_data = {
-            "_id": participant_data["_id"],
+            "_id": min_participant_data["_id"],
             "type": "participant"
         }
 
@@ -33,36 +33,40 @@ class Participant():
         valid_participant_data["visibility"] = data_visibility
 
         # add name and description, if workflow did not provide them
-        if "name" not in participant_data:
+        if "name" not in min_participant_data:
             valid_participant_data["name"] = "Predictions made by " + \
-                participant_data["participant_id"] + " participant"
+                min_participant_data["participant_id"] + " participant"
         else:
-            valid_participant_data["name"] = participant_data["name"]
-        if "description" not in participant_data:
+            valid_participant_data["name"] = min_participant_data["name"]
+        if "description" not in min_participant_data:
             valid_participant_data["description"] = "Predictions made by " + \
-                participant_data["participant_id"] + " participant"
+                min_participant_data["participant_id"] + " participant"
         else:
-            valid_participant_data["description"] = participant_data["description"]
+            valid_participant_data["description"] = min_participant_data["description"]
 
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
 
-        data = response["data"]["getChallenges"]
-
         oeb_challenges = {}
-        for challenge in data:
-            _metadata = challenge.get("_metadata")
+        for challenge_graphql in challenges_graphql:
+            _metadata = challenge_graphql.get("_metadata")
             if (_metadata is None):
-                oeb_challenges[challenge["acronym"]] = challenge["_id"]
-            else: oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
+                oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
+            else:
+                oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
 
         # replace dataset related challenges with oeb challenge ids
         execution_challenges = []
-        for challenge in participant_data["challenge_id"]:
-
+        min_challenge_labels = min_participant_data["challenge_id"]
+        if not isinstance(min_challenge_labels, list):
+            min_challenge_labels = [ min_challenge_labels ]
+        
+        challenge_pairs = []
+        for challenge_label in min_challenge_labels:
             try:
-                execution_challenges.append(oeb_challenges[challenge])
+                execution_challenges.append(oeb_challenges[challenge_label]["_id"])
+                challenge_pairs.append((challenge_label, oeb_challenges[challenge_label]))
             except:
-                logging.fatal("No challenges associated to " + challenge +
+                logging.fatal("No challenges associated to " + challenge_label +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit()
 
@@ -70,8 +74,8 @@ class Participant():
 
         # select input datasets related to the challenges
         rel_oeb_datasets = set()
-        for dataset in [item for item in data if item["_id"] in valid_participant_data["challenge_ids"]]:
-            for input_data in dataset["datasets"]:
+        for challenge_graphql in map(lambda cp: cp[1], challenge_pairs):
+            for input_data in challenge_graphql["datasets"]:
                 rel_oeb_datasets.add(input_data["_id"])
 
         # add data registration dates
@@ -81,12 +85,12 @@ class Participant():
         }
 
         # add participant's file permanent location
-        valid_participant_data["datalink"] = participant_data["datalink"]
+        valid_participant_data["datalink"] = min_participant_data["datalink"]
         valid_participant_data["datalink"]["uri"] = file_location
         
-        #check validation date is iso format, otherwise fix it
-        if not participant_data["datalink"]["validation_date"].endswith("Z") and not (re.search("[+-]\d{2}:\d{2}$", participant_data["datalink"]["validation_date"])):
-            valid_participant_data["datalink"]["validation_date"] = participant_data["datalink"]["validation_date"]+"+00:00"
+        # check validation date is iso format, otherwise fix it
+        if not min_participant_data["datalink"]["validation_date"].endswith("Z") and not (re.search("[+-]\d{2}:\d{2}$", min_participant_data["datalink"]["validation_date"])):
+            valid_participant_data["datalink"]["validation_date"] = min_participant_data["datalink"]["validation_date"]+"+00:00"
        
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = self.schemaMappings["Dataset"]
@@ -113,30 +117,35 @@ class Participant():
         # CHECK IF EMAIL IS GIVEN
         # Make a regular expression
         # for validating an Email
-        regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
+        regex_email = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
         contacts_ids = []
         for contact in contacts:
-            if(re.search(regex, contact)):
-                for x in response["data"]["getContacts"]:
-                    if x["email"][0] in contacts:
-                        contacts_ids.append(x["_id"]) 
+            if(re.search(regex_email, contact)):
+                for x in contacts_graphql:
+                    if x["email"][0] == contact:
+                        contacts_ids.append(x["_id"])
+                        break
+                else:
+                    logging.error(f"Contact {contact} (e-mail) could not be found in database")
+                    sys.exit(1)
+                    
             else:
-                for x in response["data"]["getContacts"]:
-                    if x["_id"] in contacts:
-                        contacts_ids.append(contact) 
+                for x in contacts_graphql:
+                    if x["_id"] == contact:
+                        contacts_ids.append(contact)
+                        break
+                else:
+                    logging.error(f"Contact {contact} (_id) could not be found in database")
+                    sys.exit(1)
                         
-        if not contacts_ids:
-            logging.error("Contacts {}, does not exist in database".format(contacts))
-            sys.exit(1)
-        else:
-            valid_participant_data["dataset_contact_ids"] = contacts_ids
+        valid_participant_data["dataset_contact_ids"] = contacts_ids
 
         sys.stdout.write(
-            'Processed "' + str(participant_data["_id"]) + '"...\n')
+            'Processed "' + str(min_participant_data["_id"]) + '"...\n')
 
-        return valid_participant_data
+        return valid_participant_data, challenge_pairs
 
-    def build_test_events(self, response, participant_data, tool_id, contacts):
+    def build_test_events(self, participant_id, valid_participant_data, challenge_pairs):
 
         logging.info(
             "\n\t==================================\n\t2. Generating Test Events\n\t==================================\n")
@@ -145,45 +154,30 @@ class Participant():
         test_events = []
 
         # an  new event object will be created for each of the challenge where the participants has taken part in
-        for challenge in participant_data["challenge_id"]:
+        for challenge_label, challenge_graphql in challenge_pairs:
 
-            sys.stdout.write('Building object "' + str(challenge +
-                                                       "_testEvent_" + participant_data["participant_id"]) + '"...\n')
+            sys.stdout.write('Building object "' + str(challenge_label +
+                                                       "_testEvent_" + participant_id) + '"...\n')
 
             event = {
-                "_id": challenge + "_testEvent_" + participant_data["participant_id"],
+                "_id": challenge_label + "_testEvent_" + participant_id,
                 "_schema": self.schemaMappings["TestAction"],
                 "action_type": "TestEvent",
             }
 
             # add id of tool for the test event
-            event["tool_id"] = tool_id
+            event["tool_id"] = valid_participant_data["depends_on"]["tool_id"]
 
             # add the oeb official id for the challenge
-            data = response["data"]["getChallenges"]
-            oeb_challenges = {}
-            for oeb_challenge in data:
-                _metadata = oeb_challenge.get("_metadata")
-                if (_metadata is None):
-                    oeb_challenges[oeb_challenge["acronym"]] = oeb_challenge["_id"]
-                else: oeb_challenges[oeb_challenge["_metadata"]["level_2:challenge_id"]] = oeb_challenge["_id"]
-
-
-            try:
-                event["challenge_id"] = oeb_challenges[challenge]
-            except:
-                logging.fatal("No challenge associated to " + challenge +
-                              " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                sys.exit()
+            event["challenge_id"] = challenge_graphql["_id"]
 
             # append incoming and outgoing datasets
             involved_data = []
 
             # select input datasets related to the challenge
             rel_oeb_datasets = set()
-            for dataset in [item for item in data if item["_id"] == event["challenge_id"]]:
-                for input_data in dataset["datasets"]:
-                    rel_oeb_datasets.add(input_data["_id"])
+            for input_data in challenge_graphql["datasets"]:
+                rel_oeb_datasets.add(input_data["_id"])
 
             for dataset in rel_oeb_datasets:
                 involved_data.append({
@@ -192,7 +186,7 @@ class Participant():
                 })
 
             involved_data.append({
-                "dataset_id": participant_data["_id"],
+                "dataset_id": valid_participant_data["_id"],
                 "role": "outgoing"
             })
 
@@ -203,27 +197,8 @@ class Participant():
                 "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
             }
 
-            # add dataset contacts ids
-            # CHECK IF EMAIL IS GIVEN
-            # Make a regular expression
-            # for validating an Email
-            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
-            contacts_ids = []
-            for contact in contacts:
-                if(re.search(regex, contact)):
-                    for x in response["data"]["getContacts"]:
-                        if x["email"][0] in contacts:
-                            contacts_ids.append(x["_id"]) 
-                else:
-                    for x in response["data"]["getContacts"]:
-                        if x["_id"] in contacts:
-                            contacts_ids.append(contact) 
-                            
-            if not contacts_ids:
-                logging.error("Contacts {}, does not exist in database".format(contacts))
-                sys.exit(1)
-            else:
-                event["test_contact_ids"] = contacts_ids
+            # add dataset contacts ids, based on already processed data
+            event["test_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
             test_events.append(event)
 
