@@ -178,7 +178,7 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
                     # Guessing the problem is incomplete timestamp
                     new_val_date = val_date + 'Z'
                     if validate_rfc3339(new_val_date):
-                        logging.warning(f"Patching date in entry {data_i}")
+                        logging.warning(f"Patching date in entry {data_i} from {input_file}")
                         val_date_b["validation_date"] = new_val_date
                     
     # Now, it is time to validate the fetched data
@@ -274,7 +274,16 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     
     process_aggregations = Aggregation(schemaMappings)
     valid_aggregation_datasets = process_aggregations.build_aggregation_datasets(
-        aggregation_query_response, stagedAggregationDatasets, min_aggregation_datasets, min_participant_data, valid_assessment_datasets, community_id, tool_id, version_str, workflow_id)
+        aggregation_query_response,
+        stagedAggregationDatasets,
+        min_aggregation_datasets,
+        min_participant_data,
+        valid_assessment_datasets,
+        community_id,
+        tool_id,
+        version_str,
+        workflow_id
+    )
     
     valid_aggregation_events = process_aggregations.build_aggregation_events(
         aggregation_query_response, stagedEvents, valid_aggregation_datasets, workflow_id)
