@@ -18,13 +18,16 @@ $defs:
       id:
         title: The challenge acronym
         type: string
+        minLength: 1
       participants:
         title: The list of participants
         type: array
         items:
           type: string
+          minLength: 1
         uniqueItems: true
         minItems: 1
+    additional_properties: false
     required:
     - id
     - participants
@@ -129,6 +132,7 @@ $defs:
             title: the numerical value of the metric
             type: number
             minLength: 1
+        additional_properties: false
         required:
         - metric_id
         - value
@@ -163,6 +167,7 @@ $defs:
       _id:
         title: The unique community-set id of the dataset
         type: string
+        minLength: 1
       challenge_ids:
         title: The challenge(s) where this dataset was generated or used
         type: array
@@ -190,7 +195,91 @@ $defs:
         properties:
           inline_data:
             title: The aggregation data is provided inline
-            type: object
+            oneOf:
+            - type: object
+              properties:
+                challenge_participants:
+                  description: The metrics for each one of the participants
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      participant_id:
+                        type: string
+                        minLength: 1
+                      metric_x:
+                        type: number
+                      metric_y:
+                        type: number
+                      stderr_x:
+                        type: number
+                      stderr_y:
+                        type: number
+                    required:
+                    - participant_id
+                    - metric_x
+                    - metric_y
+                    - stderr_x
+                    - stderr_y
+                    additional_properties: false
+                  unique:
+                  - participant_id
+                visualization:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      const: "2D-plot"
+                    x_axis:
+                      type: string
+                      minLength: 1
+                    y_axis:
+                      type: string
+                      minLength: 1
+                  required:
+                  - type
+                  - x_axis
+                  - y_axis
+                  additional_properties: false
+              required:
+              - challenge_participants
+              - visualization
+              additional_properties: false
+            - type: object
+              properties:
+                challenge_participants:
+                  description: The metrics for each one of the participants
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      participant_id:
+                        type: string
+                        minLength: 1
+                        unique: true
+                      metric_value:
+                        type: number
+                    required:
+                    - participant_id
+                    - metric_value
+                    additional_properties: false
+                visualization:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      const: "bar-plot"
+                    metric:
+                      type: string
+                      minLength: 1
+                  required:
+                  - type
+                  - metric
+                  additional_properties: false
+              required:
+              - challenge_participants
+              - visualization
+              additional_properties: false
       type:
         title: Type of dataset.
         type: string
@@ -201,7 +290,8 @@ $defs:
     - challenge_ids
     - type
     - datalink
-#    primary_key:
-#    - _id
+    primary_key:
+    - _id
+    - datalink.inline_data.visualization
     dependencies: {}
 
