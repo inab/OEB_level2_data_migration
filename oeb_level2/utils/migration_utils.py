@@ -159,11 +159,16 @@ class OpenEBenchUtils():
         return repo_tag_destdir
 
     # function that retrieves all the required metadata from OEB database
-    def query_OEB_DB(self, bench_event_id, tool_id, community_id, data_type):
+    def graphql_query_OEB_DB(self, data_type, bench_event_id, tool_id):
 
         if data_type == "input":
 #            }
             json_query = {'query': """query InputQuery($bench_event_id: String, $tool_id: String) {
+    getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
+        _id
+        orig_id
+        community_id
+    }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         acronym
@@ -187,6 +192,11 @@ class OpenEBenchUtils():
             }
         elif data_type == "metrics_reference":
             json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String, $tool_id: String) {
+    getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
+        _id
+        orig_id
+        community_id
+    }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         acronym
@@ -215,6 +225,11 @@ class OpenEBenchUtils():
             }
         elif data_type == "aggregation":
             json_query = {'query': """query AggregationQuery($bench_event_id: String, $tool_id: String) {
+    getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
+        _id
+        orig_id
+        community_id
+    }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
         acronym
@@ -292,13 +307,16 @@ class OpenEBenchUtils():
             response = r.json()
             data = response.get("data")
             if data is None:
-                logging.fatal("For {}, {}, {} got response error from graphql query: {}".format(community_id, bench_event_id, tool_id, r.text))
+                logging.fatal("For {}, {} got response error from graphql query: {}".format(bench_event_id, tool_id, r.text))
                 sys.exit(6)
+            if len(data["getBenchmarkingEvents"]) == 0:
+                logging.fatal(f"Benchmarking event {bench_event_id} is not available in OEB. Please double check the id, or contact OpenEBench support for information about how to open a new benchmarking event")
+                sys.exit(2)
             if len(data["getChallenges"]) == 0:
 
                 logging.fatal("No challenges associated to benchmarking event " + bench_event_id +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                sys.exit()
+                sys.exit(2)
             # check if provided oeb tool actually exists
             elif len(data["getTools"]) == 0:
 

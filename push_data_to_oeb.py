@@ -234,8 +234,11 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     schemaMappings = migration_utils.load_schemas(data_model_dir)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    input_query_response = migration_utils.query_OEB_DB(
-        bench_event_id, tool_id, community_id, "input")
+    input_query_response = migration_utils.graphql_query_OEB_DB(
+        "input",
+        bench_event_id,
+        tool_id
+    )
     
     '''
     # upload predicitions file to stable server and get permanent identifier
@@ -246,6 +249,7 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
     process_participant = Participant(schemaMappings)
+    community_id = input_query_response["data"]["getBenchmarkingEvents"][0]["community_id"]
     valid_participant_data, challenge_pairs = process_participant.build_participant_dataset(
         input_query_response["data"]["getChallenges"],
         input_query_response["data"]["getContacts"],
@@ -265,8 +269,11 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     )
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    metrics_reference_query_response = migration_utils.query_OEB_DB(
-        bench_event_id, tool_id, community_id, "metrics_reference")
+    metrics_reference_query_response = migration_utils.graphql_query_OEB_DB(
+        "metrics_reference",
+        bench_event_id,
+        tool_id
+    )
 
     #ASSESSMENT DATASETS & METRICS EVENT
     stagedEvents = migration_utils.fetchStagedData('TestAction')
@@ -286,8 +293,11 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    aggregation_query_response = migration_utils.query_OEB_DB(
-        bench_event_id, tool_id, community_id, "aggregation")
+    aggregation_query_response = migration_utils.graphql_query_OEB_DB(
+        "aggregation",
+        bench_event_id,
+        tool_id
+    )
     
     # Needed to better consolidate
     stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))

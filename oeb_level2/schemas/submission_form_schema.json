@@ -37,7 +37,7 @@
 		},
 		"community_id": {
 			"title": "OEB community",
-			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow",
+			"description": "The unique id of the community where the data should be uploaded. Should come from VRE workflow. (This parameter is not needed any more)",
 			"type": "string",
 			"pattern": "^OEBC[0-9]{3}$",
 			"options": {
@@ -163,7 +163,6 @@
 		"data_visibility",
 		"benchmarking_event_id",
 		"participant_file",
-		"community_id",
 		"data_version",
 		"workflow_oeb_id",
 		"data_contacts",

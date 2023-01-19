@@ -95,7 +95,7 @@ class Participant():
         # add Benchmarking Data Model Schema Location
         valid_participant_data["_schema"] = self.schemaMappings["Dataset"]
 
-        # remove custom workflow community id and add OEB id for the community
+        # ignore custom workflow community id and add OEB id for the community
         valid_participant_data["community_ids"] = [community_id]
 
         # add dataset dependencies: tool and reference datasets
