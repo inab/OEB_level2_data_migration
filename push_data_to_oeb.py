@@ -276,8 +276,8 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
     )
 
     #ASSESSMENT DATASETS & METRICS EVENT
-    stagedEvents = migration_utils.fetchStagedData('TestAction')
-    stagedDatasets = migration_utils.fetchStagedData('Dataset')
+    stagedEvents = migration_utils.fetchStagedData('TestAction', {"challenge_id": list(map(lambda ch: ch[1]["_id"], challenge_pairs))})
+    stagedDatasets = migration_utils.fetchStagedData('Dataset', {"community_ids": [ community_id ], "type": [ "assessment", "aggregation"]})
 
     # Needed to better consolidate
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))

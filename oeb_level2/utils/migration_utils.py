@@ -534,7 +534,7 @@ class OpenEBenchUtils():
         
         logging.info("Report: {} duplicated keys in {} of {} documents".format(to_warning, to_obj_warning, len(val_res)))
 
-    def fetchStagedData(self, dataType):
+    def fetchStagedData(self, dataType: "str", filtering_keys: "Optional[Mapping[str, Sequence[str]]]" = None) -> "Sequence[Mapping[str, Any]]":
         headers = {
             'Accept': 'application/json',
             'Authorization': 'Bearer {}'.format(self.oeb_token)
@@ -542,7 +542,30 @@ class OpenEBenchUtils():
         
         req = urllib.request.Request(self.oeb_submission_api + '/' + urllib.parse.quote(dataType), headers=headers, method='GET')
         with urllib.request.urlopen(req) as t:
-            datares = json.load(t)
+            datares_raw = json.load(t)
+            
+            assert isinstance(datares_raw, list), "The answer is expected to be a list"
+            if isinstance(filtering_keys, dict) and len(filtering_keys) > 0:
+                fk_set = {
+                    fk_key: set(fk_values)
+                    for fk_key, fk_values in filtering_keys.items()
+                }
+                datares = []
+                for dr in datares_raw:
+                    for filt_key, filt_values in fk_set.items():
+                        if filt_key in dr:
+                            if isinstance(dr[filt_key], list):
+                                if all(map(lambda dv: dv not in filt_values, dr[filt_key])):
+                                    # Skip this entry
+                                    continue
+                            elif dr[filt_key] not in filt_values:
+                                # Skip this entry
+                                continue
+                            
+                            # Passed all tests
+                            datares.append(dr)
+            else:
+                datares = datares_raw
             
             return datares
     
