@@ -277,18 +277,26 @@ def main(config_json_filename: "str", oeb_credentials_filename: "str", oeb_token
 
     #ASSESSMENT DATASETS & METRICS EVENT
     stagedEvents = migration_utils.fetchStagedData('TestAction', {"challenge_id": list(map(lambda ch: ch[1]["_id"], challenge_pairs))})
-    stagedDatasets = migration_utils.fetchStagedData('Dataset', {"community_ids": [ community_id ], "type": [ "assessment", "aggregation"]})
+    stagedDatasets = migration_utils.fetchStagedData('Dataset', {"community_ids": valid_participant_data["community_ids"], "type": [ "assessment", "aggregation"]})
 
     # Needed to better consolidate
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
     
     process_assessments = Assessment(schemaMappings)
     valid_assessment_datasets = process_assessments.build_assessment_datasets(
-        metrics_reference_query_response, stagedAssessmentDatasets, min_assessment_datasets, 
-        data_visibility, min_participant_data, community_id, tool_id, version_str, contacts)
+        metrics_reference_query_response["data"]["getChallenges"],
+        metrics_reference_query_response["data"]["getMetrics"],
+        stagedAssessmentDatasets,
+        min_assessment_datasets, 
+        data_visibility,
+        version_str,
+        valid_participant_data
+    )
 
     valid_metrics_events = process_assessments.build_metrics_events(
-        metrics_reference_query_response, stagedEvents, valid_assessment_datasets, tool_id, contacts)
+        valid_assessment_datasets,
+        valid_participant_data
+    )
     
     
     #AGGREGATION DATASETS & AGGREGATION EVENT

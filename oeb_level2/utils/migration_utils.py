@@ -201,16 +201,23 @@ class OpenEBenchUtils():
         _id
         acronym
         _metadata
+        orig_id
+        challenge_contact_ids
+        metrics_categories {
+          category
+          description
+          metrics {
+            metrics_id
+            orig_id
+            tool_id
+          }
+        }
         datasets(datasetFilters: {type: "metrics_reference"}) {
             _id
         }
     }
     getTools(toolFilters: {id: $tool_id}) {
         _id
-    }
-    getContacts {
-        _id
-        email
     }
     getMetrics {
         _id
@@ -236,6 +243,15 @@ class OpenEBenchUtils():
         _metadata
         orig_id
         challenge_contact_ids
+        metrics_categories {
+          category
+          description
+          metrics {
+            metrics_id
+            orig_id
+            tool_id
+          }
+        }
         datasets(datasetFilters: {type: "aggregation"}) {
                 _id
                 _schema
@@ -265,10 +281,6 @@ class OpenEBenchUtils():
     }
     getTools(toolFilters: {id: $tool_id}) {
         _id
-    }
-    getContacts {
-        _id
-        email
     }
     getMetrics {
         _id

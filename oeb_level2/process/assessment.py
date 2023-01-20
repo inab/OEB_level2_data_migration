@@ -16,17 +16,30 @@ class Assessment():
         logging.basicConfig(level=logging.INFO)
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, response, stagedAssessmentDatasets, assessment_datasets, data_visibility, participant_data, community_id, tool_id, version: "str", contacts):
+    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility, version: "str", valid_participant_data):
 
         logging.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
+        
+        default_tool_id = valid_participant_data["depends_on"]["tool_id"]
+        community_ids = valid_participant_data["community_ids"]
         
         stagedMap = dict()
         for stagedAssessmentDataset in stagedAssessmentDatasets:
             stagedMap[stagedAssessmentDataset['orig_id']] = stagedAssessmentDataset
         
+        # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
+        oeb_challenges = {}
+        for challenge in challenges_graphql:
+            _metadata = challenge.get("_metadata")
+            if (_metadata is None):
+                oeb_challenges[challenge["acronym"]] = challenge
+            else:
+                oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge
+
         valid_assessment_datasets = []
         for dataset in assessment_datasets:
+            tool_id = default_tool_id
 
             sys.stdout.write('Building object "' +
                              str(dataset["_id"]) + '"...\n')
@@ -63,23 +76,21 @@ class Assessment():
             else:
                 valid_data["description"] = dataset["description"]
 
-            # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
-
-            data = response["data"]["getChallenges"]
-
-            oeb_challenges = {}
-            for challenge in data:
-                _metadata = challenge.get("_metadata")
-                if (_metadata is None):
-                    oeb_challenges[challenge["acronym"]] = challenge["_id"]
-                else:
-                    oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge["_id"]
-
             # replace dataset related challenges with oeb challenge ids
             execution_challenges = []
+            challenge_assessment_metrics = []
+            cam_d = {}
             try:
-                execution_challenges.append(
-                    oeb_challenges[dataset["challenge_id"]])
+                the_challenge = oeb_challenges[dataset["challenge_id"]]
+                execution_challenges.append(the_challenge)
+                for metrics_category in the_challenge.get("metrics_categories",[]):
+                    if metrics_category.get("category") == "assessment":
+                        challenge_assessment_metrics = metrics_category.get("metrics", [])
+                        cam_d = {
+                            cam["metrics_id"]: cam
+                            for cam in challenge_assessment_metrics
+                        }
+                        break
             except:
                 logging.info("No challenges associated to " +
                              dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
@@ -88,16 +99,16 @@ class Assessment():
                 continue
                 # sys.exit()
 
-            valid_data["challenge_ids"] = execution_challenges
+            valid_data["challenge_ids"] = list(map(lambda ex: ex["_id"] , execution_challenges))
 
-            # select metrics_reference datasets used used in the challenges
+            # select metrics_reference datasets used in the challenges
             rel_oeb_datasets = set()
-            for challenge in [item for item in data if item["_id"] in valid_data["challenge_ids"]]:
+            for challenge in execution_challenges:
                 for ref_data in challenge["datasets"]:
                     rel_oeb_datasets.add(ref_data["_id"])
 
             # add the participant data that corresponds to this assessment
-            rel_oeb_datasets.add(participant_data["_id"])
+            rel_oeb_datasets.add(valid_participant_data["_id"])
 
             # add data registration dates
             
@@ -108,14 +119,18 @@ class Assessment():
             metric_value = dataset["metrics"]["value"]
             error_value = dataset["metrics"]["stderr"]
 
-            valid_data["datalink"] = {"inline_data": {
-                "value": metric_value, "error": error_value}}
+            valid_data["datalink"] = {
+                "inline_data": {
+                    "value": metric_value,
+                    "error": error_value
+                }
+            }
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
 
             # add OEB id for the community
-            valid_data["community_ids"] = [community_id]
+            valid_data["community_ids"] = community_ids
 
             # add dataset dependencies: metric id, tool and reference datasets
             list_oeb_datasets = []
@@ -123,24 +138,50 @@ class Assessment():
                 list_oeb_datasets.append({
                     "dataset_id": dataset_id
                 })
-
-            for metric in response["data"]["getMetrics"]:
-                if dataset['community_id'] in metric['orig_id']:
-                    if dataset["metrics"]["metric_id"].upper() in metric['orig_id'].upper():
-                         metric_id = metric["_id"]
-                    if metric['_metadata']:
-                    	  if dataset["metrics"]["metric_id"].upper() in metric['_metadata']['level_2:metric_id'].upper():
-                    	     metric_id = metric["_id"]
+            
+            # Select the metrics just "guessing"
+            guessed_metrics_ids = []
+            community_prefix = dataset['community_id'] + ':'
+            dataset_metrics_id_u = dataset["metrics"]["metric_id"].upper()
+            for metric in metrics_graphql:
+                if metric['orig_id'].startswith(community_prefix):
+                    # First guess
+                    if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
+                        guessed_metrics_ids.append(metric["_id"])
                     
-                    
-             
-
-            try:
-                metric_id
-            except:
-                logging.fatal("No metric associated to " + dataset["metrics"]["metric_id"] +
-                              " in OEB. Please contact OpenEBench support for information about how to register your own metrics")
+                    # Second guess (it can introduce false crosses)
+                    metric_metadata = metric.get("_metadata")
+                    if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
+                        if metric['_metadata']['level_2:metric_id'].upper() == dataset_metrics_id_u:
+                            guessed_metrics_ids.append(metric["_id"])
+            
+            
+            if len(guessed_metrics_ids) == 0:
+                logging.fatal(f"Unable to match in OEB a metric to label {dataset['metrics']['metric_id']} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {the_challenge['_id']} (acronym {the_challenge['acronym']})")
                 sys.exit()
+            
+            matched_metrics_ids = []
+            for guessed_metric_id in guessed_metrics_ids:
+                cam = cam_d.get(guessed_metric_id)
+                if cam is not None:
+                    matched_metrics_ids.append(cam)
+            
+            if len(matched_metrics_ids) == 0:
+                if len(guessed_metrics_ids) == 1:
+                    metric_id = guessed_metrics_ids[0]
+                    logging.warning(f"Metric {metric_id} (guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']}) is not registered as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}). Consider register it")
+                else:
+                    logging.fatal(f"Several metrics {guessed_metrics_ids} were guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}).")
+                    sys.exit()
+            elif len(matched_metrics_ids) == 1:
+                mmi = matched_metrics_ids[0]
+                metric_id = mmi['metrics_id']
+                if mmi['tool_id'] is not None:
+                    tool_id = mmi['tool_id']
+            else:
+                logging.fatal(f"Several metrics registered at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}) matched from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . Fix the challenge declaration.")
+                sys.exit()
+                
 
             valid_data["depends_on"] = {
                 "tool_id": tool_id,
@@ -150,28 +191,9 @@ class Assessment():
 
             # add data version
             valid_data["version"] = version
-
-            # add dataset contacts ids
-            # CHECK IF EMAIL IS GIVEN
-            # Make a regular expression
-            # for validating an Email
-            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
-            contacts_ids = []
-            for contact in contacts:
-                if(re.search(regex, contact)):
-                    for x in response["data"]["getContacts"]:
-                        if x["email"][0] in contacts:
-                            contacts_ids.append(x["_id"]) 
-                else:
-                    for x in response["data"]["getContacts"]:
-                        if x["_id"] in contacts:
-                            contacts_ids.append(contact) 
-                            
-            if not contacts_ids:
-                logging.error("Contacts {}, does not exist in database".format(contacts))
-                sys.exit(1)
-            else:
-                valid_data["dataset_contact_ids"] = contacts_ids
+            
+            # add dataset contacts ids, based on already processed data
+            valid_data["dataset_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
             sys.stdout.write('Processed "' + str(dataset["_id"]) + '"...\n')
 
@@ -179,11 +201,13 @@ class Assessment():
 
         return valid_assessment_datasets
 
-    def build_metrics_events(self, response, stagedEvents, assessment_datasets, tool_id, contacts):
+    def build_metrics_events(self, assessment_datasets, valid_participant_data):
 
         logging.info(
             "\n\t==================================\n\t4. Generating Metrics Events\n\t==================================\n")
 
+        tool_id = valid_participant_data["depends_on"]["tool_id"]
+        
         # initialize the array of test events
         metrics_events = []
 
@@ -228,27 +252,8 @@ class Assessment():
                 "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
             }
 
-            # add dataset contacts ids
-            # CHECK IF EMAIL IS GIVEN
-            # Make a regular expression
-            # for validating an Email
-            regex = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
-            contacts_ids = []
-            for contact in contacts:
-                if(re.search(regex, contact)):
-                    for x in response["data"]["getContacts"]:
-                        if x["email"][0] in contacts:
-                            contacts_ids.append(x["_id"]) 
-                else:
-                    for x in response["data"]["getContacts"]:
-                        if x["_id"] in contacts:
-                            contacts_ids.append(contact) 
-                            
-            if not contacts_ids:
-                logging.error("Contacts {}, does not exist in database".format(contacts))
-                sys.exit(1)
-            else:
-                event["test_contact_ids"] = contacts_ids
+            # add dataset contacts ids, based on already processed data
+            event["test_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
             metrics_events.append(event)
 
