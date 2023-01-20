@@ -4,11 +4,13 @@ title: Minimal dataset concept (ELIXIR-EXCELERATE WP2 Benchmarking schemas)
 type: array
 minItems: 1
 items:
+- $ref: '#/$defs/ParticipantEntry'
+additionalItems:
   oneOf:
-  - $ref: '#/$defs/MinEntry'
   - $ref: '#/$defs/ChallengeParticipants'
+  - $ref: '#/$defs/AssessmentEntry'
   - $ref: '#/$defs/AggregationEntry'
-  #$ref: '#/$defs/MinEntry'
+  #$ref: '#/$defs/AssessmentEntry'
   #$ref: '#/$defs/AggregationEntry'
   
 $defs:
@@ -31,7 +33,77 @@ $defs:
     required:
     - id
     - participants
-  MinEntry:
+  AssessmentEntry:
+    type: object
+    properties:
+      _id:
+        title: The unique community-set id of the dataset
+        type: string
+      challenge_id:
+        title: The challenge(s) where this dataset was generated or used
+        type: string
+        minLength: 1
+#       foreign_keys:
+#       - members:
+#         - .
+#         schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Challenge
+      community_id:
+        title: The community where this dataset was generated or used
+        type: string
+        description: The name or OEB official id for the community which used or generated
+          the dataset
+        minLength: 1
+#        foreign_keys:
+#        - members:
+#          - .
+#          schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Community
+      metrics:
+        title: The computed metrics stored as inline data
+        type: object
+        properties:
+          metric_id:
+            title: the OEB official id / name of the metric
+            type: string
+            minLength: 1
+#            foreign_keys:
+#            - members:
+#              - .
+#              schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Metrics
+          stderr:
+            title: the standard error / deviation for the metric (if exists)
+            type: number
+            minLength: 1
+          value:
+            title: the numerical value of the metric
+            type: number
+            minLength: 1
+        additional_properties: false
+        required:
+        - metric_id
+        - value
+      participant_id:
+        title: The id / name of the tool which generated this dataset
+        type: string
+        minLength: 1
+#        foreign_keys:
+#        - members:
+#          - .
+#          schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Tool
+      type:
+        title: Type of dataset.
+        type: string
+        const: assessment
+    additionalProperties: false
+    required:
+    - _id
+    - community_id
+    - challenge_id
+    - type
+    - participant_id
+    primary_key:
+    - _id
+    dependencies: {}
+  ParticipantEntry:
     type: object
     properties:
       _id:
@@ -108,34 +180,14 @@ $defs:
             title: Last validation date of the datalink
             type: string
             format: date-time
+          uri:
+            title: Where the dataset is available
+            type: string
+            format: uri
         additionalProperties: false
         required:
         - validation_date
         - status
-      metrics:
-        title: The computed metrics stored as inline data
-        type: object
-        properties:
-          metric_id:
-            title: the OEB official id / name of the metric
-            type: string
-            minLength: 1
-#            foreign_keys:
-#            - members:
-#              - .
-#              schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Metrics
-          stderr:
-            title: the standard error / deviation for the metric (if exists)
-            type: number
-            minLength: 1
-          value:
-            title: the numerical value of the metric
-            type: number
-            minLength: 1
-        additional_properties: false
-        required:
-        - metric_id
-        - value
       participant_id:
         title: The id / name of the tool which generated this dataset
         type: string
@@ -147,16 +199,14 @@ $defs:
       type:
         title: Type of dataset.
         type: string
-        enum:
-        - participant
-        - assessment
-        mingLength: 1
+        const: participant
     additionalProperties: false
     required:
     - _id
     - community_id
     - challenge_id
     - type
+    - datalink
     - participant_id
     primary_key:
     - _id
