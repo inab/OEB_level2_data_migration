@@ -48,7 +48,13 @@ pip install --upgrade pip wheel
 pip install -r requirements.txt
 ```
 
-Create a `config.json` file declaring the partial dataset to be uplifted to the benchmarking data model (JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
+The minimal/partial dataset to be uplifted to the [OpenEBench benchmarking data model](https://github.com/inab/benchmarking_data_model) should validate against the schema [minimal_bdm_oeb_level2.yaml available here](oeb_level2/schemas/minimal_bdm_oeb_level2.yaml) using [ext-json-validate](https://pypi.org/project/extended-json-schema-validator/), with a command-line similar to:
+
+```bash
+ext-json-validate --guess-schema oeb_level2/schemas/minimal_bdm_oeb_level2.yaml minimal_dataset_examples/results_example.json
+```
+
+That dataset should be declared through a `config.json` file declaring the URL or relative path where it is (it should follow JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
 
 ```bash
 # The command must be run with the virtual environment enabled
