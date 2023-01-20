@@ -61,6 +61,7 @@ class Participant():
             min_challenge_labels = [ min_challenge_labels ]
         
         challenge_pairs = []
+        should_exit = False
         for challenge_label in min_challenge_labels:
             try:
                 execution_challenges.append(oeb_challenges[challenge_label]["_id"])
@@ -68,7 +69,11 @@ class Participant():
             except:
                 logging.fatal("No challenges associated to " + challenge_label +
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                sys.exit()
+                should_exit = True
+        if should_exit:
+            logging.fatal("Some challenges where not located. Please either fix their labels or register them in OpenEBench")
+            sys.exit()
+            
 
         valid_participant_data["challenge_ids"] = execution_challenges
 
@@ -119,6 +124,7 @@ class Participant():
         # for validating an Email
         regex_email = '^(\w|\.|\_|\-)+[@](\w|\_|\-|\.)+[.]\w{2,3}$'
         contacts_ids = []
+        should_exit = False
         for contact in contacts:
             if(re.search(regex_email, contact)):
                 for x in contacts_graphql:
@@ -126,8 +132,8 @@ class Participant():
                         contacts_ids.append(x["_id"])
                         break
                 else:
-                    logging.error(f"Contact {contact} (e-mail) could not be found in database")
-                    sys.exit(1)
+                    logging.fatal(f"Contact {contact} (e-mail) could not be found in database")
+                    should_exit = True
                     
             else:
                 for x in contacts_graphql:
@@ -135,13 +141,16 @@ class Participant():
                         contacts_ids.append(contact)
                         break
                 else:
-                    logging.error(f"Contact {contact} (_id) could not be found in database")
-                    sys.exit(1)
+                    logging.fatal(f"Contact {contact} (_id) could not be found in database")
+                    should_exit = True
+        if should_exit:
+            logging.fatal("Several contacts were not found. Please either fix their names or register them in OpenEBench")
+            sys.exit(1)
                         
         valid_participant_data["dataset_contact_ids"] = contacts_ids
 
-        sys.stdout.write(
-            'Processed "' + str(min_participant_data["_id"]) + '"...\n')
+        logging.info(
+            'Processed "' + str(min_participant_data["_id"]) + '"...')
 
         return valid_participant_data, challenge_pairs
 
@@ -156,8 +165,8 @@ class Participant():
         # an  new event object will be created for each of the challenge where the participants has taken part in
         for challenge_label, challenge_graphql in challenge_pairs:
 
-            sys.stdout.write('Building object "' + str(challenge_label +
-                                                       "_testEvent_" + participant_id) + '"...\n')
+            logging.info('Building object "' + str(challenge_label +
+                                                       "_testEvent_" + participant_id) + '"...')
 
             event = {
                 "_id": challenge_label + "_testEvent_" + participant_id,

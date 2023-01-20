@@ -38,11 +38,12 @@ class Assessment():
                 oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge
 
         valid_assessment_datasets = []
+        should_end = []
         for dataset in assessment_datasets:
             tool_id = default_tool_id
 
-            sys.stdout.write('Building object "' +
-                             str(dataset["_id"]) + '"...\n')
+            logging.info('Building object "' +
+                             str(dataset["_id"]) + '"...')
             # initialize new dataset object
             stagedEntry = stagedMap.get(dataset["_id"])
             if stagedEntry is None:
@@ -92,9 +93,9 @@ class Assessment():
                         }
                         break
             except:
-                logging.info("No challenges associated to " +
+                logging.warning("No challenges associated to " +
                              dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                logging.info(
+                logging.warning(
                     dataset["_id"] + " not processed, skipping to next assessment element...")
                 continue
                 # sys.exit()
@@ -158,7 +159,8 @@ class Assessment():
             
             if len(guessed_metrics_ids) == 0:
                 logging.fatal(f"Unable to match in OEB a metric to label {dataset['metrics']['metric_id']} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {the_challenge['_id']} (acronym {the_challenge['acronym']})")
-                sys.exit()
+                should_end.append((the_challenge['_id'], the_challenge['acronym']))
+                continue
             
             matched_metrics_ids = []
             for guessed_metric_id in guessed_metrics_ids:
@@ -172,7 +174,8 @@ class Assessment():
                     logging.warning(f"Metric {metric_id} (guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']}) is not registered as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}). Consider register it")
                 else:
                     logging.fatal(f"Several metrics {guessed_metrics_ids} were guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}).")
-                    sys.exit()
+                    should_end.append((the_challenge['_id'], the_challenge['acronym']))
+                    continue
             elif len(matched_metrics_ids) == 1:
                 mmi = matched_metrics_ids[0]
                 metric_id = mmi['metrics_id']
@@ -180,7 +183,8 @@ class Assessment():
                     tool_id = mmi['tool_id']
             else:
                 logging.fatal(f"Several metrics registered at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}) matched from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . Fix the challenge declaration.")
-                sys.exit()
+                should_end.append((the_challenge['_id'], the_challenge['acronym']))
+                continue
                 
 
             valid_data["depends_on"] = {
@@ -195,10 +199,14 @@ class Assessment():
             # add dataset contacts ids, based on already processed data
             valid_data["dataset_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
-            sys.stdout.write('Processed "' + str(dataset["_id"]) + '"...\n')
+            logging.info('Processed "' + str(dataset["_id"]) + '"...')
 
             valid_assessment_datasets.append(valid_data)
 
+        if len(should_end) > 0:
+            logging.fatal(f"Several issues found related to metrics associated to the challenges {should_end}. Please fix all of them")
+            sys.exit()
+        
         return valid_assessment_datasets
 
     def build_metrics_events(self, assessment_datasets, valid_participant_data):
@@ -221,8 +229,8 @@ class Assessment():
                 "action_type": "MetricsEvent",
             }
 
-            sys.stdout.write(
-                'Building Event object for assessment "' + str(event["_id"]) + '"...\n')
+            logging.info(
+                'Building Event object for assessment "' + str(event["_id"]) + '"...')
 
             # add id of tool for the test event
             event["tool_id"] = tool_id
