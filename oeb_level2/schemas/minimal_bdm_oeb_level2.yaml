@@ -314,8 +314,6 @@ $defs:
                     - participant_id
                     - metric_x
                     - metric_y
-                    - stderr_x
-                    - stderr_y
                     additional_properties: false
                   unique:
                   - participant_id
