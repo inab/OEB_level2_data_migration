@@ -1,15 +1,15 @@
 # OEB_workflows_data_migration (BETA version)
 ## Description
-Application used by community managers to migrate results of a benchmarking workflow from [Virtual Research Environment](https://openebench.bsc.es/vre) to [OpenEBench](https://openebench.bsc.es) database. It takes the minimal datasets from the 'consolidated results' from the workflow, adds the rest of metadata to validate against the [Benchmarking Data Model](https://github.com/inab/benchmarking-data-model), and the required OEB keys, builds the necessary TestActions, and finally pushes them to OpenEBench temporary database.
+Application used by community managers to migrate results of a benchmarking workflow (for instance, from [Virtual Research Environment](https://openebench.bsc.es/vre)) to [OpenEBench](https://openebench.bsc.es) scientific benchmarking database. It takes the minimal datasets from the 'consolidated results' from the workflow, adds the rest of metadata to validate against the [Benchmarking Data Model](https://github.com/inab/benchmarking-data-model), and the required OEB keys, builds the necessary TestActions, and finally pushes them to OpenEBench temporary database.
 
-## Prerequisites for moving workflow results from VRE to OEB
+## Prerequisites for moving workflow results to OEB
 In order to use the migration tool, some requirements need to be fulfilled:
 * The benchmarking event, challenges, metrics, and input/reference datasets that the results refer to should already be registered in OpenEBench and have official OEB identifiers.
 * IDs of challenges and metrics used in the workflow should be annotated in the correspondent OEB objects (in the *_metadata:level_2* field) so that the can be mapped to the registered OEB elements.
 * The tool that computed the input file' predictions should also be registered in OpenEBench.
 * The 'consolidated results' file should come from a pipeline that follows the OpenEBench Benchmarking Workflows Standards.
 (If any of these requirements is not satisfied, a form should be provided so that the manager or developer can 'inaugurate' the required object in OEB)
-* **NOTE:** this tool just moves VRE datasets to OEB database, it does NOT update the reference aggregation data that VRE workflows use. In order to move official OEB aggregation datasets to a VRE workflow, copy them manually to the corresponding reference directory *(/gpfs/VRE/public/aggreggation/<workflow_name>)* 
+* **NOTE:** this tool just uplifts and upload benchmarking workflow generated minimal datasets to OEB database, it does NOT update the reference aggregation dataset referenced by the workflow (for instance, the one used by VRE to instantiate the workflow). In order to update official OEB aggregation datasets to a VRE workflow, please contact OEB team, so they can copy them manually to the corresponding reference directory *(/gpfs/VRE/public/aggreggation/<workflow_name>)* 
 
 ## Parameters
 
@@ -54,7 +54,7 @@ The minimal/partial dataset to be uplifted to the [OpenEBench benchmarking data 
 ext-json-validate --guess-schema oeb_level2/schemas/minimal_bdm_oeb_level2.yaml minimal_dataset_examples/results_example.json
 ```
 
-That dataset should be declared through a `config.json` file declaring the URL or relative path where it is (it should follow JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
+An example of the dataset is [available here](minimal_dataset_examples/results_example.json).That dataset should be declared through a `config.json` file declaring the URL or relative path where it is (it should follow JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json), you have an [example here](minimal_dataset_examples/config_example.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
 
 ```bash
 # The command must be run with the virtual environment enabled
