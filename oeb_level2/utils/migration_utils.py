@@ -284,6 +284,33 @@ class OpenEBenchUtils():
           status
           tool_id
         }
+        input_datasets: datasets(datasetFilters: {type: "input"}) {
+                _id
+                _schema
+                orig_id
+                community_ids
+                challenge_ids
+                visibility
+                name
+                version
+                description
+                dates {
+                    creation
+                    modification
+                }
+                type
+                datalink {
+                    inline_data
+                }
+                dataset_contact_ids
+                depends_on {
+                    tool_id
+                    metrics_id
+                    rel_dataset_ids {
+                        dataset_id
+                    }
+                }
+        }
         participant_datasets: datasets(datasetFilters: {type: "participant"}) {
                 _id
                 _schema
@@ -453,7 +480,7 @@ class OpenEBenchUtils():
                                 datalink['inline_data'] = json.loads(inline_data)
                     
                     # And now, for the embedded datasets and test actions
-                    for sub_k in ('event_test_actions', 'metrics_test_actions', 'participant_datasets', 'assessment_datasets', 'aggregation_datasets'):
+                    for sub_k in ('event_test_actions', 'metrics_test_actions', 'input_datasets', 'participant_datasets', 'assessment_datasets', 'aggregation_datasets'):
                         sub_v_l = challenge.get(sub_k)
                         if isinstance(sub_v_l, list):
                             for sub_v in sub_v_l:

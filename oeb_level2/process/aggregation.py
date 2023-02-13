@@ -542,7 +542,12 @@ class Aggregation():
                 challenge=agg_ch,
             )
             
-            # Start indexing participant datasets
+            # Start indexing input datasets
+            d_catalog.merge_datasets(
+                raw_datasets=agg_ch.get("input_datasets", []),
+                d_categories=ass_cat,
+            )
+            # Index stored participant datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("participant_datasets", []),
                 d_categories=ass_cat,
