@@ -22,14 +22,14 @@ repos:
         entry: mypy --strict --show-error-codes --no-warn-unused-ignores
     
   - repo: https://github.com/inab/python-extended-json-schema-validator.git
-    rev: v0.12.0
+    rev: v0.12.1
     hooks:
 #      - id: identity
       - id: jsonschema_dir_validate
         name: Check jsonschema
         types:
           - json
-        files: ^oeb_level2/schemas/.*\.json$
+        files: ^oeb_level2/schemas/.*\.(json|yaml)$
         require_serial: true
         pass_filenames: false
         args: [ oeb_level2/schemas ]
