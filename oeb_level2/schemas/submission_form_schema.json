@@ -1,8 +1,71 @@
 {
 	"$id": "https://github.com/inab/OEB_level2_data_migration/submission-form-json-schemas",
-	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$schema": "https://json-schema.org/draft/2019-09/schema",
 	"title": "Schema that defines the set of fields to be filled for a submission to OpenEBench database",
 	"type": "object",
+	"$defs": {
+		"ParticipantTool": {
+			"title": "Participant Tool",
+			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
+			"type": "string",
+			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
+			"options": {
+				"hidden": true
+			}
+		},
+		"DataVersion": {
+			"title": "Version",
+			"description": "Version (or release date) of the dataset",
+			"minLength": 1,
+			"type": ["string","number"],
+			"options": {
+				"hidden": true
+			 }
+		},
+		"DataContacts": {
+			"title": "Contacts",
+			"description": "Emails of the dataset contact(s). Should be registered in Mongo and OIDC, as they are going to be used to do the proper internal mappings",
+			"type": "array",
+			"minItems": 1,
+			"uniqueItems": true,
+			"items": {
+				"type": "string",
+				"format": "autocomplete",
+				"options": {
+					"autocomplete": {
+						"search": "search_zza",
+						"getResultValue": "getResultValue_zza",
+						"renderResult": "renderResult_zza",
+						"autoSelect": true
+					}
+				}
+			}
+		},
+		"ParticipantElements": {
+			"type": "object",
+			"properties": {
+				"tool_id": {
+					"$ref": "#/$defs/ParticipantTool"
+				},
+				"data_version": {
+					"$ref": "#/$defs/DataVersion"
+				},
+				"data_contacts": {
+					"$ref": "#/$defs/DataContacts"
+				},
+				"participant_id": {
+					"type": "string",
+					"title": "The id / name of the tool which generated this dataset",
+					"minLength": 1,
+					"primary_key": {
+						"name": "participant_id_key",
+						"members": [ "." ]
+					}
+				}
+			},
+			"required": ["tool_id","data_version","data_contacts"]
+		}
+	},
 	"properties": {
 		"consolidated_oeb_data": {
 			"title": "Consolidated dataset path or URL",
@@ -45,14 +108,16 @@
 			 }
 		},
 		"tool_id": {
-			"title": "Participant Tool",
-			"description": "The id of the tool used to generate the dataset. Should be selected by uploader, using API",
-			"type": "string",
-			"pattern": "^OEBT[0-9]{3}[A-Z0-9]{7}$",
-			"options": {
-			    "hidden": true
-			 }
-			
+			"$ref": "#/$defs/ParticipantTool"
+		},
+		"tool_mapping": {
+			"title": "List of tools",
+			"type": "array",
+			"minItems": 1,
+			"items": {
+				"$ref": "#/$defs/ParticipantElements"
+			},
+			"unevaluatedProperties": false
 		},
 		"tool_selection": {
 			"title": "Participant Tool",
@@ -81,15 +146,6 @@
 			    "hidden": true
 			 }
 		},
-		"data_version": {
-			"title": "Version",
-			"description": "Version (or release date) of the dataset",
-			"minLength": 1,
-			"type": ["string","number"],
-			"options": {
-			    "hidden": true
-			 }
-		},
 		"workflow_oeb_id": {
 			"title": "OEB Workflow",
 			"description": "The id of the workflow (as a tool) used to compute the assessment metrics. Should be associated to VRE tool",
@@ -98,25 +154,6 @@
 			"options": {
 			    "hidden": true
 			 }
-		},
-		"data_contacts": {
-			"title": "Contacts",
-			"description": "Emails of the dataset contact(s). Should be registered in Mongo and OIDC, as they are going to be used to do the proper internal mappings",
-			"type": "array",
-			"minItems": 1,
-			"uniqueItems": true,
-			"items": {
-				"type": "string",
-				"format": "autocomplete",
-				"options": {
-				    "autocomplete": {
-					"search": "search_zza",
-					"getResultValue": "getResultValue_zza",
-					"renderResult": "renderResult_zza",
-					"autoSelect": true
-				    }
-				}
-			}
 		},
 		"data_model_repo": {
 			"title": "OpenEBench benchmarking data model repository",
@@ -158,18 +195,34 @@
 			"minLength": 1
 		}
 	},
+	"dependentSchemas": {
+		"tool_id": {
+			"$ref": "#/$defs/ParticipantElements"
+		}
+	},
+	"oneOf": [
+		{
+			"required": ["tool_id"],
+			"not": {
+				"required": ["tool_mapping"]
+			}
+		},
+		{
+			"required": ["tool_mapping"],
+			"not": {
+				"required": ["tool_id"]
+			}
+		}
+	],
 	"required": [
 		"consolidated_oeb_data",
 		"data_visibility",
 		"benchmarking_event_id",
 		"participant_file",
-		"data_version",
 		"workflow_oeb_id",
-		"data_contacts",
 		"data_model_repo",
 		"data_model_tag"
 	],
-	"additionalProperties": false
-
+	"unevaluatedProperties": false
 }
 
