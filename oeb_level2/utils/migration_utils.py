@@ -425,7 +425,7 @@ class OpenEBenchUtils():
                     # Deserialize the metadata
                     if isinstance(metadata,str):
                         challenge_metadata = json.loads(metadata)
-                        challenge['_metadata'] = json.loads(metadata)
+                        challenge['_metadata'] = challenge_metadata
                     else:
                         challenge_metadata = None
                     
@@ -451,6 +451,20 @@ class OpenEBenchUtils():
                             inline_data = datalink.get('inline_data')
                             if isinstance(inline_data, str):
                                 datalink['inline_data'] = json.loads(inline_data)
+                    
+                    # And now, for the embedded datasets and test actions
+                    for sub_k in ('event_test_actions', 'metrics_test_actions', 'participant_datasets', 'assessment_datasets', 'aggregation_datasets'):
+                        sub_v_l = challenge.get(sub_k)
+                        if isinstance(sub_v_l, list):
+                            for sub_v in sub_v_l:
+                                sub_inline_data = sub_v.get('datalink',{}).get('inline_data')
+                                if isinstance(sub_inline_data, str):
+                                    sub_v['datalink']['inline_data'] = json.loads(sub_inline_data)
+                                
+                                sub_metadata = sub_v.get('_metadata')
+                                if isinstance(sub_metadata, str):
+                                    sub_v['_metadata'] = json.loads(sub_metadata)
+                            
             
             metrics = data.get('getMetrics')
             if metrics is not None:
