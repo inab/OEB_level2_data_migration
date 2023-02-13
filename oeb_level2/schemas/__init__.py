@@ -17,6 +17,12 @@ SUBMISSION_FORM_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/s
 
 MINIMAL_DATA_BLOCK_SCHEMA_ID = "https://github.com/inab/benchmarking/minimal-json-schemas"
 
+SINGLE_METRIC_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/single-metric"
+
+AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-2d-plot"
+
+AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
+
 def create_validator_for_directory(schemas_dir: "str", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
     schema_validators = ExtensibleValidator(config=config)
         

@@ -1,0 +1,83 @@
+{
+	"$id": "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot",
+	"$schema": "https://json-schema.org/draft/2019-09/schema",
+	"title": "Schema that defines an aggregation of metrics to feed a bar plot in an aggregation dataset",
+	"type": "object",
+        "properties": {
+		"challenge_participants": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"tool_id": {
+						"title": "Label of the participant tool",
+						"type": "string",
+						"minLength": 1
+					},
+					"metric_value": {
+						"type": "number"
+					},
+					"stderr": {
+						"type": "number"
+					}
+				},
+				"required": [
+					"tool_id",
+					"metric_value"
+				],
+				"unevaluatedProperties": false
+			},
+			"minItems": 1
+		},
+                "visualization": {
+                        "title": "the visualization hints",
+                        "type": "object",
+                        "properties": {
+				"type": {
+					"type": "string",
+					"const": "bar-plot"
+				},
+				"metric": {
+					"title": "Metric label or description",
+					"type": "string",
+					"minLength": 1
+				}
+                        },
+                        "required": [
+				"type",
+				"metric"
+                        ],
+                        "unevaluatedProperties": false
+                },
+		"labels": {
+			"title": "Mapping labels to dataset assessment original ids. It can be an incomplete list.",
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"label": {
+						"title": "Label representing the participant",
+						"type": "string",
+						"minLength": 1
+					},
+					"assessment_orig_id": {
+						"title": "Assessment dataset original id",
+						"type": "string",
+						"minLength": 1
+					}
+				},
+				"required": [
+					"label",
+					"dataset_orig_id"
+				],
+				"unevaluatedProperties": false
+			},
+			"minItems": 1
+		}
+        },
+        "required": [
+                "challenge_participants",
+                "visualization"
+        ],
+        "unevaluatedProperties": false
+}
