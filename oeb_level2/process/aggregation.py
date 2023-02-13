@@ -346,11 +346,16 @@ class IndexedTestActions:
         if ter_pos is None:
             ter_pos = self.a_dict.get(index_id)
         
+        # This is needed to check the provenance, as
+        # all the outgoing datasets should depend on this tool_id
+        transforming_tool_id = raw_test_action.get("tool_id")
+        
         # Checking availability of input and output datasets
         unmatched_in_dataset_ids = []
         in_datasets = []
         unmatched_out_dataset_ids = []
         out_datasets = []
+        should_fail = False
         for involved_d in raw_test_action.get("involved_datasets", []):
             d_role = involved_d.get("role")
             candidate_d_id = involved_d.get("dataset_id")
@@ -361,14 +366,21 @@ class IndexedTestActions:
                     in_datasets.append(candidate_d)
                 else:
                     unmatched_in_dataset_ids.append(candidate_d_id)
+                    should_fail = True
                     self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type}")
             elif d_role == "outgoing":
                 candidate_d = None if self.out_d_catalog is None else self.out_d_catalog.get(candidate_d_id)
                 # Search for it to match
                 if candidate_d is not None:
                     out_datasets.append(candidate_d)
+                    
+                    o_tool_id = candidate_d.get("depends_on", {}).get("tool_id")
+                    if o_tool_id != transforming_tool_id:
+                        self.logger.error(f"Entry {raw_test_action['_id']} (type {self.action_type}) reflects transformation due tool {transforming_tool_id}, but {d_role} dataset {candidate_d_id} depends on {o_tool_id}. Fix it")
+                        should_fail = True
                 else:
                     unmatched_out_dataset_ids.append(candidate_d_id)
+                    should_fail = True
                     self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type}")
             else:
                 self.logger.critical(f"Unexpected {d_role} dataset {candidate_d_id} in {index_id}. This program does not know how to handle it.")
@@ -379,6 +391,7 @@ class IndexedTestActions:
             if len(unmatched_out_dataset_ids) > 0:
                 self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']}, {len(unmatched_out_dataset_ids)} unmatched {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type} output datasets: {', '.join(unmatched_out_dataset_ids)}")
         
+        if should_fail:
             return None
         
         ter = TestActionRel(
