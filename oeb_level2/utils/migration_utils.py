@@ -450,6 +450,7 @@ class OpenEBenchUtils():
     getMetrics {
         _id
         _metadata
+        orig_id
     }
     getTestActions {
         _id
