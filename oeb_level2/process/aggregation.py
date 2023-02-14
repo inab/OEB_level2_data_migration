@@ -158,11 +158,13 @@ class IndexedDatasets:
         if is_aggregation:
             if not isinstance(o_datalink, dict):
                 # Skip it, we cannot work with it
+                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not have a datalink")
                 return None
                 
             # Is this dataset an inline one?
             if inline_data is None:
                 # Skip it, we cannot work with it
+                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not contain inline data")
                 return None
         
             vis_hints = inline_data.get("visualization", {})
