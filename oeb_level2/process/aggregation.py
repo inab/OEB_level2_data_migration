@@ -183,7 +183,7 @@ class IndexedDatasets:
                 
                 if x_axis_metric_label is not None and y_axis_metric_label is not None:
                     # Check there is some matching metric
-                    x_metric_id, x_found_tool_id = match_metric_from_label(
+                    x_metric_id, x_found_tool_id, x_proposed_label = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
                         community_acronym=self.community_acronym,
@@ -196,7 +196,7 @@ class IndexedDatasets:
                     if x_metric_id is None:
                         self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
                         
-                    y_metric_id, y_found_tool_id = match_metric_from_label(
+                    y_metric_id, y_found_tool_id, y_proposed_label = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
                         community_acronym=self.community_acronym,
@@ -211,8 +211,9 @@ class IndexedDatasets:
                     
                     # Check the suffix
                     suffix = f"_{x_axis_metric_label}+{y_axis_metric_label}"
-                    if index_id_orig is None or not index_id_orig.endswith(suffix):
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with computed metrics suffix {suffix}. Fix it")
+                    proposed_suffix = f"_{x_proposed_label}+{y_proposed_label}"
+                    if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with either computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
                         
             elif vis_type == "bar-plot":
                 metrics_label = vis_hints.get("metric")
@@ -221,7 +222,7 @@ class IndexedDatasets:
                 
                 else:
                     # Check there is some matching metric
-                    metric_id, found_tool_id = match_metric_from_label(
+                    metric_id, found_tool_id, proposed_label = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
                         community_acronym=self.community_acronym,
@@ -236,8 +237,9 @@ class IndexedDatasets:
                     
                     # Check the suffix
                     suffix = f"_{metrics_label}"
-                    if index_id_orig is None or not index_id_orig.endswith(suffix):
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with computed metrics suffix {suffix}. Fix it")
+                    proposed_suffix = f"_{proposed_label}"
+                    if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
             else:
                 self.logger.warning(f"Unhandled visualization type {vis_type} for {self.type} dataset {index_id}. Is it a new visualization or a typo??")
             
