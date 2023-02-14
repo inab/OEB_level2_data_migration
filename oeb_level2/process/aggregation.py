@@ -310,11 +310,67 @@ class DatasetsCatalog:
             if idat.index_dataset(raw_dataset) is not None:
                 # Count only the indexed ones
                 num_indexed += 1
+                self.check_dataset_depends_on(raw_dataset)
         
         return num_indexed
     
+    def check_dataset_depends_on(self, raw_dataset: "Mapping[str, Any]") -> "bool":
+            d_type = raw_dataset["type"]
+            
+            idat = self.catalogs.get(d_type)
+            # We are not going to validate uningested datasets
+            if idat is None:
+                self.logger.error(f"Revoked check of datasets of type {d_type}, as they have not been indexed yet")
+                return False
+            
+            if idat.get(raw_dataset["_id"]) is None:
+                self.logger.error(f"Revoked check of dataset {raw_dataset['_id']} of type {d_type}, as it either has not been indexed yet or some previous validation failed")
+                return False
+                
+            failed = False
+            d_on = raw_dataset.get("depends_on")
+            if d_on is not None:
+                # Let's check datasets which are declared in depends_on
+                challenge_ids_set = set(raw_dataset.get("challenge_ids", []))
+                missing_dataset_ids = []
+                ambiguous_dataset_ids = []
+                unmatching_dataset_ids = []
+                for d_on_entry in d_on.get("rel_dataset_ids",[]):
+                    d_on_id = d_on_entry.get("dataset_id")
+                    d_on_role = d_on_entry.get("role", "dependency")
+                    if (d_on_id is not None) and d_on_role == "dependency":
+                        d_on_datasets = self.get_dataset(d_on_id)
+                        if len(d_on_datasets) == 0:
+                            missing_dataset_ids.append(d_on_id)
+                        elif len(d_on_datasets) > 1:
+                            ambiguous_dataset_ids.append(d_on_id)
+                        elif challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", [])) == 0:
+                            unmatching_dataset_ids.append(d_on_id)
+                
+                if len(ambiguous_dataset_ids) > 0:
+                    self.logger.error(f"{raw_dataset['_id']} depends on these ambiguous datasets: {', '.join(ambiguous_dataset_ids)}")
+                    failed = True
+                
+                if len(missing_dataset_ids) > 0:
+                    self.logger.warning(f"{raw_dataset['_id']} depends on these unindexed datasets: {', '.join(missing_dataset_ids)}")
+                
+                if len(unmatching_dataset_ids) > 0:
+                    self.logger.error(f"{raw_dataset['_id']} does not share challenges with these datasets: {', '.join(unmatching_dataset_ids)}")
+                    failed = True
+            
+            return failed
+    
     def get(self, dataset_type: "str") -> "Optional[IndexedDatasets]":
         return self.catalogs.get(dataset_type)
+    
+    def get_dataset(self, dataset_id: "str") -> "Sequence[Mapping[str, Any]]":
+        retvals = []
+        for idat in self.catalogs.values():
+            retval = idat.get(dataset_id)
+            if retval is not None:
+                retvals.append(retval)
+        
+        return retvals
 
 @dataclasses.dataclass
 class TestActionRel:
@@ -368,6 +424,7 @@ class IndexedTestActions:
         out_datasets = []
         other_datasets = []
         should_fail = False
+        challenge_id = raw_test_action["challenge_id"]
         for involved_d in raw_test_action.get("involved_datasets", []):
             d_role = involved_d.get("role")
             candidate_d_id = involved_d.get("dataset_id")
@@ -392,6 +449,11 @@ class IndexedTestActions:
                 # Search for it to match
                 if candidate_d is not None:
                     out_datasets.append(candidate_d)
+                    
+                    # Checking the dataset is in the same challenge id
+                    if challenge_id not in candidate_d.get("challenge_ids", []):
+                        self.logger.error(f"Entry {raw_test_action['_id']} (type {self.action_type}) generates dataset {candidate_d['_id']}, but dataset is not in challenge {challenge_id}")
+                        should_fail = True
                     
                     o_tool_id = candidate_d.get("depends_on", {}).get("tool_id")
                     if o_tool_id != transforming_tool_id:
@@ -650,12 +712,13 @@ class Aggregation():
         
         if should_exit_ch:
             self.logger.critical("Some challenges have collisions at their label level. Please ask the team to fix the mess")
-            sys.exit()
+            sys.exit(4)
 
         # Now it is time to process all the new or updated aggregation datasets
         valid_aggregation_tuples = []
         for dataset in min_aggregation_datasets:
             # TODO
+            self.logger.critical("Are you ready to implement minimal aggregation dataset (re)generation?")
             sys.exit(1)
         
         return valid_aggregation_tuples
