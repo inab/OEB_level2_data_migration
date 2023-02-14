@@ -9,6 +9,10 @@ import json
 import re
 
 from .benchmarking_dataset import BenchmarkingDataset
+from ..utils.catalogs import (
+    gen_challenge_assessment_metrics_dict,
+    match_metric_from_label,
+)
 
 from typing import (
     NamedTuple,
@@ -287,84 +291,3 @@ class Assessment():
 
 def rchop(s: "str", sub: "str") -> "str":
     return s[:-len(sub)] if s.endswith(sub) else s
-
-def match_metric_from_label(logger, metrics_graphql, community_acronym: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Union[Tuple[None, None, None], Tuple[str, Optional[str], str]]":
-    # Select the metrics just "guessing"
-    guessed_metrics = []
-    community_prefix = community_acronym + ':'
-    dataset_metrics_id_u = metrics_label.upper()
-    for metric in metrics_graphql:
-        # Could the metrics label match the metrics id?
-        if metric['_id'] == metrics_label:
-            guessed_metrics = [ metric ]
-            break
-        if metric['orig_id'].startswith(community_prefix):
-            # First guess
-            if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
-                guessed_metrics.append(metric)
-            
-            # Second guess (it can introduce false crosses)
-            metric_metadata = metric.get("_metadata")
-            if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
-                if metric_metadata['level_2:metric_id'].upper() == dataset_metrics_id_u:
-                    guessed_metrics.append(metric)
-    
-    
-    if len(guessed_metrics) == 0:
-        logger.critical(f"For {dataset_id}, unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
-        return None, None, None
-        #should_end.append((the_challenge['_id'], the_challenge['acronym']))
-        #continue
-    
-    matched_metrics = []
-    for guessed_metric in guessed_metrics:
-        cam = challenge_assessment_metrics_d.get(guessed_metric["_id"])
-        if cam is not None:
-            matched_metrics.append((cam, guessed_metric))
-    
-    metric_id = None
-    tool_id = None
-    proposed_label = None
-    mmi = None
-    if len(matched_metrics) == 0:
-        if len(guessed_metrics) == 1:
-            mmi = guessed_metrics[0]
-            metric_id = mmi["_id"]
-            logger.warning(f"Metric {metric_id} (guessed from {metrics_label} at dataset {dataset_id}) is not registered as an assessment metric at challenge {challenge_id} (acronym {challenge_acronym}). Consider register it")
-        else:
-            logger.critical(f"Several metrics {guessed_metrics_ids} were guessed from {metrics_label} at dataset {dataset_id} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {challenge_id} (acronym {challenge_acronym}).")
-            #should_end.append((the_challenge['_id'], the_challenge['acronym']))
-            #continue
-    elif len(matched_metrics) == 1:
-        mmi_cam, mmi = matched_metrics[0]
-        metric_id = mmi_cam['metrics_id']
-        tool_id = mmi_cam.get('tool_id')
-    else:
-        logger.critical(f"{len(matched_metrics)} metrics registered at challenge {challenge_id} (acronym {challenge_acronym}) matched from {metrics_label} at dataset {dataset_id} : {', '.join(map(lambda mm: mm[0]['metrics_id'], matched_metrics))}. Fix the challenge declaration.")
-        #should_end.append((the_challenge['_id'], the_challenge['acronym']))
-        #continue
-    
-    # Getting a proposed label
-    if mmi is not None:
-        mmi_metadata = mmi.get("_metadata")
-        if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
-            proposed_label = mmi_metadata['level_2:metric_id']
-        elif mmi["orig_id"].startswith(community_prefix):
-            proposed_label = mmi["orig_id"][len(community_prefix):]
-        else:
-            proposed_label = mmi["orig_id"]
-    
-    return (metric_id, tool_id, proposed_label)
-
-def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") -> "Mapping[str, Mapping[str, str]]":
-    for metrics_category in the_challenge.get("metrics_categories",[]):
-        if metrics_category.get("category") == "assessment":
-            challenge_assessment_metrics = metrics_category.get("metrics", [])
-            cam_d = {
-                cam["metrics_id"]: cam
-                for cam in challenge_assessment_metrics
-            }
-            
-            return cam_d
-    
-    return {}
