@@ -264,6 +264,9 @@ class IndexedDatasets:
         
         return self.d_list[the_id] if the_id is not None else None
 
+    def keys(self) -> "Iterator[str]":
+        return self.d_dict.keys()
+
 @dataclasses.dataclass
 class DatasetsCatalog:
     # Which logger to use
@@ -313,6 +316,7 @@ class DatasetsCatalog:
 class TestActionRel:
     action: "Mapping[str, Any]"
     in_d: "Sequence[Mapping[str, Any]]"
+    other_d: "Sequence[Mapping[str, Any]]"
     out_d: "Sequence[Mapping[str, Any]]"
 
 @dataclasses.dataclass
@@ -330,6 +334,9 @@ class IndexedTestActions:
     # Maps the test action ids and orig_ids to their
     # place in the previous list
     a_dict: "MutableMapping[str, int]" = dataclasses.field(default_factory=dict)
+    
+    # These catalogs allow checking other kind of input datasets
+    other_d_catalogs: "Mapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
     def index_test_action(self, raw_test_action: "Mapping[str, Any]") -> "Optional[IndexedTestActions]":
         a_type = raw_test_action["action_type"]
@@ -355,6 +362,7 @@ class IndexedTestActions:
         in_datasets = []
         unmatched_out_dataset_ids = []
         out_datasets = []
+        other_datasets = []
         should_fail = False
         for involved_d in raw_test_action.get("involved_datasets", []):
             d_role = involved_d.get("role")
@@ -365,9 +373,16 @@ class IndexedTestActions:
                 if candidate_d is not None:
                     in_datasets.append(candidate_d)
                 else:
-                    unmatched_in_dataset_ids.append(candidate_d_id)
-                    should_fail = True
-                    self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type}")
+                    for other_d_catalog in self.other_d_catalogs.values():
+                        if other_d_catalog is not None:
+                            candidate_d = other_d_catalog.get(candidate_d_id)
+                            if candidate_d is not None:
+                                other_datasets.append(candidate_d)
+                                break
+                    else:
+                        unmatched_in_dataset_ids.append(candidate_d_id)
+                        should_fail = True
+                        self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type} or others like {', '.join(self.other_d_catalogs.keys())}")
             elif d_role == "outgoing":
                 candidate_d = None if self.out_d_catalog is None else self.out_d_catalog.get(candidate_d_id)
                 # Search for it to match
@@ -387,9 +402,12 @@ class IndexedTestActions:
         
         if len(unmatched_in_dataset_ids) > 0 or len(unmatched_out_dataset_ids) > 0:
             if len(unmatched_in_dataset_ids) > 0:
-                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']}, {len(unmatched_in_dataset_ids)} unmatched {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type} input datasets: {', '.join(unmatched_in_dataset_ids)}")
+                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_in_dataset_ids)} unmatched {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type} input datasets: {', '.join(unmatched_in_dataset_ids)}")
+                #if self.in_d_catalog:
+                #    self.logger.error('\n'.join(self.in_d_catalog.keys()))
+                #sys.exit(18)
             if len(unmatched_out_dataset_ids) > 0:
-                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']}, {len(unmatched_out_dataset_ids)} unmatched {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type} output datasets: {', '.join(unmatched_out_dataset_ids)}")
+                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_out_dataset_ids)} unmatched {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type} output datasets: {', '.join(unmatched_out_dataset_ids)}")
         
         if should_fail:
             return None
@@ -397,6 +415,7 @@ class IndexedTestActions:
         ter = TestActionRel(
             action=raw_test_action,
             in_d=in_datasets,
+            other_d=other_datasets,
             out_d=out_datasets,
         )
         
@@ -418,9 +437,9 @@ class IndexedTestActions:
             
 ActionType2InOutDatasetTypes = {
     # "SetupEvent": (None, ),
-    "TestEvent": ("input", "participant"),
-    "MetricsEvent": ("participant", "assessment"),
-    "AggregationEvent": ("assessment", "aggregation"),
+    "TestEvent": ("input", ["public_reference"], "participant"),
+    "MetricsEvent": ("participant", ["metrics_reference"], "assessment"),
+    "AggregationEvent": ("assessment", ['public_reference', 'metrics_reference'], "aggregation"),
     # "StatisticsEvent": ("aggregation", "aggregation"),
 }
 
@@ -439,7 +458,7 @@ class TestActionsCatalog:
             ita = self.catalogs.get(a_type)
             if ita is None:
                 # Derive the in and out dataset types
-                in_d_type, out_d_type = ActionType2InOutDatasetTypes.get(a_type, (None,None))
+                in_d_type, other_d_types, out_d_type = ActionType2InOutDatasetTypes.get(a_type, (None,None))
                 
                 if in_d_type is None:
                     self.logger.critical(f"Test action {raw_test_action['_id']} is of unhandable action type {a_type}. Either this program or the database have serious problems")
@@ -448,10 +467,12 @@ class TestActionsCatalog:
                 # Get the in and out dataset catalogs
                 in_d_catalog = self.d_catalog.get(in_d_type)
                 out_d_catalog = self.d_catalog.get(out_d_type)
+                other_d_catalogs = dict(map(lambda d_c_t: (d_c_t, self.d_catalog.get(d_c_t)), other_d_types))
                 ita = IndexedTestActions(
                     action_type=a_type,
                     in_d_catalog=in_d_catalog,
                     out_d_catalog=out_d_catalog,
+                    other_d_catalogs=other_d_catalogs,
                     logger=self.logger
                 )
                 self.catalogs[a_type] = ita
@@ -506,6 +527,7 @@ class Aggregation():
         should_exit_ch = False
         for agg_ch in challenges_agg_graphql:
             # Garrayo's school label
+            challenge_id = agg_ch["_id"]
             challenge_label = agg_ch.get("_metadata", {}).get("level_2:challenge_id")
             if challenge_label is None:
                 challenge_label = agg_ch.get("orig_id")
@@ -514,11 +536,11 @@ class Aggregation():
                     if challenge_label.startswith(community_acronym + ':'):
                         challenge_label = challenge_label[len(community_acronym) + 1]
                 else:
-                    challenge_label = agg_ch["_id"]
+                    challenge_label = challenge_id
             
             coll_ch = agg_challenges.get(challenge_label)
             if coll_ch is not None:
-                self.logger.critical(f"Challenge collision: label {challenge_label}, challenges {coll_ch['_id']} and {agg_ch['_id']} . Please contact OpenEBench support to report this inconsistency")
+                self.logger.critical(f"Challenge collision: label {challenge_label}, challenges {coll_ch['_id']} and {challenge_id}. Please contact OpenEBench support to report this inconsistency")
                 should_exit_ch = True
                 continue
             
@@ -547,15 +569,26 @@ class Aggregation():
                 raw_datasets=agg_ch.get("input_datasets", []),
                 d_categories=ass_cat,
             )
+            # public reference datasets
+            d_catalog.merge_datasets(
+                raw_datasets=agg_ch.get("public_reference_datasets", []),
+                d_categories=ass_cat,
+            )
+            # Metrics reference datasets
+            d_catalog.merge_datasets(
+                raw_datasets=agg_ch.get("metrics_reference_datasets", []),
+                d_categories=ass_cat,
+            )
+            
             # Index stored participant datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("participant_datasets", []),
                 d_categories=ass_cat,
             )
             
-            # And also index the future participant datasets
+            # And also index the future participant datasets involved in this challenge
             d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(agg_ch["_id"], [])),
+                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(challenge_id, [])),
                 d_categories=ass_cat,
             )
             
@@ -565,9 +598,9 @@ class Aggregation():
                 d_categories=ass_cat,
             )
             
-            # And also index the future assessment datasets
+            # And also index the future assessment datasets involved in this challenge
             d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(agg_ch["_id"], [])),
+                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(challenge_id, [])),
                 d_categories=ass_cat,
             )
             
@@ -585,8 +618,8 @@ class Aggregation():
             # Merging the TestEvent test actions
             ta_catalog.merge_test_actions(agg_ch.get("event_test_actions", []))
             
-            # newly added TestEvent
-            ta_catalog.merge_test_actions(valid_test_events)
+            # newly added TestEvent involved in this challenge
+            ta_catalog.merge_test_actions(filter(lambda te: te['challenge_id'] == challenge_id, valid_test_events))
             
             # Let's index the MetricsEvent actions, as they can provide
             # the way to link to the TestEvent needed to rescue the labels
@@ -597,7 +630,7 @@ class Aggregation():
             ta_catalog.merge_test_actions(agg_ch.get("metrics_test_actions", []))
             
             # newly added MetricsEvent
-            ta_catalog.merge_test_actions(valid_metrics_events)
+            ta_catalog.merge_test_actions(filter(lambda me: me['challenge_id'] == challenge_id, valid_metrics_events))
             
             # Now, let's index the existing aggregation datasets, and
             # their relationship. And check them, BTW
