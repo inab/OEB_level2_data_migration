@@ -109,7 +109,7 @@ class IndexedDatasets:
             
             if m_matched is None:
                 if m_tool_should is None:
-                    self.logger.error(f"{self.type.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} depends on metric {d_on_metrics_id} implemented by {d_on_tool_id}, which are not registered as valid assessment challenge metrics. Fix it")
+                    self.logger.error(f"{self.type.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} depends on metric {d_on_metrics_id} implemented by {d_on_tool_id}, which are not registered as valid {self.type} challenge metrics. Fix it")
                 else:
                     self.logger.error(f"{self.type.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} matched metric {d_on_metrics_id}, but mismatched implementation ({d_on_tool_id} instead of {m_tool_should}). Fix it")
                     
@@ -152,7 +152,7 @@ class IndexedDatasets:
                     config_val_block_errors = list(filter(lambda ve: (schema_url is None) or (ve.get("schema_id") == schema_url), config_val_block.get("errors", [])))
                     
                     if len(config_val_block_errors) > 0:
-                        self.logger.error(f"Validation errors in inline data from {self.type} dataset {index_id} ({index_id_orig}) using {inline_schemas}. It should be rebuilt\n{config_val_block_errors}")
+                        self.logger.error(f"Validation errors in inline data from {self.type} dataset {index_id} ({index_id_orig}) using {inline_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
                         return None
         
         if is_aggregation:
