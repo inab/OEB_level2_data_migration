@@ -294,6 +294,10 @@ def match_metric_from_label(logger, metrics_graphql, community_acronym: "str", m
     community_prefix = community_acronym + ':'
     dataset_metrics_id_u = metrics_label.upper()
     for metric in metrics_graphql:
+        # Could the metrics label match the metrics id?
+        if metric['_id'] == metrics_label:
+            guessed_metrics_ids = [ metrics_label ]
+            break
         if metric['orig_id'].startswith(community_prefix):
             # First guess
             if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
@@ -307,7 +311,7 @@ def match_metric_from_label(logger, metrics_graphql, community_acronym: "str", m
     
     
     if len(guessed_metrics_ids) == 0:
-        logger.critical(f"Unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
+        logger.critical(f"For {dataset_id}, unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
         return None, None
         #should_end.append((the_challenge['_id'], the_challenge['acronym']))
         #continue
