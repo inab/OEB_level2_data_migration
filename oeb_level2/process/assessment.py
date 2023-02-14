@@ -236,7 +236,7 @@ class Assessment():
             dataset = at.assessment_dataset
             pvc  = at.pt
             valid_participant_data = pvc.participant_dataset
-            tool_id = valid_participant_data["depends_on"]["tool_id"]
+            tool_id = dataset["depends_on"]["tool_id"]
         
             orig_id = dataset.get("orig_id",dataset["_id"])
             event_id = rchop(orig_id, "_A") + "_MetricsEvent"
