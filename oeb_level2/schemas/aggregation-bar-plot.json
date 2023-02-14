@@ -60,7 +60,7 @@
 						"type": "string",
 						"minLength": 1
 					},
-					"assessment_orig_id": {
+					"dataset_orig_id": {
 						"title": "Assessment dataset original id",
 						"type": "string",
 						"minLength": 1
