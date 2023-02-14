@@ -84,7 +84,7 @@
 						"minLength": 1
 					},
 					"dataset_orig_id": {
-						"title": "Assessment dataset original id",
+						"title": "Participant dataset original id",
 						"type": "string",
 						"minLength": 1
 					}
