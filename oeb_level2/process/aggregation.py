@@ -312,6 +312,8 @@ class Aggregation():
                             
                             met_set = set(map(lambda m: m["_id"], met_datasets))
                             if not(rel_ids_set > met_set):
+                                new_set = met_set - rel_ids_set
+                                self.logger.error(f"Aggregation dataset {agg_dataset_id} should also depend on {len(new_set)} datasets: {', '.join(new_set)}")
                                 rebuild_agg = True
                             regen_rel_ids_set.update(met_set)
                             rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
@@ -416,7 +418,7 @@ class Aggregation():
                         if not rebuild_agg:
                             raw_challenge_participants = raw_dataset["datalink"]["inline_data"]["challenge_participants"]
                             if len(challenge_participants) != len(raw_challenge_participants):
-                                self.logger.error("")
+                                self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
                                 rebuild_agg = True
                             else:
                                 s_new_challenge_participants = sorted(challenge_participants, key=lambda cp: cp["tool_id"])
@@ -430,8 +432,10 @@ class Aggregation():
                         
                         # Time to compare
                         if rebuild_agg:
-                            set_inter = rel_ids_set.intersection(regen_rel_ids_set)
-                            self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: related assessments in database {len(regen_rel_ids_set)} vs {len(rel_ids_set)} in the aggregation dataset")
+                            self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
+                            set_diff = rel_ids_set - regen_rel_ids_set
+                            if len(set_diff) > 0:
+                                self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
                             self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
                             failed_agg_dataset = True
             
