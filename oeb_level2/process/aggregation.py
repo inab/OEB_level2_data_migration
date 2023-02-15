@@ -286,10 +286,14 @@ class Aggregation():
                             
                             discarded_label = True
                             # Let's obtain the raw entry of the participant
-                            part_raw_dataset = idat_part.get("part_d_orig_id")
+                            part_raw_dataset = idat_part.get(part_d_orig_id)
                             if part_raw_dataset is not None:
                                 # Checking its availability
-                                if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_dataset.get("_metadata", {}).get("level_2:participant_id",part_d_label) == part_d_label:
+                                part_raw_metadata = part_raw_dataset.get("_metadata")
+                                if part_raw_metadata is None:
+                                    part_raw_metadata = {}
+                                part_raw_label = part_raw_metadata.get("level_2:participant_id", part_d_label)
+                                if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
                                     inline_data_labels.append(potential_inline_data_label)
                                     idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label
                                     discarded_label = False
