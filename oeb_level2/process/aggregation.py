@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import copy
 import inspect
 import logging
 import sys
 import os
 import datetime
 import json
+import re
 
 from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
@@ -194,8 +196,218 @@ class Aggregation():
                 d_categories=agg_cat,
             )
             
+            # Let's rebuild the aggregation datasets, from the minimal information
+            idat_agg = d_catalog.get("aggregation")
+            assert idat_agg is not None
+            
+            idat_ass = d_catalog.get("assessment")
+            assert idat_ass is not None
+            idat_part = d_catalog.get("participant")
+            assert idat_ass is not None
+            
+            ita_m_events = ta_catalog.get("MetricsEvent")
+            assert ita_m_events is not None
+            
+            failed_agg_dataset = False
+            for raw_dataset in idat_agg.datasets():
+                agg_dataset_id = raw_dataset["_id"]
+                metrics_trios = idat_agg.get_metrics_trio(agg_dataset_id)
+                if metrics_trios:
+                    # Make an almost shallow copy of the entry
+                    # removing what it is going to be populated from ground
+                    r_dataset = copy.copy(raw_dataset)
+                    
+                    # depends_on is going to be rebuilt
+                    d_on = copy.deepcopy(raw_dataset["depends_on"])
+                    rel_dataset_ids = []
+                    d_on["rel_dataset_ids"] = rel_dataset_ids
+                    r_dataset["depends_on"] = d_on
+                    
+                    # datalink contents are going to be rebuilt, also
+                    d_link = copy.deepcopy(raw_dataset["datalink"])
+                    r_dataset["datalink"] = d_link
+                    inline_data = d_link.get("inline_data")
+                    
+                    # Challenge ids of this dataset (to check other dataset validness)
+                    ch_ids_set = set(r_dataset["challenge_ids"])
+                    if isinstance(inline_data, dict):
+                        # Entry of each challenge participant, by participant label
+                        cha_par_by_id = {}
+                        challenge_participants = []
+                        inline_data["challenge_participants"] = challenge_participants
+                        
+                        # Visualization type determines later the labels
+                        # to use in each entry of challenge_participants
+                        vis_type = inline_data.get("visualization",{}).get("type")
+                        
+                        # This set is used to detect mismatches between
+                        # registered and gathered assessment datasets
+                        rel_ids_set = set(map(lambda r: r["dataset_id"], filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
+                        
+                        # Processing and validating already registered labels
+                        potential_inline_data_labels = inline_data.get("labels", [])
+                        inline_data_labels = []
+                        inline_data["labels"] = inline_data_labels
+                        
+                        # Inline data labels by participant dataset id
+                        idl_by_d_id = {}
+                        
+                        for potential_inline_data_label in potential_inline_data_labels:
+                            part_d_label = potential_inline_data_label['label']
+                            part_d_orig_id = potential_inline_data_label['dataset_orig_id']
+                            
+                            discarded_label = True
+                            # Let's obtain the raw entry of the participant
+                            part_raw_dataset = idat_part.get("part_d_orig_id")
+                            if part_raw_dataset is not None:
+                                # Checking its availability
+                                if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_dataset.get("_metadata", {}).get("level_2:participant_id",part_d_label) == part_d_label:
+                                    inline_data_labels.append(potential_inline_data_label)
+                                    idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label
+                                    discarded_label = False
+                                else:
+                                    self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} due mismatches with {part_raw_dataset['_id']}")
+                            else:
+                                self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} as no dataset was matched")
+                        
+                        # Time to fetch
+                        rebuild_agg = False
+                        regen_rel_ids_set = set()
+                        # Iterating over the different metrics
+                        for i_trio, metrics_trio in enumerate(metrics_trios):
+                            # To gather the assessment datasets for each metric
+                            met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
+                            
+                            met_set = set(map(lambda m: m["_id"], met_datasets))
+                            if not(rel_ids_set > met_set):
+                                rebuild_agg = True
+                            regen_rel_ids_set.update(met_set)
+                            rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
+                            
+                            for met_dataset in met_datasets:
+                                # Fetch the TestActionRel MetricsEvent entry
+                                tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
+                                if tar is None:
+                                    self.logger.error(f"Unindexed MetricsEvent TestAction for dataset {met_dataset['_id']}")
+                                    #for m_k, m_p in ita_m_events.a_dict.items():
+                                    #    self.logger.error(m_k)
+                                    #    self.logger.error(ita_m_events.a_list[m_p])
+                                    rebuild_agg = True
+                                    continue
+                                
+                                # Now, the participant datasets can be rescued
+                                # to get or guess its label
+                                inline_data_label = None
+                                par_dataset_id = None
+                                par_label = None
+                                for par_dataset in tar.in_d:
+                                    inline_data_label = idl_by_d_id.get(par_dataset["_id"])
+                                    if isinstance(inline_data_label, dict):
+                                        par_dataset_id = par_dataset["_id"]
+                                        par_label = inline_data_label["label"]
+                                        break
+                                
+                                # Bad luck, time to create a new entry
+                                if inline_data_label is None:
+                                    for par_dataset in tar.in_d:
+                                        # First, look for the label in the participant dataset
+                                        par_label = par_dataset.get("_metadata",{}).get("level_2:participant_id")
+                                        # Then, look for it in the assessment dataset
+                                        if par_label is None:
+                                            par_label = met_dataset.get("_metadata",{}).get("level_2:participant_id")
+                                        else:
+                                            self.logger.critical(f"TOMA {par_label}")
+                                        
+                                        # Now, trying pattern matching
+                                        # to extract the label
+                                        if par_label is None:
+                                            match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
+                                            if match_p:
+                                                par_label = match_p.group(1)
+                                        
+                                        # Last chance is guessing from the original id!!!!
+                                        if par_label is None:
+                                            par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
+                                            if ':' in par_orig_id:
+                                                par_label = par_orig_id[par_orig_id.index(':') + 1 :]
+                                            else:
+                                                par_label = par_orig_id
+                                            
+                                            # Removing suffix
+                                            if par_label.endswith("_P"):
+                                                par_label = par_label[:-2]
+                                        
+                                        par_dataset_id = par_dataset["_id"]
+                                        inline_data_label = {
+                                            "label": par_label,
+                                            "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
+                                        }
+                                        # Last, store it
+                                        inline_data_labels.append(inline_data_label)
+                                        idl_by_d_id[par_dataset_id] = inline_data_label
+                                        break
+                                
+                                # Now we should have the participant label
+                                assert par_label is not None
+                                assert par_dataset_id is not None
+                                
+                                mini_entry = cha_par_by_id.get(par_dataset_id)
+                                if mini_entry is None:
+                                    mini_entry = {
+                                        "tool_id": par_label,
+                                    }
+                                    challenge_participants.append(mini_entry)
+                                    cha_par_by_id[par_dataset_id] = mini_entry
+                                
+                                ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                if vis_type == "2D-plot":
+                                    if i_trio == 0:
+                                        value_label = "metric_x"
+                                        stderr_label = "stderr_x"
+                                    else:
+                                        value_label = "metric_y"
+                                        stderr_label = "stderr_y"
+                                    
+                                    mini_entry.update({
+                                        value_label: ass_inline_data["value"],
+                                        stderr_label: ass_inline_data.get("error", 0),
+                                    })
+                                elif vis_type == "bar-plot":
+                                    mini_entry.update({
+                                        "metric_value": ass_inline_data["value"],
+                                        "stderr": ass_inline_data.get("error", 0),
+                                    })
+                                else:
+                                    self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
+                        
+                        if not rebuild_agg:
+                            raw_challenge_participants = raw_dataset["datalink"]["inline_data"]["challenge_participants"]
+                            if len(challenge_participants) != len(raw_challenge_participants):
+                                self.logger.error("")
+                                rebuild_agg = True
+                            else:
+                                s_new_challenge_participants = sorted(challenge_participants, key=lambda cp: cp["tool_id"])
+                                s_raw_challenge_participants = sorted(raw_challenge_participants, key=lambda cp: cp["tool_id"])
+                                
+                                if s_new_challenge_participants != s_raw_challenge_participants:
+                                    rebuild_agg = True
+                                    for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
+                                        if s_new != s_raw:
+                                            self.logger.error(f"Mismatch in {agg_dataset_id} challenge_participants\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
+                        
+                        # Time to compare
+                        if rebuild_agg:
+                            set_inter = rel_ids_set.intersection(regen_rel_ids_set)
+                            self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: related assessments in database {len(regen_rel_ids_set)} vs {len(rel_ids_set)} in the aggregation dataset")
+                            self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
+                            failed_agg_dataset = True
+            
+            if failed_agg_dataset:
+                self.logger.critical("As some aggregation datasets seem corrupted, fix them to continue")
+                sys.exit(5)
+            
             # Last, but not the least important
-            agg_challenges[challenge_label] = (agg_ch, d_catalog, ta_catalog)
+            agg_challenges[challenge_id] = agg_challenges[challenge_label] = (agg_ch, d_catalog, ta_catalog)
         
         if should_exit_ch:
             self.logger.critical("Some challenges have collisions at their label level. Please ask the team to fix the mess")
