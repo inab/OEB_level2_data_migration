@@ -261,6 +261,8 @@ class Aggregation():
                     if isinstance(inline_data, dict):
                         # Entry of each challenge participant, by participant label
                         cha_par_by_id = {}
+                        # To provide meaningful error messages
+                        ass_par_by_id = {}
                         challenge_participants = []
                         inline_data["challenge_participants"] = challenge_participants
                         
@@ -393,6 +395,10 @@ class Aggregation():
                                     }
                                     challenge_participants.append(mini_entry)
                                     cha_par_by_id[par_dataset_id] = mini_entry
+                                    ass_par_by_id[par_dataset_id] = met_dataset['_id']
+                                elif i_trio == 0:
+                                    self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by {agg_dataset_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
+                                    rebuild_agg = True
                                 
                                 ass_inline_data = met_dataset["datalink"]["inline_data"]
                                 if vis_type == "2D-plot":
