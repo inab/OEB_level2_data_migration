@@ -273,6 +273,10 @@ class OpenEBenchUtils():
           _schema
           status
           tool_id
+          involved_datasets {
+              dataset_id
+              role
+          }
         }
         metrics_test_actions: test_actions(testActionFilters: {action_type: "MetricsEvent"}) {
           _id
@@ -283,6 +287,10 @@ class OpenEBenchUtils():
           _schema
           status
           tool_id
+          involved_datasets {
+              dataset_id
+              role
+          }
         }
         public_reference_datasets: datasets(datasetFilters: {type: "public_reference"}) {
                 _id
@@ -451,23 +459,6 @@ class OpenEBenchUtils():
         _id
         _metadata
         orig_id
-    }
-    getTestActions {
-        _id
-        _schema
-        orig_id
-        tool_id
-        action_type
-        involved_datasets {
-            dataset_id
-            role
-        }
-        challenge_id
-        test_contact_ids
-        dates {
-            creation
-            modification
-        }
     }
 }""",
                 'variables': {
