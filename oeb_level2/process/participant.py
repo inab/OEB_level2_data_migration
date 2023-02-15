@@ -215,6 +215,11 @@ class Participant():
             valid_participant_data["version"] = p_config.data_version
             
             valid_participant_data["dataset_contact_ids"] = p_config.data_contacts
+            
+            # Breadcrumbs about the participant id to ease the discovery
+            valid_participant_data["_metadata"] = {
+                "level_2:participant_id": min_participant_data["participant_id"],
+            }
 
             self.logger.info(
                 'Processed "' + str(min_participant_data["_id"]) + '"...')

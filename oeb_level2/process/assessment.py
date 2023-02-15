@@ -167,6 +167,9 @@ class Assessment():
                     "error": error_value
                 }
             }
+            
+            # Breadcrumbs about the participant id to ease the discovery
+            valid_data.setdefault("_metadata", {})["level_2:participant_id"] = participant_id
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
