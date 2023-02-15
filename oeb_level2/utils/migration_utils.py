@@ -318,6 +318,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
         metrics_reference_datasets: datasets(datasetFilters: {type: "metrics_reference"}) {
                 _id
@@ -345,6 +346,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
         input_datasets: datasets(datasetFilters: {type: "input"}) {
                 _id
@@ -372,6 +374,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
         participant_datasets: datasets(datasetFilters: {type: "participant"}) {
                 _id
@@ -399,6 +402,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
         assessment_datasets: datasets(datasetFilters: {type: "assessment"}) {
                 _id
@@ -426,6 +430,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
         aggregation_datasets: datasets(datasetFilters: {type: "aggregation"}) {
                 _id
@@ -453,6 +458,7 @@ class OpenEBenchUtils():
                         dataset_id
                     }
                 }
+                _metadata
         }
     }
     getMetrics {

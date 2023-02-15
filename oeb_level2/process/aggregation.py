@@ -75,6 +75,31 @@ class Aggregation():
         valid_aggregation_datasets = []
         valid_agg_d_dict = {}
         
+        # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
+        oeb_challenges = {}
+        for challenge_graphql in challenges_agg_graphql:
+            _metadata = challenge_graphql.get("_metadata")
+            if (_metadata is None):
+                oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
+            else:
+                oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
+        
+        ## Grouping minimal aggregation dataset entries by challenge also
+        #potential_aggregation_datasets = []
+        #for min_aggregation_dataset in min_aggregation_datasets:
+        #    the_id = min_aggregation_dataset['_id']
+        #    vis = min_aggregation_dataset["datalink"]["inline_data"]["visualization"]
+        #    vis_type = vis["type"]
+        #    if vis_type == "2D-plot"
+        #        the_id += f"_{vis['x_axis']}+{vis['y_axis']}"
+        #    elif vis_type == "bar-plot":
+        #        the_id += f"_{vis['metric']}}"
+        #    
+        #    skel_dataset = {
+        #        "_id": the_id,
+        #        "_schema":
+        #    }
+        
         # First, let's analyze all existing aggregation datasets
         # nested in the challenges
         agg_challenges = { }
@@ -228,6 +253,9 @@ class Aggregation():
                     r_dataset["datalink"] = d_link
                     inline_data = d_link.get("inline_data")
                     
+                    if ("_metadata" in r_dataset) and r_dataset["_metadata"] is None:
+                        del r_dataset["_metadata"]
+                    
                     # Challenge ids of this dataset (to check other dataset validness)
                     ch_ids_set = set(r_dataset["challenge_ids"])
                     if isinstance(inline_data, dict):
@@ -309,14 +337,15 @@ class Aggregation():
                                 
                                 # Bad luck, time to create a new entry
                                 if inline_data_label is None:
+                                    met_metadata = met_dataset.get("_metadata",{})
+                                    met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
                                     for par_dataset in tar.in_d:
                                         # First, look for the label in the participant dataset
-                                        par_label = par_dataset.get("_metadata",{}).get("level_2:participant_id")
+                                        par_metadata = par_dataset.get("_metadata",{})
+                                        par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
                                         # Then, look for it in the assessment dataset
                                         if par_label is None:
-                                            par_label = met_dataset.get("_metadata",{}).get("level_2:participant_id")
-                                        else:
-                                            self.logger.critical(f"TOMA {par_label}")
+                                            par_label = met_label
                                         
                                         # Now, trying pattern matching
                                         # to extract the label
