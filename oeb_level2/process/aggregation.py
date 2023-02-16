@@ -34,9 +34,12 @@ if TYPE_CHECKING:
 
 class IndexedAggregation(NamedTuple):
     challenge: "Mapping[str, Any]"
+    challenge_id: "str"
     challenge_label: "str"
     d_catalog: "DatasetsCatalog"
     ta_catalog: "TestActionsCatalog"
+    # Assessment metrics categories catalog
+    ass_cat: "Sequence[Mapping[str, Any]]"
 
 class AggregationTuple(NamedTuple):
     aggregation_dataset: "Mapping[str, Any]"
@@ -56,61 +59,19 @@ class Aggregation():
         self.schemaMappings = schemaMappings
         self.level2_min_validator = migration_utils.level2_min_validator
     
-    def build_aggregation_datasets(
+    def check_and_index_challenges(
         self,
-        community_id: "str",
         community_acronym: "str",
-        min_aggregation_datasets,
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
-        valid_assessment_tuples: "Sequence[AssessmentTuple]",
-        valid_test_events: "Sequence[Tuple[str, Any]]",
-        valid_metrics_events: "Sequence[Tuple[str, Any]]",
-        workflow_tool_id: "str",
     ) -> "Sequence[AggregationTuple]":
     
         self.logger.info(
-            "\n\t==================================\n\t5. Validating stored aggregation datasets\n\t==================================\n")
-        
-        # Grouping future assessment dataset tuples by challenge
-        ass_c_dict = {}
-        for ass_t in valid_assessment_tuples:
-            ass_d = ass_t.assessment_dataset
-            for challenge_id in ass_d.get("challenge_ids", []):
-                ass_c_dict.setdefault(challenge_id, []).append(ass_t)
-        
-        valid_aggregation_datasets = []
-        valid_agg_d_dict = {}
-        
-        ## replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
-        #oeb_challenges = {}
-        #for challenge_graphql in challenges_agg_graphql:
-        #    _metadata = challenge_graphql.get("_metadata")
-        #    if (_metadata is None):
-        #        oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
-        #    else:
-        #        oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
-        
-        ## Grouping minimal aggregation dataset entries by challenge also
-        #potential_aggregation_datasets = []
-        #for min_aggregation_dataset in min_aggregation_datasets:
-        #    the_id = min_aggregation_dataset['_id']
-        #    vis = min_aggregation_dataset["datalink"]["inline_data"]["visualization"]
-        #    vis_type = vis["type"]
-        #    if vis_type == "2D-plot"
-        #        the_id += f"_{vis['x_axis']}+{vis['y_axis']}"
-        #    elif vis_type == "bar-plot":
-        #        the_id += f"_{vis['metric']}}"
-        #    
-        #    skel_dataset = {
-        #        "_id": the_id,
-        #        "_schema":
-        #    }
+            "\n\t==================================\n\t5. Validating stored challenges\n\t==================================\n")
         
         # First, let's analyze all existing aggregation datasets
         # nested in the challenges
         agg_challenges = { }
-        agg_datasets = { }
         should_exit_ch = False
         for agg_ch in challenges_agg_graphql:
             # Garrayo's school label
@@ -179,21 +140,9 @@ class Aggregation():
                 d_categories=ass_cat,
             )
             
-            # And also index the future participant datasets involved in this challenge
-            d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(challenge_id, [])),
-                d_categories=ass_cat,
-            )
-            
             # Then the assessment datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("assessment_datasets", []),
-                d_categories=ass_cat,
-            )
-            
-            # And also index the future assessment datasets involved in this challenge
-            d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(challenge_id, [])),
                 d_categories=ass_cat,
             )
             
@@ -211,9 +160,6 @@ class Aggregation():
             # Merging the TestEvent test actions
             ta_catalog.merge_test_actions(agg_ch.get("event_test_actions", []))
             
-            # newly added TestEvent involved in this challenge
-            ta_catalog.merge_test_actions(filter(lambda te: te['challenge_id'] == challenge_id, valid_test_events))
-            
             # Let's index the MetricsEvent actions, as they can provide
             # the way to link to the TestEvent needed to rescue the labels
             # needed to regenerate an aggregation dataset from their assessment
@@ -221,9 +167,6 @@ class Aggregation():
             
             # Merging the MetricsEvent test actions
             ta_catalog.merge_test_actions(agg_ch.get("metrics_test_actions", []))
-            
-            # newly added MetricsEvent
-            ta_catalog.merge_test_actions(filter(lambda me: me['challenge_id'] == challenge_id, valid_metrics_events))
             
             # Now, let's index the existing aggregation datasets, and
             # their relationship. And check them, BTW
@@ -234,6 +177,7 @@ class Aggregation():
                 d_categories=agg_cat,
             )
             
+            # Complement this with the aggregation_test_actions
             ta_catalog.merge_test_actions(agg_ch.get("aggregation_test_actions", []))
             
             # Let's rebuild the aggregation datasets, from the minimal information
@@ -437,19 +381,59 @@ class Aggregation():
             # Last, but not the least important
             agg_challenges[challenge_id] = agg_challenges[challenge_label] = IndexedAggregation(
                 challenge=agg_ch,
+                challenge_id=challenge_id,
                 challenge_label=challenge_label,
                 d_catalog=d_catalog,
                 ta_catalog=ta_catalog,
+                ass_cat=ass_cat,
             )
         
         if should_exit_ch:
             self.logger.critical("Some challenges have collisions at their label level. Please ask the team to fix the mess")
             sys.exit(4)
-
+        
+        return agg_challenges
     
+    def build_aggregation_datasets(
+        self,
+        community_id: "str",
+        min_aggregation_datasets: "Sequence[Mapping[str, Any]]",
+        agg_challenges: "Mapping[str, IndexedAggregation]",
+        valid_assessment_tuples: "Sequence[AssessmentTuple]",
+        valid_test_events: "Sequence[Tuple[str, Any]]",
+        valid_metrics_events: "Sequence[Tuple[str, Any]]",
+        workflow_tool_id: "str",
+    ) -> "Sequence[AggregationTuple]":
+        
         self.logger.info(
             "\n\t==================================\n\t6. Validating stored aggregation datasets\n\t==================================\n")
         
+        # Grouping future assessment dataset tuples by challenge
+        ass_c_dict = {}
+        for ass_t in valid_assessment_tuples:
+            ass_d = ass_t.assessment_dataset
+            for challenge_id in ass_d.get("challenge_ids", []):
+                ass_c_dict.setdefault(challenge_id, []).append(ass_t)
+        
+        for idx_agg in agg_challenges.values():
+            # Now index the future participant datasets involved in this challenge
+            idx_agg.d_catalog.merge_datasets(
+                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg.challenge_id, [])),
+                d_categories=idx_agg.ass_cat,
+            )
+            
+            # newly added TestEvent involved in this challenge
+            idx_agg.ta_catalog.merge_test_actions(filter(lambda te: te['challenge_id'] == idx_agg.challenge_id, valid_test_events))
+            
+            # And also index the future assessment datasets involved in this challenge
+            idx_agg.d_catalog.merge_datasets(
+                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(idx_agg.challenge_id, [])),
+                d_categories=idx_agg.ass_cat,
+            )
+            
+            # newly added MetricsEvent
+            idx_agg.ta_catalog.merge_test_actions(filter(lambda me: me['challenge_id'] == idx_agg.challenge_id, valid_metrics_events))
+
         # Now it is time to process all the new or updated aggregation datasets
         valid_aggregation_tuples = []
         failed_min_agg = False
@@ -763,7 +747,7 @@ class Aggregation():
     ) -> "Sequence[Mapping[str, Any]]":
 
         self.logger.info(
-            "\n\t==================================\n\t4. Generating Aggregation Events\n\t==================================\n")
+            "\n\t==================================\n\t7. Generating Aggregation Events\n\t==================================\n")
 
         # initialize the array of test events
         aggregation_events = []

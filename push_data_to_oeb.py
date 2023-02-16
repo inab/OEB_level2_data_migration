@@ -496,12 +496,19 @@ def main(
     
     logging.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
     process_aggregations = Aggregation(schemaMappings, migration_utils)
-    valid_aggregation_tuples = process_aggregations.build_aggregation_datasets(
-        community_id,
+    
+    # Check and index challenges and their main components
+    agg_challenges = process_aggregations.check_and_index_challenges(
         stagedCommunities[0]["acronym"],
-        min_aggregation_datasets,
         aggregation_query_response["data"]["getChallenges"],
         aggregation_query_response["data"]["getMetrics"],
+    )
+    
+    # Now, build the aggregation datasets
+    valid_aggregation_tuples = process_aggregations.build_aggregation_datasets(
+        community_id,
+        min_aggregation_datasets,
+        agg_challenges,
         valid_assessment_tuples,
         valid_test_events,
         valid_metrics_events,
