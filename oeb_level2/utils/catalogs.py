@@ -3,6 +3,7 @@
 import dataclasses
 import json
 import logging
+import re
 import sys
 
 from ..schemas import (
@@ -39,6 +40,45 @@ def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") ->
             return cam_d
     
     return {}
+
+def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]"):
+    met_metadata = met_dataset.get("_metadata",{})
+    met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
+    for par_dataset in par_datasets:
+        # First, look for the label in the participant dataset
+        par_metadata = par_dataset.get("_metadata",{})
+        par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
+        # Then, look for it in the assessment dataset
+        if par_label is None:
+            par_label = met_label
+        
+        # Now, trying pattern matching
+        # to extract the label
+        if par_label is None:
+            match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
+            if match_p:
+                par_label = match_p.group(1)
+        
+        # Last chance is guessing from the original id!!!!
+        if par_label is None:
+            par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
+            if ':' in par_orig_id:
+                par_label = par_orig_id[par_orig_id.index(':') + 1 :]
+            else:
+                par_label = par_orig_id
+            
+            # Removing suffix
+            if par_label.endswith("_P"):
+                par_label = par_label[:-2]
+        
+        par_dataset_id = par_dataset["_id"]
+        inline_data_label = {
+            "label": par_label,
+            "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
+        }
+        return inline_data_label , par_dataset_id
+    
+    return None, None
 
 class MetricsTrio(NamedTuple):
     metrics_id: "str"

@@ -7,12 +7,11 @@ import sys
 import os
 import datetime
 import json
-import re
 
 from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
     DatasetsCatalog,
-    gen_challenge_assessment_metrics_dict,
+    gen_inline_data_label,
     match_metric_from_label,
     TestActionsCatalog,
 )
@@ -33,8 +32,15 @@ if TYPE_CHECKING:
     from .assessment import AssessmentTuple
     from ..utils.migration_utils import OpenEBenchUtils
 
+class IndexedAggregation(NamedTuple):
+    challenge: "Mapping[str, Any]"
+    challenge_label: "str"
+    d_catalog: "DatasetsCatalog"
+    ta_catalog: "TestActionsCatalog"
+
 class AggregationTuple(NamedTuple):
     aggregation_dataset: "Mapping[str, Any]"
+    idx_challenge: "Optional[IndexedAggregation]"
     at_l: "Sequence[AssessmentTuple]"
 
 
@@ -60,10 +66,11 @@ class Aggregation():
         valid_assessment_tuples: "Sequence[AssessmentTuple]",
         valid_test_events: "Sequence[Tuple[str, Any]]",
         valid_metrics_events: "Sequence[Tuple[str, Any]]",
+        workflow_tool_id: "str",
     ) -> "Sequence[AggregationTuple]":
     
         self.logger.info(
-            "\n\t==================================\n\t5. Processing aggregation datasets\n\t==================================\n")
+            "\n\t==================================\n\t5. Validating stored aggregation datasets\n\t==================================\n")
         
         # Grouping future assessment dataset tuples by challenge
         ass_c_dict = {}
@@ -75,14 +82,14 @@ class Aggregation():
         valid_aggregation_datasets = []
         valid_agg_d_dict = {}
         
-        # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
-        oeb_challenges = {}
-        for challenge_graphql in challenges_agg_graphql:
-            _metadata = challenge_graphql.get("_metadata")
-            if (_metadata is None):
-                oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
-            else:
-                oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
+        ## replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
+        #oeb_challenges = {}
+        #for challenge_graphql in challenges_agg_graphql:
+        #    _metadata = challenge_graphql.get("_metadata")
+        #    if (_metadata is None):
+        #        oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
+        #    else:
+        #        oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
         
         ## Grouping minimal aggregation dataset entries by challenge also
         #potential_aggregation_datasets = []
@@ -108,7 +115,11 @@ class Aggregation():
         for agg_ch in challenges_agg_graphql:
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
+            
             challenge_label = agg_ch.get("_metadata", {}).get("level_2:challenge_id")
+            if challenge_label is None:
+                challenge_label = agg_ch.get("acronym")
+            
             if challenge_label is None:
                 challenge_label = agg_ch.get("orig_id")
                 # Very old school label
@@ -117,6 +128,8 @@ class Aggregation():
                         challenge_label = challenge_label[len(community_acronym) + 1]
                 else:
                     challenge_label = challenge_id
+            
+            self.logger.info(f"Validating challenge {challenge_id} ({challenge_label})")
             
             coll_ch = agg_challenges.get(challenge_label)
             if coll_ch is not None:
@@ -345,48 +358,18 @@ class Aggregation():
                                 
                                 # Bad luck, time to create a new entry
                                 if inline_data_label is None:
-                                    met_metadata = met_dataset.get("_metadata",{})
-                                    met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
-                                    for par_dataset in tar.in_d:
-                                        # First, look for the label in the participant dataset
-                                        par_metadata = par_dataset.get("_metadata",{})
-                                        par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
-                                        # Then, look for it in the assessment dataset
-                                        if par_label is None:
-                                            par_label = met_label
+                                    inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
+                                    if inline_data_label is None:
+                                        self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
                                         
-                                        # Now, trying pattern matching
-                                        # to extract the label
-                                        if par_label is None:
-                                            match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
-                                            if match_p:
-                                                par_label = match_p.group(1)
-                                        
-                                        # Last chance is guessing from the original id!!!!
-                                        if par_label is None:
-                                            par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
-                                            if ':' in par_orig_id:
-                                                par_label = par_orig_id[par_orig_id.index(':') + 1 :]
-                                            else:
-                                                par_label = par_orig_id
-                                            
-                                            # Removing suffix
-                                            if par_label.endswith("_P"):
-                                                par_label = par_label[:-2]
-                                        
-                                        par_dataset_id = par_dataset["_id"]
-                                        inline_data_label = {
-                                            "label": par_label,
-                                            "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
-                                        }
-                                        # Last, store it
-                                        inline_data_labels.append(inline_data_label)
-                                        idl_by_d_id[par_dataset_id] = inline_data_label
-                                        break
-                                
-                                # Now we should have the participant label
-                                assert par_label is not None
-                                assert par_dataset_id is not None
+                                    # Now we should have the participant label
+                                    assert inline_data_label is not None
+                                    assert par_dataset_id is not None
+                                    
+                                    # Last, store it
+                                    inline_data_labels.append(inline_data_label)
+                                    idl_by_d_id[par_dataset_id] = inline_data_label
+                                    par_label = inline_data_label["label"]
                                 
                                 mini_entry = cha_par_by_id.get(par_dataset_id)
                                 if mini_entry is None:
@@ -450,18 +433,327 @@ class Aggregation():
                 sys.exit(5)
             
             # Last, but not the least important
-            agg_challenges[challenge_id] = agg_challenges[challenge_label] = (agg_ch, d_catalog, ta_catalog)
+            agg_challenges[challenge_id] = agg_challenges[challenge_label] = IndexedAggregation(
+                challenge=agg_ch,
+                challenge_label=challenge_label,
+                d_catalog=d_catalog,
+                ta_catalog=ta_catalog,
+            )
         
         if should_exit_ch:
             self.logger.critical("Some challenges have collisions at their label level. Please ask the team to fix the mess")
             sys.exit(4)
 
+    
+        self.logger.info(
+            "\n\t==================================\n\t6. Validating stored aggregation datasets\n\t==================================\n")
+        
         # Now it is time to process all the new or updated aggregation datasets
         valid_aggregation_tuples = []
-        for dataset in min_aggregation_datasets:
-            # TODO
-            self.logger.critical("Are you ready to implement minimal aggregation dataset (re)generation?")
-            sys.exit(1)
+        failed_min_agg = False
+        for min_dataset in min_aggregation_datasets:
+            the_id = min_dataset['_id']
+            the_orig_id = None
+            min_datalink = min_dataset.get("datalink")
+            if not isinstance(min_datalink, dict):
+                self.logger.critical(f"Minimal aggregation dataset {the_id} does not contain datalink!!!! Talk to the data providers")
+                failed_min_agg = True
+                continue
+            
+            community_ids = [ community_id ]
+            # Mapping challenges
+            challenge_ids = []
+            idx_challenges = []
+            failed_ch_mapping = False
+            the_challenge_contacts = []
+            workflow_metrics_id = None
+            # This is used in the returned dataset
+            the_rel_dataset_ids = []
+            # This is used to later compute the contents
+            met_dataset_groups = []
+            
+            idx_agg = None
+            idat_ass = None
+            ita_m_events = None
+            for challenge_label in min_dataset["challenge_ids"]:
+                idx_agg = agg_challenges.get(challenge_label)
+                if idx_agg is None:
+                    self.logger.critical(f"Unable to find challenge {challenge_label}, needed by minimal aggregation dataset {the_id}. Is this a typo? Fix it.")
+                    failed_ch_mapping = True
+                    break
+                
+                challenge_ids.append(idx_agg.challenge["_id"])
+                idx_challenges.append(idx_agg)
+                # Gathering the challenge contacts
+                the_challenge_contacts.extend(idx_agg.challenge["challenge_contact_ids"])
+                
+                # Setting the appropriate workflow_metrics_id
+                # and the related dataset ids
+                wmi_was_set = False
+                idat_ass = idx_agg.d_catalog.get("assessment")
+                assert idat_ass is not None
+                
+                for metrics_category in idx_agg.challenge.get("metrics_categories",[]):
+                    m_cat = metrics_category.get("category")
+                    if m_cat == "aggregation":
+                        if not wmi_was_set:
+                            for metric_decl in metrics_category.get("metrics", []):
+                                if metric_decl["tool_id"] == workflow_tool_id:
+                                    workflow_metrics_id = metric_decl.get("metrics_id")
+                                    wmi_was_set = True
+                                    break
+                    elif m_cat == "assessment":
+                        # Now time to milk the structures
+                        for metric_decl in metrics_category.get("metrics", []):
+                            met_datasets = list(idat_ass.datasets_from_metric(metric_decl["metrics_id"]))
+                            met_dataset_groups.append(met_datasets)
+                            the_rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
+                        
+                    
+                if not wmi_was_set:
+                    self.logger.critical(f"In challenge {idx_agg.challenge['_id']}, unable to set the metrics id from workflow tool id {workflow_tool_id}")
+                
+                # Only the first challenge please
+                break
+            else:
+                challenge_label = "(no challenge???)"
+            
+            if failed_ch_mapping:
+                failed_min_agg = True
+                continue
+            
+            if idx_agg is None:
+                failed_min_agg = True
+                continue
+            
+            # Dealing with the inline data, where 
+            min_inline_data = min_datalink.get("inline_data")
+            datalink = None
+            metrics_str = "(unknown)"
+            the_vis_optim = None
+            if isinstance(min_inline_data, dict):
+                vis = min_inline_data.get("visualization")
+                manage_datalink = False
+                if isinstance(vis, dict):
+                    vis_type = vis.get("type")
+                    
+                    if vis_type == "2D-plot":
+                        the_id += f"_{vis['x_axis']}+{vis['y_axis']}"
+                        metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
+                        manage_datalink = True
+                    elif vis_type == "box-plot":
+                        the_id += f"_{vis['metric']}"
+                        metrics_str = vis['metric']
+                        manage_datalink = True
+                    else:
+                        self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
+                    
+                    # Initialize
+                    the_vis_optim = vis.get("optimization")
+                    
+                    # Preparing the handling
+                    if manage_datalink:
+                        datalink = copy.copy(min_datalink)
+                        inline_data = copy.deepcopy(min_inline_data)
+                        datalink["inline_data"] = inline_data
+                        inline_data_labels = []
+                        inline_data["labels"] = inline_data_labels
+                        # Inline data labels by participant dataset id
+                        idl_by_d_id = {}
+                        challenge_participants = []
+                        inline_data["challenge_participants"] = challenge_participants
+                        cha_par_by_id = {}
+                        ass_par_by_id = {}
+                        
+                        ita_m_events = idx_agg.ta_catalog.get("MetricsEvent")
+                        assert ita_m_events is not None
+                        
+                        # Now to rebuild the metrics
+                        for i_met, met_datasets in enumerate(met_dataset_groups):
+                            for met_dataset in met_datasets:
+                                tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
+                                if tar is None:
+                                    self.logger.error(f"Unindexed MetricsEvent TestAction for minimal dataset {the_id}")
+                                    continue
+
+                                # Now, the participant datasets can be rescued
+                                # to get or guess its label
+                                inline_data_label = None
+                                par_dataset_id = None
+                                par_label = None
+                                for par_dataset in tar.in_d:
+                                    inline_data_label = idl_by_d_id.get(par_dataset["_id"])
+                                    if isinstance(inline_data_label, dict):
+                                        par_dataset_id = par_dataset["_id"]
+                                        par_label = inline_data_label["label"]
+                                        break
+                                
+                                # Bad luck, time to create a new entry
+                                if inline_data_label is None:
+                                    inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
+                                    if inline_data_label is None:
+                                        self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
+                                        
+                                    # Now we should have the participant label
+                                    assert inline_data_label is not None
+                                    assert par_dataset_id is not None
+                                    
+                                    # Last, store it
+                                    inline_data_labels.append(inline_data_label)
+                                    idl_by_d_id[par_dataset_id] = inline_data_label
+                                    par_label = inline_data_label["label"]
+                                
+                                
+                                mini_entry = cha_par_by_id.get(par_dataset_id)
+                                if mini_entry is None:
+                                    mini_entry = {
+                                        "tool_id": par_label,
+                                    }
+                                    challenge_participants.append(mini_entry)
+                                    cha_par_by_id[par_dataset_id] = mini_entry
+                                    ass_par_by_id[par_dataset_id] = met_dataset['_id']
+                                elif i_met == 0:
+                                    self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by minimal {the_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
+                                    failed_min_agg = True
+                                
+                                ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                if vis_type == "2D-plot":
+                                    if i_met == 0:
+                                        value_label = "metric_x"
+                                        stderr_label = "stderr_x"
+                                    else:
+                                        value_label = "metric_y"
+                                        stderr_label = "stderr_y"
+                                    
+                                    mini_entry.update({
+                                        value_label: ass_inline_data["value"],
+                                        stderr_label: ass_inline_data.get("error", 0),
+                                    })
+                                elif vis_type == "bar-plot":
+                                    mini_entry.update({
+                                        "metric_value": ass_inline_data["value"],
+                                        "stderr": ass_inline_data.get("error", 0),
+                                    })
+                                else:
+                                    self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
+                                    failed_min_agg = True
+
+
+                
+            
+            if datalink is None:
+                # Unaltered datalink (as we do not know how to deal with it)
+                datalink = min_datalink
+            
+            # Mapping the id to an existing entry, and update challenges list
+            the_visibility = None
+            the_name = None
+            the_description = None
+            the_dataset_contact_ids = None
+            the_version = None
+            the_metadata = None
+            the_dates = {
+                "creation": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat(),
+                "modification": datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
+            }
+            
+            idx_challenge = None
+            for idx_challenge in idx_challenges:
+                orig_datasets = idx_challenge.d_catalog.get_dataset(the_id)
+                if len(orig_datasets) > 0:
+                    if len(orig_datasets) > 1:
+                        self.logger.warning(f"Found more than one dataset with id {the_id}. Problems in the horizon???")
+                    
+                    for orig_dataset in orig_datasets:
+                        if orig_dataset["type"] != "aggregation":
+                            # Discard incompatible entries
+                            continue
+                        
+                        the_id = orig_dataset["_id"]
+                        the_orig_id = orig_dataset.get("orig_id")
+                        the_name = orig_dataset.get("name")
+                        the_description = orig_dataset.get("description")
+                        the_version = orig_dataset.get("version")
+                        the_visibility = orig_dataset.get("visibility")
+                        the_dataset_contact_ids = orig_dataset.get("dataset_contact_ids")
+                        the_local_creation = orig_dataset.get("dates",{}).get("creation")
+                        if the_local_creation is not None:
+                            the_dates["creation"] = the_local_creation
+                        
+                        the_metadata = orig_dataset.get("_metadata")
+                        
+                        # Is there an inherited visualization optimization?
+                        if the_vis_optim is None:
+                            the_vis_optim = orig_dataset.get("datalink", {}).get("inline_data", {}).get("visualization", {}).get("optimization")
+                        
+                        # Widening the list (maybe it is wrong?????)
+                        orig_ch_set = set(orig_dataset["challenge_ids"])
+                        orig_co_set = set(orig_dataset["community_ids"])
+                        if not orig_ch_set.issubset(challenge_ids):
+                            self.logger.warning(f"For aggregation dataset {the_id} ({the_orig_id}) overlapping challenges between the stored entry and the new one")
+                        challenge_ids = list(set(orig_ch_set.union(challenge_ids)))
+                        community_ids = list(set(orig_co_set.union(community_ids)))
+                        break
+                    
+                    break
+            
+            if the_vis_optim is not None and datalink != min_datalink:
+                datalink["inline_data"]["visualization"]["optimization"] = the_vis_optim
+            
+            if the_visibility is None:
+                the_visibility = "public"
+            
+            if the_version is None:
+                the_version = "1"
+            
+            if the_name is None:
+                the_name = f"Summary dataset for challenge: {challenge_label}. Metrics: {metrics_str}"
+            
+            if the_description is None:
+                the_description = f"Summary dataset that aggregates all results from participants in challenge: {challenge_label}. Metrics: {metrics_str}"
+            
+            valid_data = {
+                "_id": the_id,
+                "_schema": self.schemaMappings["Dataset"],
+                "type": "aggregation",
+                "community_ids": community_ids,
+                "challenge_ids": challenge_ids,
+                "datalink": datalink,
+                "name": the_name,
+                "description": the_description,
+                "version": the_version,
+                "visibility": the_visibility,
+                "dataset_contact_ids": the_challenge_contacts,
+                "dates": the_dates,
+                "depends_on": {
+                    "tool_id": workflow_tool_id,
+                    "metrics_id": workflow_metrics_id,
+                    "rel_dataset_ids": the_rel_dataset_ids,
+                }
+            }
+            if the_orig_id is not None:
+                valid_data["orig_id"] = the_orig_id
+            
+            if the_metadata is not None:
+                valid_data["_metadata"] = the_metadata
+            
+            valid_aggregation_tuples.append(
+                AggregationTuple(
+                    aggregation_dataset=valid_data,
+                    idx_challenge=idx_challenge,
+                    # TODO
+                    #at_l=at_l,
+                    at_l=[]
+                )
+            )
+        
+        if failed_min_agg:
+            self.logger.critical("The generation of some aggregation dataset failed.")
+            sys.exit(6)
+            
+        
+        self.logger.critical("Are you ready to implement minimal aggregation dataset (re)generation?")
+        sys.exit(1)
         
         return valid_aggregation_tuples
 

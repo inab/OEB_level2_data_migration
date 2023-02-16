@@ -89,6 +89,10 @@ COLORED_LOGS_LEVEL_STYLES={
     }
 }
 
+# Borrowed from WfExS-backend
+LOGFORMAT = "%(asctime)-15s - [%(levelname)s] %(message)s"
+VERBOSE_LOGFORMAT = "%(asctime)-15s - [%(name)s %(funcName)s %(lineno)d][%(levelname)s] %(message)s"
+
 def main(
     config_json_filename: "str",
     oeb_credentials_filename: "str",
@@ -100,6 +104,7 @@ def main(
 ):
     loggingConfig = {
         "level": logging.INFO,
+#        "format": LOGFORMAT,
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
@@ -330,7 +335,7 @@ def main(
         else:
             not_datasets += 1
     
-    logging.info(f"   Stats: {len(min_participant_dataset)} participant, {len(min_assessment_datasets)} assessment, {len(min_aggregation_datasets)} aggregation, {discarded_datasets} unknown, {not_datasets} not datasets")
+    logging.info(f"   Stats: {len(participants_per_challenge)} challenges, {len(min_participant_dataset)} participant, {len(min_assessment_datasets)} assessment, {len(min_aggregation_datasets)} aggregation, {discarded_datasets} unknown, {not_datasets} not datasets")
     
     if discarded_datasets > 0:
         logging.warning(f"{discarded_datasets} minimal datasets of unknown type. Please fix it")
@@ -499,6 +504,7 @@ def main(
         valid_assessment_tuples,
         valid_test_events,
         valid_metrics_events,
+        workflow_id,
     )
     
     logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
