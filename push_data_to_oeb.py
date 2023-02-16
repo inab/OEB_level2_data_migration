@@ -12,6 +12,7 @@
 """
 import json
 import argparse
+import datetime
 import sys
 import os
 import os.path
@@ -535,6 +536,7 @@ def main(
         valid_aggregation_events
     
     # Generate the umbrella dataset
+    version_str = datetime.datetime.now(datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()
     umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, 
                                                          community_id, bench_event_id, 
                                                          version_str, data_visibility, final_data)

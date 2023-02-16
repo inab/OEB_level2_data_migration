@@ -292,6 +292,20 @@ class OpenEBenchUtils():
               role
           }
         }
+        aggregation_test_actions: test_actions(testActionFilters: {action_type: "AggregationEvent"}) {
+          _id
+          action_type
+          challenge_id
+          _metadata
+          orig_id
+          _schema
+          status
+          tool_id
+          involved_datasets {
+              dataset_id
+              role
+          }
+        }
         public_reference_datasets: datasets(datasetFilters: {type: "public_reference"}) {
                 _id
                 _schema
