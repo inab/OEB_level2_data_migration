@@ -214,7 +214,7 @@ class Participant():
             # add data version
             valid_participant_data["version"] = p_config.data_version
             
-            valid_participant_data["dataset_contact_ids"] = p_config.data_contacts
+            valid_participant_data["dataset_contact_ids"] = p_config.data_contact_ids
             
             # Breadcrumbs about the participant id to ease the discovery
             valid_participant_data["_metadata"] = {
