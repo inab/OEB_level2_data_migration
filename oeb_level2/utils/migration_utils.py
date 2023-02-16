@@ -700,7 +700,7 @@ class OpenEBenchUtils():
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         self.logger.info(
-            "\n\t==================================\n\t7. Validating datasets and TestActions\n\t==================================\n")
+            "\n\t==================================\n\t8. Validating datasets and TestActions\n\t==================================\n")
 
         cached_jsons = []
         for element in jsonSchemas_array:
