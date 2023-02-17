@@ -23,12 +23,17 @@ AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migrati
 
 AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
 
-def create_validator_for_directory(schemas_dir: "str", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
-    schema_validators = ExtensibleValidator(config=config)
-        
-    numSchemas = schema_validators.loadJSONSchemas(schemas_dir, verbose=False)
-    
-    return schema_validators, numSchemas
+def create_validator(schemas_dir: "Union[str, Sequence[SchemaHashEntry]]", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
+	schema_validators = ExtensibleValidator(config=config)
+	
+	if isinstance(schemas_dir, list):
+		schemas_param = schemas_dir
+	else:
+		schemas_param = [ schemas_dir ]
+	
+	numSchemas = schema_validators.loadJSONSchemas(*schemas_param, verbose=False)
+	
+	return schema_validators, numSchemas
 
 def create_validator_for_oeb_level2() -> "Tuple[ExtensibleValidator, int]":
-	return create_validator_for_directory(os.path.dirname(__file__))
+	return create_validator(os.path.dirname(__file__))

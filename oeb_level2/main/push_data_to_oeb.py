@@ -38,6 +38,13 @@ from ..utils.migration_utils import (
     OpenEBenchUtils,
 )
 
+from . import (
+    COLORED_LOGS_FMT,
+    COLORED_LOGS_FMT_BRIEF,
+    COLORED_LOGS_LEVEL_STYLES,
+    LOGFORMAT,
+    VERBOSE_LOGFORMAT,
+)
 
 DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
@@ -52,47 +59,6 @@ def validate_url(the_url: "str") -> "bool":
         return False    
 
 # curl -v -d "client_id=THECLIENTID" -d "username=YOURUSER" -d "password=YOURPASSWORD" -d "grant_type=password" https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token
-
-#COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s[%(process)d]\n[%(levelname)s] %(message)s'
-COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s\n[%(levelname)s] %(message)s'
-COLORED_LOGS_FMT_BRIEF='%(asctime)s [%(levelname)s] %(message)s'
-
-COLORED_LOGS_LEVEL_STYLES={
-    'critical': {
-        'bold': True,
-        'background': 'red'
-    },
-    'debug': {
-        'color': 'green'
-    },
-    'error': {
-        'bold': True,
-        'color': 'red'
-    },
-    'info': {
-    },
-    'notice': {
-        'color': 'magenta'
-    },
-    'spam': {
-        'color': 'green',
-        'faint': True
-    },
-    'success': {
-        'bold': True,
-        'color': 'green'
-    },
-    'verbose': {
-        'color': 'blue'
-    },
-    'warning': {
-        'color': 'yellow'
-    }
-}
-
-# Borrowed from WfExS-backend
-LOGFORMAT = "%(asctime)-15s - [%(levelname)s] %(message)s"
-VERBOSE_LOGFORMAT = "%(asctime)-15s - [%(name)s %(funcName)s %(lineno)d][%(levelname)s] %(message)s"
 
 def validate_transform_and_push(
     config_json_filename: "str",
@@ -109,7 +75,7 @@ def validate_transform_and_push(
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
-            loggingConfig["filename"] = args.logFilename
+            loggingConfig["filename"] = log_filename
     
     logging.basicConfig(**loggingConfig)
     coloredlogs.install(
@@ -382,11 +348,10 @@ def validate_transform_and_push(
     if len(m_a_collisions) > 0:
         sys.exit(5)
 
-    # TODO: use oeb_sci_admin_tools library???
     data_model_repo_dir = migration_utils.doMaterializeRepo(
         data_model_repo, data_model_tag)
     data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
-    schemaMappings = migration_utils.load_schemas(data_model_dir)
+    schemaMappings = migration_utils.load_schemas_from_repo(data_model_dir)
     
     # Get Benchmarking Event entry (in case it has to be updated)
     # benchmarking_event = migration_utils.fetchStagedEntry("BenchmarkingEvent", bench_event_id)

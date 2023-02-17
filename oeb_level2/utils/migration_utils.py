@@ -7,7 +7,6 @@ import hashlib
 import inspect
 import itertools
 import tempfile
-import subprocess
 import logging
 import json
 import urllib.request
@@ -23,36 +22,27 @@ try:
 except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
+from oebtools.fetch import (
+    checkoutSchemas,
+    DEFAULT_BDM_TAG,
+)
+
+from oebtools.uploader import (
+    loadSchemas,
+)
+
+from oebtools.auth import getAccessToken
+
 from ..schemas import (
-    create_validator_for_directory,
+    create_validator,
     create_validator_for_oeb_level2,
 )
 
-DEFAULT_AUTH_URI = 'https://inb.bsc.es/auth/realms/openebench/protocol/openid-connect/token'
-DEFAULT_CLIENT_ID = 'THECLIENTID'
-DEFAULT_GRANT_TYPE = 'password'
-
-def getAccessToken(oeb_credentials):
-    authURI = oeb_credentials.get('authURI', DEFAULT_AUTH_URI)
-    payload = {
-        'client_id': oeb_credentials.get('clientId', DEFAULT_CLIENT_ID),
-        'grant_type': oeb_credentials.get('grantType', DEFAULT_GRANT_TYPE),
-        'username': oeb_credentials['user'],
-        'password': oeb_credentials['pass'],
-    }
-    
-    req = urllib.request.Request(authURI, data=urllib.parse.urlencode(payload).encode('UTF-8'), method='POST')
-    with urllib.request.urlopen(req) as t:
-        token = json.load(t)
-        
-        logging.info("Token {}".format(token['access_token']))
-        
-        return token['access_token']    
+GRAPHQL_POSTFIX = "/graphql"
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
-    DEFAULT_GIT_CMD = 'git'
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
 
     def __init__(self, oeb_credentials: "Mapping[str, Any]", workdir: "str", oeb_token: "Optional[str]" = None, level2_min_validator: "Optional[Any]" = None):
@@ -63,8 +53,20 @@ class OpenEBenchUtils():
         )
 
         self.data_model_repo_dir = os.path.join(workdir, self.DEFAULT_DATA_MODEL_DIR)
-        self.git_cmd = self.DEFAULT_GIT_CMD
         self.oeb_api = oeb_credentials.get("graphqlURI", self.DEFAULT_OEB_API)
+        
+        # Dealing with endpoints
+        if self.oeb_api.endswith(GRAPHQL_POSTFIX):
+            self.oeb_api_base = self.oeb_api[0:-len(GRAPHQL_POSTFIX)+1]
+        else:
+            self.oeb_api_base = self.oeb_api
+            if self.oeb_api_base.endswith("/"):
+                self.oeb_api = self.oeb_api_base[0:-1]
+            else:
+                self.oeb_api = self.oeb_api_base
+            
+            self.oeb_api += GRAPHQL_POSTFIX
+            
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
         oebIdProviders = oeb_credentials['accessURI']
@@ -105,7 +107,7 @@ class OpenEBenchUtils():
         
         self.level2_min_validator = level2_min_validator
         
-        self.oeb_token = getAccessToken(oeb_credentials)  if oeb_token is None  else  oeb_token
+        self.oeb_token = getAccessToken(oeb_credentials, logger=self.logger)  if oeb_token is None  else  oeb_token
         
         self.schema_validators_local_config = local_config
 
@@ -116,7 +118,7 @@ class OpenEBenchUtils():
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
 
-    def doMaterializeRepo(self, git_uri, git_tag):
+    def doMaterializeRepo(self, git_uri, git_tag) -> "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]":
 
         repo_hashed_id = hashlib.sha1(git_uri.encode('utf-8')).hexdigest()
         repo_hashed_tag_id = hashlib.sha1(git_tag.encode('utf-8')).hexdigest()
@@ -133,50 +135,12 @@ class OpenEBenchUtils():
                 raise Exception(errstr)
 
         repo_tag_destdir = os.path.join(repo_destdir, repo_hashed_tag_id)
-        # We are assuming that, if the directory does exist, it contains the repo
-        if not os.path.exists(repo_tag_destdir):
-            # Try cloing the repository without initial checkout
-            gitclone_params = [
-                self.git_cmd, 'clone', '-n', '--recurse-submodules', git_uri, repo_tag_destdir
-            ]
-
-            # Now, checkout the specific commit
-            gitcheckout_params = [
-                self.git_cmd, 'checkout', git_tag
-            ]
-
-            # Last, initialize submodules
-            gitsubmodule_params = [
-                self.git_cmd, 'submodule', 'update', '--init'
-            ]
-
-            with tempfile.NamedTemporaryFile() as git_stdout:
-                with tempfile.NamedTemporaryFile() as git_stderr:
-                    # First, bare clone
-                    retval = subprocess.call(
-                        gitclone_params, stdout=git_stdout, stderr=git_stderr)
-                    # Then, checkout
-                    if retval == 0:
-                        retval = subprocess.Popen(
-                            gitcheckout_params, stdout=git_stdout, stderr=git_stderr, cwd=repo_tag_destdir).wait()
-                    # Last, submodule preparation
-                    if retval == 0:
-                        retval = subprocess.Popen(
-                            gitsubmodule_params, stdout=git_stdout, stderr=git_stderr, cwd=repo_tag_destdir).wait()
-
-                    # Proper error handling
-                    if retval != 0:
-                        # Reading the output and error for the report
-                        with open(git_stdout.name, "r") as c_stF:
-                            git_stdout_v = c_stF.read()
-                        with open(git_stderr.name, "r") as c_stF:
-                            git_stderr_v = c_stF.read()
-
-                        errstr = "ERROR:  could not pull '{}' (tag '{}'). Retval {}\n======\nSTDOUT\n======\n{}\n======\nSTDERR\n======\n{}".format(
-                            git_uri, git_tag, retval, git_stdout_v, git_stderr_v)
-                        raise Exception(errstr)
-
-        return repo_tag_destdir
+        return checkoutSchemas(
+            checkoutDir=repo_tag_destdir,
+            git_repo=git_uri,
+            tag=git_tag,
+            logger=self.logger
+        )
 
     # function that retrieves all the required metadata from OEB database
     def graphql_query_OEB_DB(self, data_type, bench_event_id) -> "Tuple[Mapping[str, Any], Mapping[str, Mapping[str, Any]]]":
@@ -659,27 +623,53 @@ class OpenEBenchUtils():
             self.logger.fatal('Unsupported storage server type {}'.format(self.storage_server_type))
             sys.exit(5)
 
-    def load_schemas(self, data_model_dir: "str") -> "Mapping[str, str]":
+    def load_schemas_from_repo(self, data_model_dir: "str", tag: "str" = DEFAULT_BDM_TAG) -> "Mapping[str, str]":
         if self.schema_validators is None:
             local_config = self.schema_validators_local_config
             
-            # Now, guessing the prefix
-            schema_prefix = None
-            with os.scandir(data_model_dir) as dmit:
-                for entry in dmit:
-                    if entry.name.endswith('.json') and entry.is_file():
-                        with open(entry.path, mode="r", encoding="utf-8") as jschH:
-                            jsch = json.load(jschH)
-                            theId = jsch.get('$id')
-                            if theId is not None:
-                                schema_prefix = theId[0:theId.rindex('/')+1]
-                                break
+            schema_prefix, schema_dir = loadSchemas(
+                data_model_dir,
+                tag=tag,
+                logger=self.logger
+            )
             
             local_config['primary_key']['schema_prefix'] = schema_prefix
             self.logger.debug(json.dumps(local_config))
             
             # create the cached json schemas for validation
-            self.schema_validators, self.num_schemas = create_validator_for_directory(data_model_dir, config=local_config)
+            self.schema_validators, self.num_schemas = create_validator(schema_dir, config=local_config)
+
+            if self.num_schemas == 0:
+                print(
+                    "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
+                sys.exit(1)
+            
+            schemaMappings = {}
+            for key in self.schema_validators.getValidSchemas().keys():
+                concept = key[key.rindex('/')+1:]
+                if concept:
+                    schemaMappings[concept] = key
+            
+            self.schemaMappings = schemaMappings
+        
+        return self.schemaMappings
+
+    def load_schemas_from_server(self) -> "Mapping[str, str]":
+        if self.schema_validators is None:
+            data_model_in_memory = checkoutSchemas(fetchFromREST=self.oeb_api_base, logger=self.logger)
+            
+            local_config = self.schema_validators_local_config
+            
+            schema_prefix, schema_dir = loadSchemas(
+                data_model_in_memory,
+                logger=self.logger
+            )
+            
+            local_config['primary_key']['schema_prefix'] = schema_prefix
+            self.logger.debug(json.dumps(local_config))
+            
+            # create the cached json schemas for validation
+            self.schema_validators, self.num_schemas = create_validator(schema_dir, config=local_config)
 
             if self.num_schemas == 0:
                 print(
