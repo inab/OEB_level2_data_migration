@@ -59,7 +59,7 @@
 					"minLength": 1,
 					"primary_key": {
 						"name": "participant_id_key",
-						"members": [ '.' ]
+						"members": [ "." ]
 					}
 				}
 			},

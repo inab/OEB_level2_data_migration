@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import inspect
 import logging
 import sys
 import os
@@ -8,21 +9,49 @@ import json
 import re
 
 from .benchmarking_dataset import BenchmarkingDataset
+from ..utils.catalogs import (
+    gen_challenge_assessment_metrics_dict,
+    match_metric_from_label,
+)
+
+from typing import (
+    NamedTuple,
+    TYPE_CHECKING
+)
+
+if TYPE_CHECKING:
+    from typing import (
+        Any,
+        Mapping,
+        Sequence,
+        Tuple,
+    )
+    from .participant import ParticipantTuple
+
+class AssessmentTuple(NamedTuple):
+    assessment_dataset: "Mapping[str, Any]"
+    pt: "ParticipantTuple"
 
 class Assessment():
 
     def __init__(self, schemaMappings):
-
-        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(
+            dict(inspect.getmembers(self))["__module__"]
+            + "::"
+            + self.__class__.__name__
+        )
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility, version: "str", valid_participant_data):
-
-        logging.info(
+    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility: "str", valid_participant_tuples: "Sequence[ParticipantTuple]") -> "Sequence[AssessmentTuple]":
+        valid_participants = {}
+        for pvc in valid_participant_tuples:
+            valid_participants[pvc.p_config.participant_id] = pvc
+            
+        self.logger.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
         
-        default_tool_id = valid_participant_data["depends_on"]["tool_id"]
-        community_ids = valid_participant_data["community_ids"]
+        
+        
         
         stagedMap = dict()
         for stagedAssessmentDataset in stagedAssessmentDatasets:
@@ -37,12 +66,24 @@ class Assessment():
             else:
                 oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge
 
-        valid_assessment_datasets = []
+        valid_assessment_tuples = []
         should_end = []
         for dataset in assessment_datasets:
-            tool_id = default_tool_id
-
-            logging.info('Building object "' +
+            assessment_participant_id = dataset.get("participant_id")
+            pvc = valid_participants.get(assessment_participant_id)
+            # If not found, next!!!!!!
+            if pvc is None:
+                self.logger.warning(f"Assessment dataset {dataset['_id']} was not processed because participant {assessment_participant_id} was not declared, skipping to next assessment element...")
+                continue
+            
+            participant_id = pvc.p_config.participant_id
+            valid_participant_data = pvc.participant_dataset
+            challenge_pairs = pvc.challenge_pairs
+            
+            tool_id = valid_participant_data["depends_on"]["tool_id"]
+            community_ids = valid_participant_data["community_ids"]
+            
+            self.logger.info('Building object "' +
                              str(dataset["_id"]) + '"...')
             # initialize new dataset object
             stagedEntry = stagedMap.get(dataset["_id"])
@@ -64,38 +105,37 @@ class Assessment():
             valid_data["visibility"] = data_visibility
 
             # add name and description, if workflow did not provide them
-            if "name" not in dataset:
-                valid_data["name"] = "Metric '" + dataset["metrics"]["metric_id"] + \
+            dataset_name = valid_data.get("name")
+            if dataset_name is None:
+                dataset_name = "Metric '" + dataset["metrics"]["metric_id"] + \
                     "' in challenge '" + dataset["challenge_id"] + "' applied to participant '" + dataset["participant_id"] + "'"
-            else:
-                valid_data["name"] = dataset["name"]
-
-            if "description" not in dataset:
-                valid_data["description"] = "Assessment dataset of applying metric '" + \
+            valid_data["name"] = dataset_name
+            
+            dataset_description = dataset.get("description")
+            if dataset_description is None:
+                dataset_description = "Assessment dataset of applying metric '" + \
                     dataset["metrics"]["metric_id"] + "' in challenge '" + dataset["challenge_id"] + "' to '"\
                      + dataset["participant_id"] + "' participant"
-            else:
-                valid_data["description"] = dataset["description"]
+            valid_data["description"] = dataset_description
 
+            challenge_labels_set = set(map(lambda cp: cp[0], challenge_pairs))
+            if dataset["challenge_id"] not in challenge_labels_set:
+                self.logger.warning("No challenges associated to " +
+                             dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                self.logger.warning(
+                    dataset["_id"] + " not processed, skipping to next assessment element...")
+                continue
+            
             # replace dataset related challenges with oeb challenge ids
             execution_challenges = []
-            challenge_assessment_metrics = []
-            cam_d = {}
             try:
                 the_challenge = oeb_challenges[dataset["challenge_id"]]
                 execution_challenges.append(the_challenge)
-                for metrics_category in the_challenge.get("metrics_categories",[]):
-                    if metrics_category.get("category") == "assessment":
-                        challenge_assessment_metrics = metrics_category.get("metrics", [])
-                        cam_d = {
-                            cam["metrics_id"]: cam
-                            for cam in challenge_assessment_metrics
-                        }
-                        break
+                cam_d = gen_challenge_assessment_metrics_dict(the_challenge)
             except:
-                logging.warning("No challenges associated to " +
+                self.logger.warning("No challenges associated to " +
                              dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                logging.warning(
+                self.logger.warning(
                     dataset["_id"] + " not processed, skipping to next assessment element...")
                 continue
                 # sys.exit()
@@ -121,11 +161,15 @@ class Assessment():
             error_value = dataset["metrics"]["stderr"]
 
             valid_data["datalink"] = {
+                "schema_url": "https://github.com/inab/OEB_level2_data_migration/single-metric",
                 "inline_data": {
                     "value": metric_value,
                     "error": error_value
                 }
             }
+            
+            # Breadcrumbs about the participant id to ease the discovery
+            valid_data.setdefault("_metadata", {})["level_2:participant_id"] = participant_id
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
@@ -141,86 +185,66 @@ class Assessment():
                 })
             
             # Select the metrics just "guessing"
-            guessed_metrics_ids = []
-            community_prefix = dataset['community_id'] + ':'
-            dataset_metrics_id_u = dataset["metrics"]["metric_id"].upper()
-            for metric in metrics_graphql:
-                if metric['orig_id'].startswith(community_prefix):
-                    # First guess
-                    if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
-                        guessed_metrics_ids.append(metric["_id"])
-                    
-                    # Second guess (it can introduce false crosses)
-                    metric_metadata = metric.get("_metadata")
-                    if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
-                        if metric['_metadata']['level_2:metric_id'].upper() == dataset_metrics_id_u:
-                            guessed_metrics_ids.append(metric["_id"])
-            
-            
-            if len(guessed_metrics_ids) == 0:
-                logging.fatal(f"Unable to match in OEB a metric to label {dataset['metrics']['metric_id']} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {the_challenge['_id']} (acronym {the_challenge['acronym']})")
+            metric_id, found_tool_id, _ = match_metric_from_label(
+                logger=self.logger,
+                metrics_graphql=metrics_graphql,
+                community_acronym=dataset['community_id'],
+                metrics_label=dataset["metrics"]["metric_id"],
+                challenge_id=the_challenge['_id'],
+                challenge_acronym=the_challenge['acronym'],
+                challenge_assessment_metrics_d=cam_d,
+                dataset_id=dataset['_id'],
+            )
+            if metric_id is None:
                 should_end.append((the_challenge['_id'], the_challenge['acronym']))
                 continue
             
-            matched_metrics_ids = []
-            for guessed_metric_id in guessed_metrics_ids:
-                cam = cam_d.get(guessed_metric_id)
-                if cam is not None:
-                    matched_metrics_ids.append(cam)
-            
-            if len(matched_metrics_ids) == 0:
-                if len(guessed_metrics_ids) == 1:
-                    metric_id = guessed_metrics_ids[0]
-                    logging.warning(f"Metric {metric_id} (guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']}) is not registered as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}). Consider register it")
-                else:
-                    logging.fatal(f"Several metrics {guessed_metrics_ids} were guessed from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}).")
-                    should_end.append((the_challenge['_id'], the_challenge['acronym']))
-                    continue
-            elif len(matched_metrics_ids) == 1:
-                mmi = matched_metrics_ids[0]
-                metric_id = mmi['metrics_id']
-                if mmi['tool_id'] is not None:
-                    tool_id = mmi['tool_id']
-            else:
-                logging.fatal(f"Several metrics registered at challenge {the_challenge['_id']} (acronym {the_challenge['acronym']}) matched from {dataset['metrics']['metric_id']} at dataset {dataset['_id']} . Fix the challenge declaration.")
-                should_end.append((the_challenge['_id'], the_challenge['acronym']))
-                continue
-                
-
+            # Declaring the assessment dependency
             valid_data["depends_on"] = {
-                "tool_id": tool_id,
                 "rel_dataset_ids": list_oeb_datasets,
                 "metrics_id": metric_id
             }
+            # There could be some corner case where no tool_id was declared
+            # when the assessment metrics categories were set
+            if found_tool_id is not None:
+                valid_data["depends_on"]["tool_id"] = found_tool_id
 
             # add data version
-            valid_data["version"] = version
+            valid_data["version"] = pvc.p_config.data_version
             
             # add dataset contacts ids, based on already processed data
             valid_data["dataset_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
-            logging.info('Processed "' + str(dataset["_id"]) + '"...')
+            self.logger.info('Processed "' + str(dataset["_id"]) + '"...')
 
-            valid_assessment_datasets.append(valid_data)
+            valid_assessment_tuples.append(
+                AssessmentTuple(
+                    assessment_dataset=valid_data,
+                    pt=pvc,
+                )
+            )
 
         if len(should_end) > 0:
-            logging.fatal(f"Several issues found related to metrics associated to the challenges {should_end}. Please fix all of them")
+            self.logger.critical(f"Several {len(should_end)} issues found related to metrics associated to the challenges {should_end}. Please fix all of them")
             sys.exit()
         
-        return valid_assessment_datasets
+        return valid_assessment_tuples
 
-    def build_metrics_events(self, assessment_datasets, valid_participant_data):
+    def build_metrics_events(self, valid_assessment_tuples: "Sequence[AssessmentTuple]") -> "Sequence[Mapping[str, Any]]":
 
-        logging.info(
+        self.logger.info(
             "\n\t==================================\n\t4. Generating Metrics Events\n\t==================================\n")
 
-        tool_id = valid_participant_data["depends_on"]["tool_id"]
-        
         # initialize the array of test events
         metrics_events = []
 
         # an  new event object will be created for each of the previously generated assessment datasets
-        for dataset in assessment_datasets:
+        for at in valid_assessment_tuples:
+            dataset = at.assessment_dataset
+            pvc  = at.pt
+            valid_participant_data = pvc.participant_dataset
+            tool_id = dataset["depends_on"]["tool_id"]
+        
             orig_id = dataset.get("orig_id",dataset["_id"])
             event_id = rchop(orig_id, "_A") + "_MetricsEvent"
             event = {
@@ -229,7 +253,7 @@ class Assessment():
                 "action_type": "MetricsEvent",
             }
 
-            logging.info(
+            self.logger.info(
                 'Building Event object for assessment "' + str(event["_id"]) + '"...')
 
             # add id of tool for the test event
@@ -268,5 +292,5 @@ class Assessment():
         return metrics_events
 
 
-def rchop(s, sub):
+def rchop(s: "str", sub: "str") -> "str":
     return s[:-len(sub)] if s.endswith(sub) else s
