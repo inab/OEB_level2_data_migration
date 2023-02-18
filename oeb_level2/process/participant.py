@@ -76,6 +76,7 @@ class ParticipantTuple(NamedTuple):
     p_config: "ParticipantConfig"
     participant_dataset: "Mapping[str, Any]"
     challenge_pairs: "Sequence[ChallengePair]"
+    community_acronym: "str"
 
 
 class Participant():
@@ -228,7 +229,8 @@ class Participant():
                 ParticipantTuple(
                     p_config=p_config,
                     participant_dataset=valid_participant_data,
-                    challenge_pairs=challenge_pairs
+                    challenge_pairs=challenge_pairs,
+                    community_acronym=min_participant_data["community_id"]
                 )
             )
 
@@ -250,7 +252,7 @@ class Participant():
         for pt in valid_participant_tuples:
             participant_id = pt.p_config.participant_id
             for challenge_pair in pt.challenge_pairs:
-                the_id = challenge_pair.label + "_testEvent_" + participant_id
+                the_id = pt.community_acronym + ":" + challenge_pair.label + "_testEvent_" + participant_id
                 self.logger.info(f'Building TestEvent "{the_id}"...')
 
                 event = {
