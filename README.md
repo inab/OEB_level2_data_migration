@@ -14,27 +14,33 @@ In order to use the migration tool, some requirements need to be fulfilled:
 ## Parameters
 
 ```
-usage: push_data_to_oeb.py [-h] -i CONFIG_JSON -cr OEB_SUBMIT_API_CREDS
-                           [-tk OEB_SUBMIT_API_TOKEN]
-                           [--val_output VAL_OUTPUT] [-o OUTPUT]
+usage: push_data_to_oeb.py [-h] -i DATASET_CONFIG_JSON -cr OEB_SUBMIT_API_CREDS [-tk OEB_SUBMIT_API_TOKEN]
+                           [--val_output VAL_OUTPUT] [-o SUBMIT_OUTPUT_FILE] [--dry-run] [--trust-rest-bdm]
+                           [--log-file LOGFILENAME] [-q] [-v] [-d]
+
+OEB Level 2 push_data_to_oeb
 
 optional arguments:
   -h, --help            show this help message and exit
-  -i CONFIG_JSON, --config_json CONFIG_JSON
-                        json file which contains all parameters for migration
+  -i DATASET_CONFIG_JSON, --dataset_config_json DATASET_CONFIG_JSON
+                        json file which contains all parameters for dataset consolidation and migration (default: None)
   -cr OEB_SUBMIT_API_CREDS, --oeb_submit_api_creds OEB_SUBMIT_API_CREDS
-                        Credentials and endpoints used to obtain a token for
-                        submission to oeb buffer DB
+                        Credentials and endpoints used to obtain a token for submission to oeb sandbox DB (default: None)
   -tk OEB_SUBMIT_API_TOKEN, --oeb_submit_api_token OEB_SUBMIT_API_TOKEN
-                        Token used for submission to oeb buffer DB. If it is
-                        not set, the credentials file provided with -cr must
-                        have defined 'clientId', 'grantType', 'user' and
-                        'pass'
+                        Token used for submission to oeb buffer DB. If it is not set, the credentials file provided with -cr
+                        must have defined 'clientId', 'grantType', 'user' and 'pass' (default: None)
   --val_output VAL_OUTPUT
-                        Save the JSON Schema validation output to a file
-  -o OUTPUT, --output OUTPUT
-                        Save what it was going to be submitted in this file,
-                        instead of sending them (like a dry-run)
+                        Save the JSON Schema validation output to a file (default: None)
+  -o SUBMIT_OUTPUT_FILE
+                        Save what it was going to be submitted in this file (default: None)
+  --dry-run             Only validate, do not submit (dry-run) (default: False)
+  --trust-rest-bdm      Trust on the copy of Benchmarking data model referred by server, fetching from it instead from GitHub.
+                        (default: False)
+  --log-file LOGFILENAME
+                        Store logging messages in a file instead of using standard error and standard output (default: None)
+  -q, --quiet           Only show engine warnings and errors (default: None)
+  -v, --verbose         Show verbose (informational) messages (default: None)
+  -d, --debug           Show debug messages (use with care, as it could potentially disclose sensitive contents) (default: None)
 ```
 
 ## Usage
@@ -58,5 +64,7 @@ An example of the dataset is [available here](minimal_dataset_examples/results_e
 
 ```bash
 # The command must be run with the virtual environment enabled
-python push_data_to_oeb.py -i config.json -cr auth_config.json
+
+# This one uplifts the dataset, but it does not load the data in the database
+python push_data_to_oeb.py -i config.json -cr auth_config.json --turst-rest-bdm --dry-run -o uplifted.json
 ```
