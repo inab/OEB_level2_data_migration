@@ -67,10 +67,12 @@ def validate_transform_and_push(
     val_result_filename: "Optional[str]" = None,
     output_filename: "Optional[str]" = None,
     dry_run: "bool" = False,
+    use_server_schemas: "bool" = False,
     log_filename: "Optional[str]" = None,
+    log_level: "int" = logging.INFO,
 ):
     loggingConfig = {
-        "level": logging.INFO,
+        "level": log_level,
 #        "format": LOGFORMAT,
     }
     # check whether config file exists and has all the required fields
@@ -347,11 +349,16 @@ def validate_transform_and_push(
     m_a_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_assessment_datasets, ch_id_to_label)
     if len(m_a_collisions) > 0:
         sys.exit(5)
-
-    data_model_repo_dir = migration_utils.doMaterializeRepo(
-        data_model_repo, data_model_tag)
-    data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
-    schemaMappings = migration_utils.load_schemas_from_repo(data_model_dir)
+    
+    if use_server_schemas:
+        logging.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
+        schemaMappings = migration_utils.load_schemas_from_server()
+    else:
+        logging.info("-> Fetching and using schemas from the repository")
+        data_model_repo_dir = migration_utils.doMaterializeRepo(
+            data_model_repo, data_model_tag)
+        data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
+        schemaMappings = migration_utils.load_schemas_from_repo(data_model_dir)
     
     # Get Benchmarking Event entry (in case it has to be updated)
     # benchmarking_event = migration_utils.fetchStagedEntry("BenchmarkingEvent", bench_event_id)
@@ -539,20 +546,62 @@ def main():
                         credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file")
-    parser.add_argument("-o", "--dry-run",
-                        help="Save what it was going to be submitted in this file, instead of \
-                        sending them (like a dry-run)")
+    parser.add_argument("-o",
+                        dest="submit_output_file",
+                        help="Save what it was going to be submitted in this file")
+    parser.add_argument("--dry-run",
+                        help="Only validate, do not submit (dry-run)",
+                        action="store_true")
+    parser.add_argument('--trust-rest-bdm',
+        dest='trustREST',
+        help="Trust on the copy of Benchmarking data model referred by server, fetching from it instead from GitHub.",
+        action="store_true"
+    )
     parser.add_argument(
-            "--log-file",
-            dest="logFilename",
-            help="Store logging messages in a file instead of using standard error and standard output",
+        "--log-file",
+        dest="logFilename",
+        help="Store logging messages in a file instead of using standard error and standard output",
+    )
+    parser.add_argument(
+        "-q",
+        "--quiet",
+        dest="logLevel",
+        action="store_const",
+        const=logging.WARNING,
+        help="Only show engine warnings and errors",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="logLevel",
+        action="store_const",
+        const=logging.INFO,
+        help="Show verbose (informational) messages",
+    )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        dest="logLevel",
+        action="store_const",
+        const=logging.DEBUG,
+        help="Show debug messages (use with care, as it could potentially disclose sensitive contents)",
     )
 
     args = parser.parse_args()
 
     config_json_filename = args.dataset_config_json
 
-    validate_transform_and_push(config_json_filename, args.oeb_submit_api_creds, args.oeb_submit_api_token, args.val_output, args.dry_run, args.dry_run is not None, args.logFilename)
+    validate_transform_and_push(
+        config_json_filename,
+        args.oeb_submit_api_creds,
+        args.oeb_submit_api_token,
+        args.val_output,
+        args.submit_output_file,
+        args.dry_run,
+        args.trustREST,
+        args.logFilename,
+        args.logLevel
+    )
 
 if __name__ == '__main__':
     main()
