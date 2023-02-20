@@ -77,7 +77,10 @@ class Aggregation():
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
             
-            challenge_label = agg_ch.get("_metadata", {}).get("level_2:challenge_id")
+            agg_metadata = agg_ch.get("_metadata")
+            if agg_metadata is None:
+                agg_metadata = {}
+            challenge_label = agg_metadata.get("level_2:challenge_id")
             if challenge_label is None:
                 challenge_label = agg_ch.get("acronym")
             
