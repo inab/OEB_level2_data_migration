@@ -23,6 +23,10 @@ if TYPE_CHECKING:
         Sequence,
     )
 
+from ..utils.catalogs import (
+    get_challenge_label_from_challenge,
+)
+
 class ChallengePair(NamedTuple):
     label: "str"
     entry: "Mapping[str, Any]"
@@ -97,6 +101,7 @@ class Participant():
         data_visibility, 
         file_location,
         community_id: "str",
+        community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
     ) -> "Sequence[ParticipantTuple]":
        
@@ -105,12 +110,9 @@ class Participant():
         
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
+        
         for challenge_graphql in challenges_graphql:
-            _metadata = challenge_graphql.get("_metadata")
-            if (_metadata is None):
-                oeb_challenges[challenge_graphql["acronym"]] = challenge_graphql
-            else:
-                oeb_challenges[challenge_graphql["_metadata"]["level_2:challenge_id"]] = challenge_graphql
+            oeb_challenges[get_challenge_label_from_challenge(challenge_graphql, community_prefix)] = challenge_graphql
         
         valid_participant_tuples = []
         should_exit_challenge = False

@@ -3,6 +3,7 @@
 import copy
 import inspect
 import logging
+import math
 import sys
 import os
 import datetime
@@ -12,7 +13,7 @@ from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
     DatasetsCatalog,
     gen_inline_data_label,
-    match_metric_from_label,
+    get_challenge_label_from_challenge,
     TestActionsCatalog,
 )
 
@@ -61,7 +62,7 @@ class Aggregation():
     
     def check_and_index_challenges(
         self,
-        community_acronym: "str",
+        community_prefix: "str",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
     ) -> "Sequence[AggregationTuple]":
@@ -77,21 +78,7 @@ class Aggregation():
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
             
-            agg_metadata = agg_ch.get("_metadata")
-            if agg_metadata is None:
-                agg_metadata = {}
-            challenge_label = agg_metadata.get("level_2:challenge_id")
-            if challenge_label is None:
-                challenge_label = agg_ch.get("acronym")
-            
-            if challenge_label is None:
-                challenge_label = agg_ch.get("orig_id")
-                # Very old school label
-                if challenge_label is not None:
-                    if challenge_label.startswith(community_acronym + ':'):
-                        challenge_label = challenge_label[len(community_acronym) + 1]
-                else:
-                    challenge_label = challenge_id
+            challenge_label = get_challenge_label_from_challenge(agg_ch, community_prefix)
             
             self.logger.info(f"Validating challenge {challenge_id} ({challenge_label})")
             
@@ -117,7 +104,7 @@ class Aggregation():
                 logger=self.logger,
                 level2_min_validator=self.level2_min_validator,
                 metrics_graphql=metrics_agg_graphql,
-                community_acronym=community_acronym,
+                community_prefix=community_prefix,
                 challenge=agg_ch,
             )
             
@@ -144,7 +131,7 @@ class Aggregation():
             )
             
             # Then the assessment datasets
-            d_catalog.merge_datasets(
+            ass_d_schema_pairs = d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("assessment_datasets", []),
                 d_categories=ass_cat,
             )
@@ -152,6 +139,8 @@ class Aggregation():
             # The test actions catalog, which depends on the dataset ones
             ta_catalog = TestActionsCatalog(
                 logger=self.logger,
+                community_prefix=community_prefix,
+                challenge_label=challenge_label,
                 d_catalog=d_catalog,
             )
             
@@ -175,10 +164,12 @@ class Aggregation():
             # their relationship. And check them, BTW
             
             # Then the assessment datasets
-            d_catalog.merge_datasets(
+            agg_d_schema_pairs = d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("aggregation_datasets", []),
                 d_categories=agg_cat,
             )
+            
+            agg_d_schema_dict = dict(agg_d_schema_pairs)
             
             # Complement this with the aggregation_test_actions
             ta_catalog.merge_test_actions(agg_ch.get("aggregation_test_actions", []))
@@ -198,6 +189,7 @@ class Aggregation():
             failed_agg_dataset = False
             for raw_dataset in idat_agg.datasets():
                 agg_dataset_id = raw_dataset["_id"]
+                found_schema_url = agg_d_schema_dict.get(agg_dataset_id)
                 metrics_trios = idat_agg.get_metrics_trio(agg_dataset_id)
                 if metrics_trios:
                     # Make an almost shallow copy of the entry
@@ -363,10 +355,29 @@ class Aggregation():
                                 s_raw_challenge_participants = sorted(raw_challenge_participants, key=lambda cp: cp["tool_id"])
                                 
                                 if s_new_challenge_participants != s_raw_challenge_participants:
-                                    rebuild_agg = True
                                     for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
-                                        if s_new != s_raw:
+                                        do_log_error = False
+                                        if set(s_new.keys()) != set(s_raw.keys()):
+                                            do_log_error = True
+                                        else:
+                                            for k in s_new.keys():
+                                                v_new = s_new[k]
+                                                v_raw = s_raw[k]
+                                                
+                                                if isinstance(v_new, str) or isinstance(v_raw, str):
+                                                    if v_new != v_raw:
+                                                        do_log_error = True
+                                                        break
+                                                elif not math.isclose(v_new, v_raw):
+                                                    do_log_error = True
+                                                    break
+                                        
+                                        if do_log_error:
+                                            rebuild_agg = True
                                             self.logger.error(f"Mismatch in {agg_dataset_id} challenge_participants\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
+                                    
+                                    if not rebuild_agg:
+                                        self.logger.info(f"False positive rounding mismatch in aggregation dataset {agg_dataset_id}.")
                         
                         # Time to compare
                         if rebuild_agg:
@@ -374,6 +385,10 @@ class Aggregation():
                             set_diff = rel_ids_set - regen_rel_ids_set
                             if len(set_diff) > 0:
                                 self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
+                            
+                            # Last, explicit schema_id
+                            if found_schema_url is not None:
+                                d_link["schema_url"] = found_schema_url
                             self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
                             failed_agg_dataset = True
             

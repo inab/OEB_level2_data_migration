@@ -35,6 +35,7 @@ from ..process.participant import (
 from ..process.assessment import Assessment
 from ..process.aggregation import Aggregation
 from ..utils.migration_utils import (
+    gen_ch_id_to_label,
     OpenEBenchUtils,
 )
 
@@ -334,12 +335,19 @@ def validate_transform_and_push(
     logging.info("-> Fetching the list of datasets")
     allDatasets = list(migration_utils.fetchStagedData('Dataset'))
     
+    # Prefixes about communities
+    stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
+    community_acronym = stagedCommunities[0]["acronym"]
+    community_prefix = community_acronym + ':'
+    
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
-    input_query_response, ch_id_to_label = migration_utils.graphql_query_OEB_DB(
+    input_query_response = migration_utils.graphql_query_OEB_DB(
         "input",
         bench_event_id,
     )
+
+    ch_id_to_label = gen_ch_id_to_label(input_query_response["getChallenges"], community_prefix)
     
     logging.info("-> Early minimal participant datasets check")
     m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label)
@@ -384,6 +392,7 @@ def validate_transform_and_push(
         data_visibility,
         file_location, 
         community_id,
+        community_prefix,
         tool_mapping
     )
     
@@ -405,7 +414,7 @@ def validate_transform_and_push(
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about metrics reference and assessments")
-    metrics_reference_query_response, _ = migration_utils.graphql_query_OEB_DB(
+    metrics_reference_query_response = migration_utils.graphql_query_OEB_DB(
         "metrics_reference",
         bench_event_id,
     )
@@ -432,7 +441,8 @@ def validate_transform_and_push(
         stagedAssessmentDatasets,
         min_assessment_datasets, 
         data_visibility,
-        valid_participant_tuples
+        valid_participant_tuples,
+        community_prefix,
     )
     
     logging.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
@@ -455,7 +465,7 @@ def validate_transform_and_push(
     #AGGREGATION DATASETS & AGGREGATION EVENT
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about aggregations")
-    aggregation_query_response, _ = migration_utils.graphql_query_OEB_DB(
+    aggregation_query_response = migration_utils.graphql_query_OEB_DB(
         "aggregation",
         bench_event_id,
     )
@@ -463,15 +473,12 @@ def validate_transform_and_push(
     # Needed to better consolidate
     stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
     
-    # Prefixes about communities
-    stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
-    
     logging.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
     process_aggregations = Aggregation(schemaMappings, migration_utils)
     
     # Check and index challenges and their main components
     agg_challenges = process_aggregations.check_and_index_challenges(
-        stagedCommunities[0]["acronym"],
+        community_prefix,
         aggregation_query_response["data"]["getChallenges"],
         aggregation_query_response["data"]["getMetrics"],
     )

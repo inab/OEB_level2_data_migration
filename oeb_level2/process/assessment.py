@@ -11,6 +11,7 @@ import re
 from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
     gen_challenge_assessment_metrics_dict,
+    get_challenge_label_from_challenge,
     match_metric_from_label,
 )
 
@@ -42,7 +43,7 @@ class Assessment():
         )
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility: "str", valid_participant_tuples: "Sequence[ParticipantTuple]") -> "Sequence[AssessmentTuple]":
+    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility: "str", valid_participant_tuples: "Sequence[ParticipantTuple]", community_prefix: "str") -> "Sequence[AssessmentTuple]":
         valid_participants = {}
         for pvc in valid_participant_tuples:
             valid_participants[pvc.p_config.participant_id] = pvc
@@ -60,11 +61,7 @@ class Assessment():
         # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
         for challenge in challenges_graphql:
-            _metadata = challenge.get("_metadata")
-            if (_metadata is None):
-                oeb_challenges[challenge["acronym"]] = challenge
-            else:
-                oeb_challenges[challenge["_metadata"]["level_2:challenge_id"]] = challenge
+            oeb_challenges[get_challenge_label_from_challenge(challenge, community_prefix)] = challenge
 
         valid_assessment_tuples = []
         should_end = []
@@ -188,7 +185,7 @@ class Assessment():
             metric_id, found_tool_id, _ = match_metric_from_label(
                 logger=self.logger,
                 metrics_graphql=metrics_graphql,
-                community_acronym=dataset['community_id'],
+                community_prefix=community_prefix,
                 metrics_label=dataset["metrics"]["metric_id"],
                 challenge_id=the_challenge['_id'],
                 challenge_acronym=the_challenge['acronym'],

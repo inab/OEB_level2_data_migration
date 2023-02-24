@@ -6,6 +6,8 @@ import logging
 import re
 import sys
 
+from oebtools.fetch import OEB_ID_PREFIX
+
 from ..schemas import (
     AGGREGATION_2D_PLOT_SCHEMA_ID,
     AGGREGATION_BAR_PLOT_SCHEMA_ID,
@@ -28,6 +30,25 @@ if TYPE_CHECKING:
         Tuple,
     )
 
+def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", community_prefix: "str") -> "str":
+    challenge_label = the_challenge.get("acronym")
+    _metadata = the_challenge.get("_metadata")
+    if isinstance(_metadata, dict):
+        the_label = _metadata.get("level_2:challenge_id")
+        if the_label is not None:
+            challenge_label = the_label
+    
+    if challenge_label is None:
+        # Very old school label
+        challenge_label = the_challenge.get("orig_id")
+        if challenge_label is not None:
+            if challenge_label.startswith(community_prefix):
+                challenge_label = challenge_label[len(community_prefix):]
+        else:
+            challenge_label = the_challenge["_id"]
+    
+    return challenge_label
+    
 def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") -> "Mapping[str, Mapping[str, str]]":
     for metrics_category in the_challenge.get("metrics_categories",[]):
         if metrics_category.get("category") == "assessment":
@@ -85,10 +106,9 @@ class MetricsTrio(NamedTuple):
     tool_id: "Optional[str]"
     proposed_label: "str"
 
-def match_metric_from_label(logger, metrics_graphql, community_acronym: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Union[Tuple[None, None, None], MetricsTrio]":
+def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Union[Tuple[None, None, None], MetricsTrio]":
     # Select the metrics just "guessing"
     guessed_metrics = []
-    community_prefix = community_acronym + ':'
     dataset_metrics_id_u = metrics_label.upper()
     for metric in metrics_graphql:
         # Could the metrics label match the metrics id?
@@ -157,6 +177,22 @@ def match_metric_from_label(logger, metrics_graphql, community_acronym: "str", m
         proposed_label=proposed_label,
     )
 
+
+DATASET_ORIG_ID_SUFFIX = {
+    "participant": "_P",
+    "assessment": "_A",
+}
+
+TEST_ACTION_ORIG_ID_SUFFIX = {
+    "AggregationEvent": "_Event",
+    "MetricsEvent": "_MetricsEvent",
+}
+
+DATASET_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['Dataset']
+TEST_ACTION_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['TestAction']
+
+TEST_EVENT_INFIX = '_testEvent_'
+
 @dataclasses.dataclass
 class IndexedDatasets:
     # The dataset type of all the datasets
@@ -166,8 +202,9 @@ class IndexedDatasets:
     # Validator for inline data
     level2_min_validator: "Any"
     metrics_graphql: "Sequence[Mapping[str, Any]]"
-    community_acronym: "str"
+    community_prefix: "str"
     challenge: "Mapping[str, Any]"
+    challenge_label: "str"
     cam_d: "Optional[Mapping[str,str]]"
     # dataset categories
     d_categories: "Optional[Sequence[]]"
@@ -186,7 +223,7 @@ class IndexedDatasets:
     # Maps datasets to lists of metric mappings
     metrics_by_d: "MutableMapping[str, Sequence[MetricsTrio]]" = dataclasses.field(default_factory=dict)
     
-    def index_dataset(self, raw_dataset: "Mapping[str, Any]") -> "Optional[IndexedDatasets]":
+    def index_dataset(self, raw_dataset: "Mapping[str, Any]") -> "Union[Literal[None], Tuple[IndexedDatasets, Optional[str]]]":
         d_type = raw_dataset["type"]
         
         if d_type != self.type:
@@ -204,10 +241,30 @@ class IndexedDatasets:
         if d_pos is None:
             d_pos = self.d_dict.get(index_id)
         
+        # Restrictions at the dataset level
+        id_to_check = None
+        if index_id_orig is not None:
+            id_to_check = index_id_orig
+        if (id_to_check is None) and not index_id.startswith(DATASET_ID_PREFIX):
+            id_to_check = index_id
+        
+        if id_to_check is not None:
+            if len(raw_dataset.get("challenge_ids",[])) == 1:
+                if not id_to_check.startswith(self.community_prefix):
+                    self.logger.warning(f"Dataset id {id_to_check} (type {self.type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+        
+            expected_suffix = DATASET_ORIG_ID_SUFFIX.get(self.type)
+            if (expected_suffix is not None) and not id_to_check.endswith(expected_suffix):
+                self.logger.warning(f"Dataset id {id_to_check} (type {self.type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
+        
         # Some validations
         # Validating the category where it matches
         d_on_metrics_id = None
         if is_assessment or is_aggregation:
+            raw_challenge_ids = raw_dataset.get("challenge_ids",[])
+            if len(raw_challenge_ids) > 1:
+                self.logger.warning(f"The number of challenges for dataset {index_id} ({index_id_orig} , type {self.type}) should be 1, but it is {len(raw_challenge_ids)}. Fix the entry keeping only the rightful challenge id ({self.challenge['_id']})")
+            
             d_on = raw_dataset.get("depends_on", {})
             d_on_metrics_id = d_on.get("metrics_id")
             d_on_tool_id = d_on.get("tool_id")
@@ -240,6 +297,7 @@ class IndexedDatasets:
         # Some additional validations for inline data
         o_datalink = raw_dataset.get("datalink")
         inline_data = None
+        found_schema_url = None
         if isinstance(o_datalink, dict):
             inline_data = o_datalink.get("inline_data")
             # Is this dataset an inline one?
@@ -271,6 +329,7 @@ class IndexedDatasets:
                     }, guess_unmatched=inline_schemas)
                     assert len(config_val_list) > 0
                     config_val_block = config_val_list[0]
+                    found_schema_url = config_val_block.get("schema_id")
                     config_val_block_errors = list(filter(lambda ve: (schema_url is None) or (ve.get("schema_id") == schema_url), config_val_block.get("errors", [])))
                     
                     if len(config_val_block_errors) > 0:
@@ -308,7 +367,7 @@ class IndexedDatasets:
                     x_trio = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
-                        community_acronym=self.community_acronym,
+                        community_prefix=self.community_prefix,
                         metrics_label=x_axis_metric_label,
                         challenge_id=self.challenge['_id'],
                         challenge_acronym=self.challenge['acronym'],
@@ -321,7 +380,7 @@ class IndexedDatasets:
                     y_trio = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
-                        community_acronym=self.community_acronym,
+                        community_prefix=self.community_prefix,
                         metrics_label=y_axis_metric_label,
                         challenge_id=self.challenge['_id'],
                         challenge_acronym=self.challenge['acronym'],
@@ -353,7 +412,7 @@ class IndexedDatasets:
                     trio = match_metric_from_label(
                         logger=self.logger,
                         metrics_graphql=self.metrics_graphql,
-                        community_acronym=self.community_acronym,
+                        community_prefix=self.community_prefix,
                         metrics_label=metrics_label,
                         challenge_id=self.challenge['_id'],
                         challenge_acronym=self.challenge['acronym'],
@@ -394,7 +453,7 @@ class IndexedDatasets:
             # Overwrite tracked dataset with future version
             self.d_list[d_pos] = raw_dataset
         
-        return self
+        return index_id, found_schema_url
     
     def get(self, dataset_id: "str") -> "Optional[Mapping[str, Any]]":
         the_id = self.d_dict.get(dataset_id)
@@ -420,12 +479,12 @@ class DatasetsCatalog:
     # Level2 min validator
     level2_min_validator: "Any" = None
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
-    community_acronym: "str" = ""
+    community_prefix: "str" = ""
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
-    def merge_datasets(self, raw_datasets: "Iterator[Mapping[str, Any]]", d_categories = None) -> "int":
-        num_indexed = 0
+    def merge_datasets(self, raw_datasets: "Iterator[Mapping[str, Any]]", d_categories = None) -> "Sequence[Tuple[str, str]]":
+        d_indexed = []
         for raw_dataset in raw_datasets:
             d_type = raw_dataset["type"]
             
@@ -442,19 +501,21 @@ class DatasetsCatalog:
                     logger=self.logger,
                     metrics_graphql=self.metrics_graphql,
                     level2_min_validator=self.level2_min_validator,
-                    community_acronym=self.community_acronym,
+                    community_prefix=self.community_prefix,
                     challenge=self.challenge,
+                    challenge_label=get_challenge_label_from_challenge(self.challenge, self.community_prefix),
                     cam_d=cam_d,
                     d_categories=d_categories,
                 )
                 self.catalogs[d_type] = idat
             
-            if idat.index_dataset(raw_dataset) is not None:
+            res_index = idat.index_dataset(raw_dataset)
+            if res_index is not None:
                 # Count only the indexed ones
-                num_indexed += 1
+                d_indexed.append(res_index)
                 self.check_dataset_depends_on(raw_dataset)
         
-        return num_indexed
+        return d_indexed
     
     def check_dataset_depends_on(self, raw_dataset: "Mapping[str, Any]") -> "bool":
             d_type = raw_dataset["type"]
@@ -527,6 +588,8 @@ class IndexedTestActions:
     action_type: "str"
     in_d_catalog: "Optional[IndexedDatasets]"
     out_d_catalog: "Optional[IndexedDatasets]"
+    community_prefix: "str"
+    challenge_label: "str"
     # Which logger to use
     logger: "Any" = logging
     
@@ -556,6 +619,25 @@ class IndexedTestActions:
         ter_pos = self.a_dict.get(index_id_orig)
         if ter_pos is None:
             ter_pos = self.a_dict.get(index_id)
+        
+        # Restrictions at the dataset level
+        id_to_check = None
+        if index_id_orig is not None:
+            id_to_check = index_id_orig
+        if (id_to_check is None) and not index_id.startswith(TEST_ACTION_ID_PREFIX):
+            id_to_check = index_id
+        
+        if id_to_check is not None:
+            if not id_to_check.startswith(self.community_prefix):
+                self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+            elif self.action_type == "TestEvent":
+                test_event_prefix = self.community_prefix + self.challenge_label + TEST_EVENT_INFIX
+                if not id_to_check.startswith(test_event_prefix):
+                    self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not start with the test action prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+            
+            expected_suffix = TEST_ACTION_ORIG_ID_SUFFIX.get(self.action_type)
+            if (expected_suffix is not None) and not id_to_check.endswith(expected_suffix):
+                self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
         
         # This is needed to check the provenance, as
         # all the outgoing datasets should depend on this tool_id
@@ -665,6 +747,8 @@ ActionType2InOutDatasetTypes = {
 class TestActionsCatalog:
     d_catalog: "DatasetsCatalog" = dataclasses.field(default_factory=DatasetsCatalog)
     catalogs: "MutableMapping[str, IndexedTestActions]" = dataclasses.field(default_factory=dict)
+    community_prefix: "str" = ""
+    challenge_label: "str" = ""
     # Which logger to use
     logger: "Any" = logging
     
@@ -691,6 +775,8 @@ class TestActionsCatalog:
                     in_d_catalog=in_d_catalog,
                     out_d_catalog=out_d_catalog,
                     other_d_catalogs=other_d_catalogs,
+                    community_prefix=self.community_prefix,
+                    challenge_label=self.challenge_label,
                     logger=self.logger
                 )
                 self.catalogs[a_type] = ita

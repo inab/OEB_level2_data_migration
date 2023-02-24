@@ -38,6 +38,23 @@ from ..schemas import (
     create_validator_for_oeb_level2,
 )
 
+from .catalogs import (
+    get_challenge_label_from_challenge,
+)
+
+
+def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", community_prefix: "str") -> "Mapping[str, str]":
+    ch_id_to_label = {}
+    for challenge in challenges:
+        challenge_label = get_challenge_label_from_challenge(challenge, community_prefix)
+        ch_id_to_label[challenge["_id"]] = challenge_label
+        ch_orig_id = challenge.get("orig_id")
+        if ch_orig_id is not None:
+            ch_id_to_label[ch_orig_id] = challenge_label
+    
+    return ch_id_to_label
+
+
 GRAPHQL_POSTFIX = "/graphql"
 
 class OpenEBenchUtils():
@@ -143,7 +160,7 @@ class OpenEBenchUtils():
         )
 
     # function that retrieves all the required metadata from OEB database
-    def graphql_query_OEB_DB(self, data_type, bench_event_id) -> "Tuple[Mapping[str, Any], Mapping[str, Mapping[str, Any]]]":
+    def graphql_query_OEB_DB(self, data_type: "str", bench_event_id: "str") -> "Tuple[Mapping[str, Any], Mapping[str, Mapping[str, Any]]]":
 
         if data_type == "input":
 #            }
@@ -475,7 +492,6 @@ class OpenEBenchUtils():
             # Deserializing _metadata
             challenges = data.get('getChallenges')
             # mapping from challenge _id to challenge label
-            ch_id_to_label = {}
             if challenges is not None:
                 for challenge in challenges:
                     metadata = challenge.get('_metadata')
@@ -485,20 +501,6 @@ class OpenEBenchUtils():
                         challenge['_metadata'] = challenge_metadata
                     else:
                         challenge_metadata = None
-                    
-                    # Rescuing the challenge label
-                    if isinstance(challenge_metadata, dict):
-                        challenge_label = challenge_metadata.get("level_2:challenge_id")
-                    else:
-                        challenge_label = None
-                    
-                    if challenge_label is None:
-                        challenge_label = challenge["acronym"]
-                    
-                    ch_id_to_label[challenge["_id"]] = challenge_label
-                    ch_orig_id = challenge.get("orig_id")
-                    if ch_orig_id is not None:
-                        ch_id_to_label[ch_orig_id] = challenge_label
                     
                     # Deserializing inline_data
                     datasets = challenge.get('datasets',[])
@@ -531,7 +533,7 @@ class OpenEBenchUtils():
                     if isinstance(metadata,str):
                         metric['_metadata'] = json.loads(metadata)
             
-            return response, ch_id_to_label
+            return response
         except Exception as e:
 
             self.logger.exception(e)
