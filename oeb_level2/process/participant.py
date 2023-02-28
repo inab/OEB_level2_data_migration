@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import inspect
 import logging
 import sys
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
         Optional,
         Sequence,
     )
+    from ..utils.migration_utils import OpenEBenchUtils
 
 from ..utils.catalogs import (
     get_challenge_label_from_challenge,
@@ -85,7 +87,7 @@ class ParticipantTuple(NamedTuple):
 
 class Participant():
 
-    def __init__(self, schemaMappings):
+    def __init__(self, schemaMappings: "Mapping[str, str]"):
 
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
@@ -96,11 +98,13 @@ class Participant():
 
     def build_participant_dataset(
         self,
-        challenges_graphql,
-        min_participant_dataset,
+        challenges_graphql: "Sequence[Mapping[str, Any]]",
+        staged_participant_datasets: "Sequence[Mapping[str, Any]]",
+        min_participant_dataset: "Sequence[Mapping[str, Any]]",
         data_visibility, 
         file_location,
         community_id: "str",
+        benchmarking_event_prefix: "str",
         community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
     ) -> "Sequence[ParticipantTuple]":
@@ -112,17 +116,34 @@ class Participant():
         oeb_challenges = {}
         
         for challenge_graphql in challenges_graphql:
-            oeb_challenges[get_challenge_label_from_challenge(challenge_graphql, community_prefix)] = challenge_graphql
+            oeb_challenges[get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, community_prefix)] = challenge_graphql
+
+        stagedMap = dict()
+        for staged_participant_dataset in staged_participant_datasets:
+            stagedMap[staged_participant_dataset['orig_id']] = staged_participant_dataset
         
         valid_participant_tuples = []
         should_exit_challenge = False
         for min_participant_data in min_participant_dataset:
+            the_id = min_participant_data["_id"]
+            
+            stagedEntry = stagedMap.get(the_id)
             # initialize new dataset object
-            valid_participant_data = {
-                "_id": min_participant_data["_id"],
-                "type": "participant"
-            }
-
+            if stagedEntry is None:
+                valid_participant_data = {
+                    "_id": the_id,
+                    "type": "participant"
+                }
+            else:
+                valid_participant_data = {
+                    "_id": stagedEntry["_id"],
+                    "type": "participant",
+                    "orig_id": the_id,
+                }
+                staged_dates = stagedEntry.get("dates")
+                if staged_dates is not None:
+                    valid_participant_data["dates"] = copy.copy(staged_dates)
+            
             # add dataset visibility
             valid_participant_data["visibility"] = data_visibility
 
@@ -173,7 +194,13 @@ class Participant():
             if should_exit:
                 should_exit_challenge = True
                 continue
-
+            
+            if stagedEntry is not None:
+                cis = set(stagedEntry["challenge_ids"])
+                cis.update(execution_challenges)
+                execution_challenges = sorted(cis)
+            else:
+                execution_challenges.sort()
             valid_participant_data["challenge_ids"] = execution_challenges
 
             # select input datasets related to the challenges
@@ -183,10 +210,8 @@ class Participant():
                     rel_oeb_datasets.add(input_data["_id"])
 
             # add data registration dates
-            valid_participant_data["dates"] = {
-                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
-                "modification": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
-            }
+            modtime = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            valid_participant_data.setdefault("dates", {"creation": modtime})["modification"] = modtime
 
             # add participant's file permanent location
             valid_participant_data["datalink"] = min_participant_data["datalink"]

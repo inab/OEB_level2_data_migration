@@ -50,7 +50,7 @@ class AggregationTuple(NamedTuple):
 
 class Aggregation():
 
-    def __init__(self, schemaMappings, migration_utils: "OpenEBenchUtils"):
+    def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
 
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
@@ -63,6 +63,7 @@ class Aggregation():
     def check_and_index_challenges(
         self,
         community_prefix: "str",
+        benchmarking_event_prefix: "str",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
     ) -> "Sequence[AggregationTuple]":
@@ -78,9 +79,22 @@ class Aggregation():
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
             
-            challenge_label = get_challenge_label_from_challenge(agg_ch, community_prefix)
+            challenge_label = get_challenge_label_from_challenge(agg_ch, benchmarking_event_prefix, community_prefix)
             
             self.logger.info(f"Validating challenge {challenge_id} ({challenge_label})")
+            
+            challenge_orig_id = agg_ch.get("orig_id")
+            if challenge_orig_id is None or not challenge_orig_id.startswith(community_prefix):
+                self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {community_prefix}. Fix it.")
+            if challenge_orig_id is None or not challenge_orig_id.startswith(benchmarking_event_prefix):
+                self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {benchmarking_event_prefix}. Fix it.")
+
+            expected_ch_orig_id = benchmarking_event_prefix + challenge_label
+            if challenge_orig_id != expected_ch_orig_id:
+                self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It is suggested to be {expected_ch_orig_id}.")
+            
+            # The existing original id prevails over the suggested one
+            challenge_prefix = ("" if challenge_orig_id is None else challenge_orig_id) + "_"
             
             coll_ch = agg_challenges.get(challenge_label)
             if coll_ch is not None:
@@ -105,6 +119,8 @@ class Aggregation():
                 level2_min_validator=self.level2_min_validator,
                 metrics_graphql=metrics_agg_graphql,
                 community_prefix=community_prefix,
+                benchmarking_event_prefix=benchmarking_event_prefix,
+                challenge_prefix=challenge_prefix,
                 challenge=agg_ch,
             )
             
@@ -418,8 +434,8 @@ class Aggregation():
         min_aggregation_datasets: "Sequence[Mapping[str, Any]]",
         agg_challenges: "Mapping[str, IndexedAggregation]",
         valid_assessment_tuples: "Sequence[AssessmentTuple]",
-        valid_test_events: "Sequence[Tuple[str, Any]]",
-        valid_metrics_events: "Sequence[Tuple[str, Any]]",
+        valid_test_events: "Sequence[Mapping[str, Any]]",
+        valid_metrics_events: "Sequence[Mapping[str, Any]]",
         workflow_tool_id: "str",
     ) -> "Sequence[AggregationTuple]":
         

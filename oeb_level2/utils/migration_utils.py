@@ -43,10 +43,10 @@ from .catalogs import (
 )
 
 
-def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", community_prefix: "str") -> "Mapping[str, str]":
+def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", benchmarking_event_prefix: "str", community_prefix: "str") -> "Mapping[str, str]":
     ch_id_to_label = {}
     for challenge in challenges:
-        challenge_label = get_challenge_label_from_challenge(challenge, community_prefix)
+        challenge_label = get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)
         ch_id_to_label[challenge["_id"]] = challenge_label
         ch_orig_id = challenge.get("orig_id")
         if ch_orig_id is not None:
@@ -134,6 +134,21 @@ class OpenEBenchUtils():
         self.schemaMappings = None
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
+
+    def gen_community_prefix(self, community: "Mapping[str, Any]") -> "str":
+        community_acronym = community["acronym"]
+        community_prefix = community_acronym + ':'
+        
+        return community_prefix
+
+    def gen_benchmarking_event_prefix(self, bench_event: "Mapping[str, Any]", community_prefix: "str") -> "str":
+        if not bench_event.get("orig_id", "").startswith(community_prefix):
+            self.logger.warning(f"Benchmarking event {bench_event['_id']} original id {bench_event.get('orig_id')} does not start with community prefix {community_prefix}")
+        
+        # Prefixes about benchmarking events
+        benchmarking_event_prefix = bench_event.get("orig_id", community_prefix) + "_"
+        
+        return benchmarking_event_prefix
 
     def doMaterializeRepo(self, git_uri, git_tag) -> "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]":
 

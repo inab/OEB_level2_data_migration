@@ -8,7 +8,7 @@
 
 [W] Original id from a challenge must start with the community acronym, followed by ':'.
 
-[W] Original id from a challenge must start with the benchmarking event original id, followed by '_', and then the challenge label.
+[W] Original id from a challenge must start with the benchmarking event original id, followed by '_', and then should be followed by the challenge label.
 
 * The challenge label is derived using next rules, by their precedence:
 

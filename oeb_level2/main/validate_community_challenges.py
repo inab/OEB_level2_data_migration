@@ -24,7 +24,6 @@ from ..process.participant import (
 from ..process.assessment import Assessment
 from ..process.aggregation import Aggregation
 from ..utils.migration_utils import (
-    gen_ch_id_to_label,
     OpenEBenchUtils,
 )
 
@@ -90,6 +89,7 @@ def validate_challenges(
     # get data model to validate against
     migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token, level2_min_validator=level2_min_validator)
     
+    logging.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
     schemaMappings = migration_utils.load_schemas_from_server()
 
     logging.info("-> Querying graphql about aggregations")
@@ -104,8 +104,9 @@ def validate_challenges(
     
     # Prefixes about communities
     stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
-    community_acronym = stagedCommunities[0]["acronym"]
-    community_prefix = community_acronym + ':'
+    
+    community_prefix = migration_utils.gen_community_prefix(stagedCommunities[0])
+    benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
     
     logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
     process_aggregations = Aggregation(schemaMappings, migration_utils)
@@ -133,6 +134,7 @@ def validate_challenges(
     # Check and index challenges and their main components
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
+        benchmarking_event_prefix,
         challenges_graphql,
         aggregation_query_response["data"]["getMetrics"],
     )    

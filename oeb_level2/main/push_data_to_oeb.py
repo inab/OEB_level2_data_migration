@@ -337,8 +337,7 @@ def validate_transform_and_push(
     
     # Prefixes about communities
     stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
-    community_acronym = stagedCommunities[0]["acronym"]
-    community_prefix = community_acronym + ':'
+    community_prefix = migration_utils.gen_community_prefix(stagedCommunities[0])
     
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
@@ -346,8 +345,11 @@ def validate_transform_and_push(
         "input",
         bench_event_id,
     )
+    
+    bench_event = input_query_response["data"]["getBenchmarkingEvents"][0]
+    benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
 
-    ch_id_to_label = gen_ch_id_to_label(input_query_response["getChallenges"], community_prefix)
+    ch_id_to_label = gen_ch_id_to_label(input_query_response["data"]["getChallenges"], benchmarking_event_prefix, community_prefix)
     
     logging.info("-> Early minimal participant datasets check")
     m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label)
@@ -385,13 +387,16 @@ def validate_transform_and_push(
     #PARTICIPANT DATASETS
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
     process_participant = Participant(schemaMappings)
-    community_id = input_query_response["data"]["getBenchmarkingEvents"][0]["community_id"]
+    community_id = bench_event["community_id"]
+    stagedParticipantDatasets = list(migration_utils.filter_by(allDatasets, {"community_ids": [ community_id ], "type": [ "participant" ]}))
     valid_participant_tuples = process_participant.build_participant_dataset(
         input_query_response["data"]["getChallenges"],
+        stagedParticipantDatasets,
         min_participant_dataset,
         data_visibility,
         file_location, 
         community_id,
+        benchmarking_event_prefix,
         community_prefix,
         tool_mapping
     )
@@ -442,6 +447,7 @@ def validate_transform_and_push(
         min_assessment_datasets, 
         data_visibility,
         valid_participant_tuples,
+        benchmarking_event_prefix,
         community_prefix,
     )
     
@@ -479,6 +485,7 @@ def validate_transform_and_push(
     # Check and index challenges and their main components
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
+        benchmarking_event_prefix,
         aggregation_query_response["data"]["getChallenges"],
         aggregation_query_response["data"]["getMetrics"],
     )

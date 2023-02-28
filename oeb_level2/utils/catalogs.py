@@ -30,7 +30,7 @@ if TYPE_CHECKING:
         Tuple,
     )
 
-def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", community_prefix: "str") -> "str":
+def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", benchmarking_event_prefix: "str", community_prefix: "str") -> "str":
     challenge_label = the_challenge.get("acronym")
     _metadata = the_challenge.get("_metadata")
     if isinstance(_metadata, dict):
@@ -42,7 +42,9 @@ def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", commu
         # Very old school label
         challenge_label = the_challenge.get("orig_id")
         if challenge_label is not None:
-            if challenge_label.startswith(community_prefix):
+            if challenge_label.startswith(benchmarking_event_prefix):
+                challenge_label = challenge_label[len(benchmarking_event_prefix):]
+            elif challenge_label.startswith(community_prefix):
                 challenge_label = challenge_label[len(community_prefix):]
         else:
             challenge_label = the_challenge["_id"]
@@ -480,6 +482,8 @@ class DatasetsCatalog:
     level2_min_validator: "Any" = None
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
     community_prefix: "str" = ""
+    benchmarking_event_prefix: "str" = ""
+    challenge_prefix: "str" = ""
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
@@ -503,7 +507,7 @@ class DatasetsCatalog:
                     level2_min_validator=self.level2_min_validator,
                     community_prefix=self.community_prefix,
                     challenge=self.challenge,
-                    challenge_label=get_challenge_label_from_challenge(self.challenge, self.community_prefix),
+                    challenge_label=get_challenge_label_from_challenge(self.challenge, self.benchmarking_event_prefix, self.community_prefix),
                     cam_d=cam_d,
                     d_categories=d_categories,
                 )

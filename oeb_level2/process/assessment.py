@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         Tuple,
     )
     from .participant import ParticipantTuple
+    from ..utils.migration_utils import OpenEBenchUtils
 
 class AssessmentTuple(NamedTuple):
     assessment_dataset: "Mapping[str, Any]"
@@ -35,7 +36,7 @@ class AssessmentTuple(NamedTuple):
 
 class Assessment():
 
-    def __init__(self, schemaMappings):
+    def __init__(self, schemaMappings: "Mapping[str, str]"):
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
             + "::"
@@ -43,7 +44,18 @@ class Assessment():
         )
         self.schemaMappings = schemaMappings
 
-    def build_assessment_datasets(self, challenges_graphql, metrics_graphql, stagedAssessmentDatasets, assessment_datasets, data_visibility: "str", valid_participant_tuples: "Sequence[ParticipantTuple]", community_prefix: "str") -> "Sequence[AssessmentTuple]":
+    def build_assessment_datasets(
+        self,
+        challenges_graphql: "Sequence[Mapping[str, Any]]",
+        metrics_graphql,
+        staged_assessment_datasets: "Sequence[Mapping[str, Any]]",
+        min_assessment_datasets: "Sequence[Mapping[str, Any]]",
+        data_visibility: "str",
+        valid_participant_tuples: "Sequence[ParticipantTuple]",
+        benchmarking_event_prefix: "str",
+        community_prefix: "str"
+    ) -> "Sequence[AssessmentTuple]":
+        
         valid_participants = {}
         for pvc in valid_participant_tuples:
             valid_participants[pvc.p_config.participant_id] = pvc
@@ -55,17 +67,17 @@ class Assessment():
         
         
         stagedMap = dict()
-        for stagedAssessmentDataset in stagedAssessmentDatasets:
-            stagedMap[stagedAssessmentDataset['orig_id']] = stagedAssessmentDataset
+        for staged_assessment_dataset in staged_assessment_datasets:
+            stagedMap[staged_assessment_dataset['orig_id']] = staged_assessment_dataset
         
         # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
         for challenge in challenges_graphql:
-            oeb_challenges[get_challenge_label_from_challenge(challenge, community_prefix)] = challenge
+            oeb_challenges[get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)] = challenge
 
         valid_assessment_tuples = []
         should_end = []
-        for dataset in assessment_datasets:
+        for dataset in min_assessment_datasets:
             assessment_participant_id = dataset.get("participant_id")
             pvc = valid_participants.get(assessment_participant_id)
             # If not found, next!!!!!!
