@@ -267,7 +267,7 @@ class Participant():
         
         return valid_participant_tuples
 
-    def build_test_events(self, valid_participant_tuples: "Sequence[ParticipantTuple]") -> "Sequence[Mapping[str, Any]]":
+    def build_test_events(self, valid_participant_tuples: "Sequence[ParticipantTuple]", indexed_challenges: "Mapping[str, IndexedChallenge]") -> "Sequence[Mapping[str, Any]]":
 
         self.logger.info(
             "\n\t==================================\n\t2. Generating Test Events\n\t==================================\n")
@@ -279,14 +279,31 @@ class Participant():
         for pt in valid_participant_tuples:
             participant_id = pt.p_config.participant_id
             for challenge_pair in pt.challenge_pairs:
+                indexed_challenge = indexed_challenges[challenge_pair.entry["_id"]]
                 the_id = pt.community_acronym + ":" + challenge_pair.label + "_testEvent_" + participant_id
                 self.logger.info(f'Building TestEvent "{the_id}"...')
 
-                event = {
-                    "_id": the_id,
-                    "_schema": self.schemaMappings["TestAction"],
-                    "action_type": "TestEvent",
-                }
+                ta_event = indexed_challenge.ta_catalog.get("TestEvent").get_by_original_id(the_id)
+                
+                if ta_event is None:
+                    event = {
+                        "_id": the_id,
+                        "_schema": self.schemaMappings["TestAction"],
+                        "action_type": "TestEvent",
+                    }
+                else:
+                    event = {
+                        "_id": ta_event["_id"],
+                        "orig_id": the_id,
+                        "_schema": self.schemaMappings["TestAction"],
+                        "action_type": "TestEvent",
+                    }
+                    staged_dates = ta_event.get("dates")
+                    if staged_dates is not None:
+                        event["dates"] = copy.copy(staged_dates)
+                    staged_metadata = ta_event.get("_metadata")
+                    if staged_metadata is not None:
+                        event["_metadata"] = staged_metadata
 
                 # add id of tool for the test event
                 event["tool_id"] = pt.participant_dataset["depends_on"]["tool_id"]
@@ -315,10 +332,8 @@ class Participant():
 
                 event["involved_datasets"] = involved_data
                 # add data registration dates
-                event["dates"] = {
-                    "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
-                    "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
-                }
+                modtime = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+                event.setdefault("dates", {"creation": modtime})["reception"] = modtime
 
                 # add dataset contacts ids, based on already processed data
                 event["test_contact_ids"] = pt.participant_dataset["dataset_contact_ids"]

@@ -239,7 +239,7 @@ class Assessment():
         
         return valid_assessment_tuples
 
-    def build_metrics_events(self, valid_assessment_tuples: "Sequence[AssessmentTuple]") -> "Sequence[Mapping[str, Any]]":
+    def build_metrics_events(self, valid_assessment_tuples: "Sequence[AssessmentTuple]", indexed_challenges: "Mapping[str, IndexedChallenge]") -> "Sequence[Mapping[str, Any]]":
 
         self.logger.info(
             "\n\t==================================\n\t4. Generating Metrics Events\n\t==================================\n")
@@ -256,11 +256,29 @@ class Assessment():
         
             orig_id = dataset.get("orig_id",dataset["_id"])
             event_id = rchop(orig_id, "_A") + "_MetricsEvent"
-            event = {
-                "_id": event_id,
-                "_schema": self.schemaMappings["TestAction"],
-                "action_type": "MetricsEvent",
-            }
+            
+            indexed_challenge = indexed_challenges[dataset["challenge_ids"][0]]
+            ta_event = indexed_challenge.ta_catalog.get("MetricsEvent").get_by_original_id(event_id)
+            
+            if ta_event is None:
+                event = {
+                    "_id": event_id,
+                    "_schema": self.schemaMappings["TestAction"],
+                    "action_type": "MetricsEvent",
+                }
+            else:
+                event = {
+                    "_id": ta_event["_id"],
+                    "orig_id": event_id,
+                    "_schema": self.schemaMappings["TestAction"],
+                    "action_type": "MetricsEvent",
+                }
+                staged_dates = ta_event.get("dates")
+                if staged_dates is not None:
+                    event["dates"] = copy.copy(staged_dates)
+                staged_metadata = ta_event.get("_metadata")
+                if staged_metadata is not None:
+                    event["_metadata"] = staged_metadata
 
             self.logger.info(
                 'Building Event object for assessment "' + str(event["_id"]) + '"...')
@@ -288,10 +306,8 @@ class Assessment():
 
             event["involved_datasets"] = involved_data
             # add data registration dates
-            event["dates"] = {
-                "creation": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat()),
-                "reception": str(datetime.now(timezone.utc).replace(microsecond=0).isoformat())
-            }
+            modtime = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+            event.setdefault("dates", {"creation": modtime})["reception"] = modtime
 
             # add dataset contacts ids, based on already processed data
             event["test_contact_ids"] = valid_participant_data["dataset_contact_ids"]

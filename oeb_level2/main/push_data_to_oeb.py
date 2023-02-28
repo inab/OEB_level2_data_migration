@@ -33,7 +33,10 @@ from ..process.participant import (
     ParticipantConfig,
 )
 from ..process.assessment import Assessment
-from ..process.aggregation import Aggregation
+from ..process.aggregation import (
+    Aggregation,
+    AggregationValidator,
+)
 from ..utils.migration_utils import (
     gen_ch_id_to_label,
     OpenEBenchUtils,
@@ -383,6 +386,24 @@ def validate_transform_and_push(
         min_participant_data, file_location, contacts[0], version_str)
     '''
     
+    # query remote OEB database to get offical ids from associated challenges, tools and contacts
+    logging.info("-> Querying graphql about aggregations")
+    aggregation_query_response = migration_utils.graphql_query_OEB_DB(
+        "aggregation",
+        bench_event_id,
+    )
+    
+    logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
+    process_aggregations = AggregationValidator(schemaMappings, migration_utils)
+    
+    # Check and index challenges and their main components
+    agg_challenges = process_aggregations.check_and_index_challenges(
+        community_prefix,
+        benchmarking_event_prefix,
+        aggregation_query_response["data"]["getChallenges"],
+        aggregation_query_response["data"]["getMetrics"],
+    )
+
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
@@ -414,7 +435,8 @@ def validate_transform_and_push(
     #TEST EVENT
     logging.info(f"-> Generating {len(valid_participant_tuples)} TestEvent test actions")
     valid_test_events = process_participant.build_test_events(
-        valid_participant_tuples
+        valid_participant_tuples,
+        agg_challenges
     )
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
@@ -464,34 +486,18 @@ def validate_transform_and_push(
 
     logging.info(f"-> Generating {len(valid_assessment_tuples)} MetricsEvent test actions")
     valid_metrics_events = process_assessments.build_metrics_events(
-        valid_assessment_tuples
+        valid_assessment_tuples,
+        agg_challenges
     )
     
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
-    # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    logging.info("-> Querying graphql about aggregations")
-    aggregation_query_response = migration_utils.graphql_query_OEB_DB(
-        "aggregation",
-        bench_event_id,
-    )
-    
-    # Needed to better consolidate
-    stagedAggregationDatasets = list(filter(lambda d: d.get('type') == "aggregation", stagedDatasets))
     
     logging.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
-    process_aggregations = Aggregation(schemaMappings, migration_utils)
     
-    # Check and index challenges and their main components
-    agg_challenges = process_aggregations.check_and_index_challenges(
-        community_prefix,
-        benchmarking_event_prefix,
-        aggregation_query_response["data"]["getChallenges"],
-        aggregation_query_response["data"]["getMetrics"],
-    )
-    
+    aggregations_builder = Aggregation(schemaMappings, migration_utils)
     # Now, build the aggregation datasets
-    valid_aggregation_tuples = process_aggregations.build_aggregation_datasets(
+    valid_aggregation_tuples = aggregations_builder.build_aggregation_datasets(
         community_id,
         min_aggregation_datasets,
         agg_challenges,
@@ -513,7 +519,7 @@ def validate_transform_and_push(
     if len(agg_d_collisions) > 0:
         sys.exit(5)
     
-    valid_aggregation_events = process_aggregations.build_aggregation_events(
+    valid_aggregation_events = aggregations_builder.build_aggregation_events(
         valid_aggregation_tuples,
         aggregation_query_response["data"]["getChallenges"],
 #        stagedEvents + aggregation_query_response["data"]["getTestActions"],

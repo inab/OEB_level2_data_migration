@@ -738,6 +738,13 @@ class IndexedTestActions:
     def get_by_outgoing_dataset(self, dataset_id: "str") -> "Optional[TestActionRel]":
         ter_pos = self.od_to_a.get(dataset_id)
         return self.a_list[ter_pos]  if ter_pos is not None else None
+    
+    def get_by_original_id(self, original_id: "str") -> "Optional[Mapping[str, Any]]":
+        a_pos = self.a_dict.get(original_id)
+        if a_pos is None:
+            return None
+        
+        return self.a_list[a_pos].action
             
 ActionType2InOutDatasetTypes = {
     # "SetupEvent": (None, ),

@@ -103,4 +103,8 @@
 
 [W] A test action original id must start with the challenge's original_id, followed by '_'.
 
-??[W] A test action original id must end with the action_type, prepended by '_'. 
+[W] A TestEvent test action original id must start with the challenge's original id , followed by '_testEvent_' and the metrics label.
+
+[W] A MetricsEvent test action original id must start with the original id of the generated assessment dataset, replacing the '_A' suffix with '_MetricsEvent'.
+
+[W] An AggregationEvent test action original id must start with the original id of the generated aggregation dataset, followed by '_Event'.

@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from .assessment import AssessmentTuple
     from ..utils.migration_utils import OpenEBenchUtils
 
-class IndexedAggregation(NamedTuple):
+class IndexedChallenge(NamedTuple):
     challenge: "Mapping[str, Any]"
     challenge_id: "str"
     challenge_label: "str"
@@ -44,11 +44,11 @@ class IndexedAggregation(NamedTuple):
 
 class AggregationTuple(NamedTuple):
     aggregation_dataset: "Mapping[str, Any]"
-    idx_challenge: "Optional[IndexedAggregation]"
+    idx_challenge: "Optional[IndexedChallenge]"
     at_l: "Sequence[AssessmentTuple]"
 
 
-class Aggregation():
+class AggregationValidator():
 
     def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
 
@@ -66,7 +66,7 @@ class Aggregation():
         benchmarking_event_prefix: "str",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
-    ) -> "Sequence[AggregationTuple]":
+    ) -> "Mapping[str, IndexedChallenge]":
     
         self.logger.info(
             "\n\t==================================\n\t5. Validating stored challenges\n\t==================================\n")
@@ -413,7 +413,7 @@ class Aggregation():
                 sys.exit(5)
             
             # Last, but not the least important
-            agg_challenges[challenge_id] = agg_challenges[challenge_label] = IndexedAggregation(
+            agg_challenges[challenge_id] = agg_challenges[challenge_label] = IndexedChallenge(
                 challenge=agg_ch,
                 challenge_id=challenge_id,
                 challenge_label=challenge_label,
@@ -428,11 +428,25 @@ class Aggregation():
         
         return agg_challenges
     
+        
+
+class Aggregation():
+
+    def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
+
+        self.logger = logging.getLogger(
+            dict(inspect.getmembers(self))["__module__"]
+            + "::"
+            + self.__class__.__name__
+        )
+        self.schemaMappings = schemaMappings
+        self.level2_min_validator = migration_utils.level2_min_validator
+    
     def build_aggregation_datasets(
         self,
         community_id: "str",
         min_aggregation_datasets: "Sequence[Mapping[str, Any]]",
-        agg_challenges: "Mapping[str, IndexedAggregation]",
+        agg_challenges: "Mapping[str, IndexedChallenge]",
         valid_assessment_tuples: "Sequence[AssessmentTuple]",
         valid_test_events: "Sequence[Mapping[str, Any]]",
         valid_metrics_events: "Sequence[Mapping[str, Any]]",
@@ -789,14 +803,32 @@ class Aggregation():
         # an  new event object will be created for each of the previously generated assessment datasets
         for agt in valid_aggregation_tuples:
             dataset = agt.aggregation_dataset
+            indexed_challenge = agt.idx_challenge
             
             orig_id = dataset.get("orig_id",dataset["_id"])
             event_id = orig_id + "_Event"
-            event = {
-                "_id": event_id,
-                "_schema": self.schemaMappings["TestAction"],
-                "action_type": "AggregationEvent",
-            }
+            
+            ta_event = indexed_challenge.ta_catalog.get("AggregationEvent").get_by_original_id(event_id)
+            
+            if ta_event is None:
+                event = {
+                    "_id": event_id,
+                    "_schema": self.schemaMappings["TestAction"],
+                    "action_type": "AggregationEvent",
+                }
+            else:
+                event = {
+                    "_id": ta_event["_id"],
+                    "orig_id": event_id,
+                    "_schema": self.schemaMappings["TestAction"],
+                    "action_type": "AggregationEvent",
+                }
+                staged_dates = ta_event.get("dates")
+                if staged_dates is not None:
+                    event["dates"] = copy.copy(staged_dates)
+                staged_metadata = ta_event.get("_metadata")
+                if staged_metadata is not None:
+                    event["_metadata"] = staged_metadata
 
             self.logger.info(
                 'Building Event object for aggregation "' + str(dataset["_id"]) + '"...')
@@ -825,10 +857,8 @@ class Aggregation():
             event["involved_datasets"] = involved_data
             
             # add data registration dates
-            event["dates"] = {
-                "creation": str(datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()),
-                "reception": str(datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat())
-            }
+            modtime = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
+            event.setdefault("dates", {"creation": modtime})["reception"] = modtime
 
             # add challenge managers as aggregation dataset contacts ids
             data_contacts = []

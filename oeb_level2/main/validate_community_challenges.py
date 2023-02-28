@@ -21,8 +21,7 @@ from ..process.participant import (
     Participant,
     ParticipantConfig,
 )
-from ..process.assessment import Assessment
-from ..process.aggregation import Aggregation
+from ..process.aggregation import AggregationValidator
 from ..utils.migration_utils import (
     OpenEBenchUtils,
 )
@@ -109,7 +108,7 @@ def validate_challenges(
     benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
     
     logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
-    process_aggregations = Aggregation(schemaMappings, migration_utils)
+    process_aggregations = AggregationValidator(schemaMappings, migration_utils)
     
     if len(challenge_ids) == 0:
         challenges_graphql = aggregation_query_response["data"]["getChallenges"]
