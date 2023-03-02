@@ -1,9 +1,13 @@
 {
-	"$id": "https://github.com/inab/OEB_level2_data_migration/aggregation-2d-plot",
+	"$id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
 	"$schema": "https://json-schema.org/draft/2019-09/schema",
-	"title": "Schema that defines an aggregation of metrics to feed several kinds of 2D plots in an aggregation dataset",
+	"title": "Schema that defines an aggregation of metrics focused on box-plots in an aggregation dataset",
 	"type": "object",
         "properties": {
+		"series_type": {
+			"type": "string",
+			"const": "aggregation-data-series"
+		},
 		"challenge_participants": {
 			"type": "array",
 			"items": {
@@ -14,23 +18,35 @@
 						"type": "string",
 						"minLength": 1
 					},
-					"metric_x": {
-						"type": "number"
-					},
-					"metric_y": {
-						"type": "number"
-					},
-					"stderr_x": {
-						"type": "number"
-					},
-					"stderr_y": {
-						"type": "number"
+					"metrics": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"metric": {
+									"title": "Label of the metric represented by this value",
+									"type": "string",
+									"minLength": 1
+								},
+								"metric_value": {
+									"type": "number"
+								},
+								"stderr": {
+									"type": "number"
+								}
+							},
+							"unevaluatedProperties": false,
+							"required": [
+								"metric",
+								"metric_value"
+							]
+						},
+						"minItems": 1
 					}
 				},
 				"required": [
 					"tool_id",
-					"metric_x",
-					"metric_y"
+					"metrics"
 				],
 				"unevaluatedProperties": false
 			},
@@ -42,20 +58,24 @@
                         "properties": {
 				"type": {
 					"type": "string",
-					"const": "2D-plot"
+					"enum": [
+						"2D-plot",
+						"box-plot",
+						"bar-plot"
+					]
 				},
-				"x_axis": {
-					"title": "x-axis metric label",
-					"type": "string",
-					"minLength": 1
-				},
-				"y_axis": {
-					"title": "y-axis metric label",
-					"type": "string",
-					"minLength": 1
+				"available_metrics":  {
+					"title": "Axis metrics labels",
+					"type": "array",
+					"items": {
+						"type": "string",
+						"minLength": 1
+					},
+					"uniqueItems": true,
+					"minItems": 1
 				},
 				"optimization": {
-					"title": "Chart representation optimization",
+					"title": "Chart representation optimization (valid for 2D-plot)",
 					"type": "string",
 					"enum": [
 						"top-left",
@@ -67,8 +87,7 @@
                         },
                         "required": [
 				"type",
-				"x_axis",
-				"y_axis"
+				"available_metrics"
                         ],
                         "unevaluatedProperties": false
                 },
@@ -99,6 +118,7 @@
 		}
         },
         "required": [
+		"series_type",
                 "challenge_participants",
                 "visualization"
         ],
