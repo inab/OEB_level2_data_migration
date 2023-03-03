@@ -38,21 +38,15 @@ from ..schemas import (
     create_validator_for_oeb_level2,
 )
 
-from .catalogs import (
-    get_challenge_label_from_challenge,
-)
+DATASET_ORIG_ID_SUFFIX = {
+    "participant": "_P",
+    "assessment": "_A",
+}
 
-
-def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", benchmarking_event_prefix: "str", community_prefix: "str") -> "Mapping[str, str]":
-    ch_id_to_label = {}
-    for challenge in challenges:
-        challenge_label = get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)
-        ch_id_to_label[challenge["_id"]] = challenge_label
-        ch_orig_id = challenge.get("orig_id")
-        if ch_orig_id is not None:
-            ch_id_to_label[ch_orig_id] = challenge_label
-    
-    return ch_id_to_label
+TEST_ACTION_ORIG_ID_SUFFIX = {
+    "AggregationEvent": "_Event",
+    "MetricsEvent": "_MetricsEvent",
+}
 
 
 GRAPHQL_POSTFIX = "/graphql"
@@ -61,6 +55,8 @@ class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
     DEFAULT_DATA_MODEL_DIR = "benchmarking_data_model"
+
+    TEST_EVENT_INFIX = '_testEvent_'
 
     def __init__(self, oeb_credentials: "Mapping[str, Any]", workdir: "str", oeb_token: "Optional[str]" = None, level2_min_validator: "Optional[Any]" = None):
         self.logger = logging.getLogger(
@@ -134,9 +130,13 @@ class OpenEBenchUtils():
         self.schemaMappings = None
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
+    
+    @staticmethod
+    def gen_community_prefix(community: "Mapping[str, Any]") -> "str":
+        return OpenEBenchUtils.gen_community_prefix_from_acronym(community["acronym"])
 
-    def gen_community_prefix(self, community: "Mapping[str, Any]") -> "str":
-        community_acronym = community["acronym"]
+    @staticmethod
+    def gen_community_prefix_from_acronym(community_acronym) -> "str":
         community_prefix = community_acronym + ':'
         
         return community_prefix
@@ -149,8 +149,133 @@ class OpenEBenchUtils():
         benchmarking_event_prefix = bench_event.get("orig_id", community_prefix) + "_"
         
         return benchmarking_event_prefix
+    
+    @staticmethod
+    def gen_test_event_original_id(challenge: "Mapping[str, Any]", participant_label: "str") -> "str":
+        return challenge.get("orig_id", challenge["_id"]) + OpenEBenchUtils.TEST_EVENT_INFIX + participant_label
+    
+    @staticmethod
+    def gen_metrics_event_original_id(assessment_dataset: "Mapping[str, Any]") -> "str":
+        ass_d_id = assessment_dataset.get("orig_id", assessment_dataset["_id"])
+        return rchop(ass_d_id, DATASET_ORIG_ID_SUFFIX["assessment"]) + TEST_ACTION_ORIG_ID_SUFFIX["MetricsEvent"]
+    
+    @staticmethod
+    def gen_aggregation_event_original_id(aggregation_dataset: "Mapping[str, Any]") -> "str":
+        agg_d_id = aggregation_dataset.get("orig_id", aggregation_dataset["_id"])
+        return agg_d_id + TEST_ACTION_ORIG_ID_SUFFIX["AggregationEvent"]
+    
+    def gen_expected_dataset_prefix(self, dataset: "Mapping[str, Any]", community_prefix: "str", benchmarking_event_prefix: "str") ->  "str":
+        # First, decide the prefix
+        the_prefix = None
+        if len(dataset["challenge_ids"]) == 1:
+            # Fetching the challenge prefix
+            challenge = self.fetchStagedEntry(dataType="Challenge", the_id=dataset["challenge_ids"][0]["_id"])
+            the_prefix = challenge.get("orig_id", "")
+            if len(the_prefix) > 0:
+                the_prefix += "_"
+        elif len(dataset["community_ids"]) > 1:
+            the_prefix = ""
+        else:
+            benchmarking_event_id = None
+            for challenge_id in dataset["challenge_ids"]:
+                challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
+                if benchmarking_event_id is None:
+                    benchmarking_event_id = challenge["benchmarking_event_id"]
+                elif benchmarking_event_id != challenge["benchmarking_event_id"]:
+                    the_prefix = community_prefix
+                    break
+            else:
+                the_prefix = benchmarking_event_prefix
+        
+        return the_prefix
+    
+    def gen_expected_participant_original_id(
+        self,
+        dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        benchmarking_event_prefix: "str",
+        participant_label: "str",
+    ) ->  "str":
+        """
+        It works only for participant and assessment datasets
+        """
+        # First, obtain the prefix
+        the_prefix = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix)
+        
+        # Then, dig in to get the participant label
+        the_metadata = dataset.get("_metadata")
+        if the_metadata is not None:
+            participant_label = the_metadata.get("level_2:participant_id", participant_label)
+        
+        expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        orig_id = dataset.get("orig_id", dataset["_id"])
+        if expected_orig_id != orig_id:
+            self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
+        
+        return expected_orig_id
 
-    def doMaterializeRepo(self, git_uri, git_tag) -> "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]":
+    def gen_expected_assessment_original_id(
+        self,
+        dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        benchmarking_event_prefix: "str",
+        participant_label: "str",
+        metrics_label: "str",
+    ) ->  "str":
+        """
+        It works only for participant and assessment datasets
+        """
+        # First, obtain the prefix
+        the_prefix = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix)
+        
+        # Then, dig in to get the participant label and metrics label
+        the_metadata = dataset.get("_metadata")
+        if the_metadata is not None:
+            participant_label = the_metadata.get("level_2:participant_id", participant_label)
+            metrics_label = the_metadata.get("level_2:metric_id", metrics_label)
+        
+        expected_orig_id = the_prefix + metrics_label + '_' + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        orig_id = dataset.get("orig_id", dataset["_id"])
+        if expected_orig_id != orig_id:
+            self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
+        
+        return expected_orig_id
+
+    @staticmethod
+    def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", benchmarking_event_prefix: "str", community_prefix: "str") -> "str":
+        challenge_label = the_challenge.get("acronym")
+        _metadata = the_challenge.get("_metadata")
+        if isinstance(_metadata, dict):
+            the_label = _metadata.get("level_2:challenge_id")
+            if the_label is not None:
+                challenge_label = the_label
+        
+        if challenge_label is None:
+            # Very old school label
+            challenge_label = the_challenge.get("orig_id")
+            if challenge_label is not None:
+                if challenge_label.startswith(benchmarking_event_prefix):
+                    challenge_label = challenge_label[len(benchmarking_event_prefix):]
+                elif challenge_label.startswith(community_prefix):
+                    challenge_label = challenge_label[len(community_prefix):]
+            else:
+                challenge_label = the_challenge["_id"]
+        
+        return challenge_label
+
+    @staticmethod
+    def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", benchmarking_event_prefix: "str", community_prefix: "str") -> "Mapping[str, str]":
+        ch_id_to_label = {}
+        for challenge in challenges:
+            challenge_label = OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)
+            ch_id_to_label[challenge["_id"]] = challenge_label
+            ch_orig_id = challenge.get("orig_id")
+            if ch_orig_id is not None:
+                ch_id_to_label[ch_orig_id] = challenge_label
+        
+        return ch_id_to_label
+
+    def doMaterializeRepo(self, git_uri: "str", git_tag: "str") -> "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]":
 
         repo_hashed_id = hashlib.sha1(git_uri.encode('utf-8')).hexdigest()
         repo_hashed_tag_id = hashlib.sha1(git_tag.encode('utf-8')).hexdigest()
@@ -800,7 +925,8 @@ class OpenEBenchUtils():
             
             return datares_raw
     
-    def filter_by(self, datares_raw: "Iterator[Mapping[str, Any]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
+    @staticmethod
+    def filter_by(datares_raw: "Iterator[Mapping[str, Any]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
             if len(filtering_keys) > 0:
                 fk_set = {
                     fk_key: fk_values if isinstance(fk_values, set) else set(fk_values) 
@@ -878,6 +1004,8 @@ class OpenEBenchUtils():
         self,
         db_datasets: "Sequence[Mapping[str, Any]]",
         output_datasets: "Sequence[Mapping[str, Any]]",
+#        community_prefix: "str",
+#        benchmarking_event_prefix: "str",
         default_schema_url: "Optional[Union[Sequence[str], bool]]" = None
     ) -> "Sequence[Tuple[str, str]]":
         
@@ -893,6 +1021,12 @@ class OpenEBenchUtils():
         
         o_keys = list(output_d_dict.keys())
         for o_dataset in output_datasets:
+#            # Early check
+#            if o_dataset["type"] == "participant":
+#                self.gen_expected_participant_original_id(o_dataset, community_prefix, benchmarking_event_prefix, "")
+#            elif o_dataset["type"] == "assessment":
+#                self.gen_expected_assessment_original_id(o_dataset, community_prefix, benchmarking_event_prefix, "", "")
+            
             should_exit = False
             # Should we validate the inline data?
             o_datalink = o_dataset.get("datalink")
@@ -1079,3 +1213,7 @@ class OpenEBenchUtils():
             self.logger.info(
                 "\n\tData uploaded correctly...finalizing migration\n\n")
             self.logger.debug(r.text)
+
+
+def rchop(s: "str", sub: "str") -> "str":
+    return s[:-len(sub)] if s.endswith(sub) else s

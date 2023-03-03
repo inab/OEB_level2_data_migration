@@ -18,7 +18,6 @@ from rfc3339_validator import validate_rfc3339
 from .. import schemas as level2_schemas
 
 from ..process.participant import (
-    Participant,
     ParticipantConfig,
 )
 from ..process.aggregation import AggregationValidator
@@ -104,7 +103,7 @@ def validate_challenges(
     # Prefixes about communities
     stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
     
-    community_prefix = migration_utils.gen_community_prefix(stagedCommunities[0])
+    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunities[0])
     benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
     
     logging.info(f"-> Validating Benchmarking Event {bench_event_id}")

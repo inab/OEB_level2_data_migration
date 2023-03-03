@@ -29,16 +29,15 @@ from rfc3339_validator import validate_rfc3339
 from .. import schemas as level2_schemas
 
 from ..process.participant import (
-    Participant,
+    ParticipantBuilder,
     ParticipantConfig,
 )
-from ..process.assessment import Assessment
+from ..process.assessment import AssessmentBuilder
 from ..process.aggregation import (
-    Aggregation,
+    AggregationBuilder,
     AggregationValidator,
 )
 from ..utils.migration_utils import (
-    gen_ch_id_to_label,
     OpenEBenchUtils,
 )
 
@@ -161,20 +160,20 @@ def validate_transform_and_push(
                 tool_id=tool_id,
                 data_version=str(config_params["data_version"]),
                 data_contacts=config_params["data_contacts"],
-                participant_id=None,
+                participant_label=None,
             )
         else:
             tool_id = None
             # This data structure is fed all the time
             for tool_mapping_e in tool_mapping_list:
-                participant_id = tool_mapping_e["participant_id"]
-                assert participant_id is not None
+                participant_label = tool_mapping_e["participant_id"]
+                assert participant_label is not None
                 
-                tool_mapping[participant_id] = ParticipantConfig(
+                tool_mapping[participant_label] = ParticipantConfig(
                     tool_id=tool_mapping_e["tool_id"],
                     data_version=str(tool_mapping_e["data_version"]),
                     data_contacts=tool_mapping_e["data_contacts"],
-                    participant_id=participant_id,
+                    participant_label=participant_label,
                 )
             
         
@@ -272,15 +271,15 @@ def validate_transform_and_push(
             min_participant_dataset.append(dataset)
             
             # Detecting 'old school' inconsistencies
-            participant_id = dataset["participant_id"]
-            participants_set.add(participant_id)
+            participant_label = dataset["participant_id"]
+            participants_set.add(participant_label)
             if tool_id is not None:
                 if len(participants_set) > 1:
                     logging.warning(f"'Old school' configuration file and {len(participants_set)} participant datasets")
                 elif None in tool_mapping:
                     # Fixed "old" default tool mapping
-                    tool_mapping[None].participant_id = participant_id
-                    tool_mapping[participant_id] = tool_mapping[None]
+                    tool_mapping[None].participant_label = participant_label
+                    tool_mapping[participant_label] = tool_mapping[None]
                     del tool_mapping[None]
             
             # Detecting 'old school' inconsistencies in a finer grain
@@ -290,13 +289,13 @@ def validate_transform_and_push(
             for challenge in challenges:
                 p_in_chall = participants_per_challenge.setdefault(challenge, {})
                 
-                if participant_id in p_in_chall:
-                    p_in_chall[participant_id] += 1
+                if participant_label in p_in_chall:
+                    p_in_chall[participant_label] += 1
                 else:
-                    p_in_chall[participant_id] = 1
+                    p_in_chall[participant_label] = 1
                 
-                if tool_id is not None and p_in_chall[participant_id] > 1:
-                    logging.warning(f"'Old school' configuration file and {p_in_chall[participant_id]} participant datasets in challenge {challenge}")
+                if tool_id is not None and p_in_chall[participant_label] > 1:
+                    logging.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
         elif dataset_type == "assessment":
             min_assessment_datasets.append(dataset)
             
@@ -340,7 +339,7 @@ def validate_transform_and_push(
     
     # Prefixes about communities
     stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
-    community_prefix = migration_utils.gen_community_prefix(stagedCommunities[0])
+    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunities[0])
     
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
@@ -352,7 +351,7 @@ def validate_transform_and_push(
     bench_event = input_query_response["data"]["getBenchmarkingEvents"][0]
     benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
 
-    ch_id_to_label = gen_ch_id_to_label(input_query_response["data"]["getChallenges"], benchmarking_event_prefix, community_prefix)
+    ch_id_to_label = OpenEBenchUtils.gen_ch_id_to_label(input_query_response["data"]["getChallenges"], benchmarking_event_prefix, community_prefix)
     
     logging.info("-> Early minimal participant datasets check")
     m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label)
@@ -407,7 +406,7 @@ def validate_transform_and_push(
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
-    process_participant = Participant(schemaMappings)
+    process_participant = ParticipantBuilder(schemaMappings, migration_utils)
     community_id = bench_event["community_id"]
     stagedParticipantDatasets = list(migration_utils.filter_by(allDatasets, {"community_ids": [ community_id ], "type": [ "participant" ]}))
     valid_participant_tuples = process_participant.build_participant_dataset(
@@ -461,7 +460,7 @@ def validate_transform_and_push(
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
     
     logging.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
-    process_assessments = Assessment(schemaMappings)
+    process_assessments = AssessmentBuilder(schemaMappings, migration_utils)
     valid_assessment_tuples = process_assessments.build_assessment_datasets(
         metrics_reference_query_response["data"]["getChallenges"],
         metrics_reference_query_response["data"]["getMetrics"],
@@ -495,7 +494,7 @@ def validate_transform_and_push(
     
     logging.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
     
-    aggregations_builder = Aggregation(schemaMappings, migration_utils)
+    aggregations_builder = AggregationBuilder(schemaMappings, migration_utils)
     # Now, build the aggregation datasets
     valid_aggregation_tuples = aggregations_builder.build_aggregation_datasets(
         community_id,

@@ -30,27 +30,12 @@ if TYPE_CHECKING:
         Tuple,
     )
 
-def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", benchmarking_event_prefix: "str", community_prefix: "str") -> "str":
-    challenge_label = the_challenge.get("acronym")
-    _metadata = the_challenge.get("_metadata")
-    if isinstance(_metadata, dict):
-        the_label = _metadata.get("level_2:challenge_id")
-        if the_label is not None:
-            challenge_label = the_label
-    
-    if challenge_label is None:
-        # Very old school label
-        challenge_label = the_challenge.get("orig_id")
-        if challenge_label is not None:
-            if challenge_label.startswith(benchmarking_event_prefix):
-                challenge_label = challenge_label[len(benchmarking_event_prefix):]
-            elif challenge_label.startswith(community_prefix):
-                challenge_label = challenge_label[len(community_prefix):]
-        else:
-            challenge_label = the_challenge["_id"]
-    
-    return challenge_label
-    
+from .migration_utils import (
+    DATASET_ORIG_ID_SUFFIX,
+    OpenEBenchUtils,
+    TEST_ACTION_ORIG_ID_SUFFIX,
+)
+
 def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") -> "Mapping[str, Mapping[str, str]]":
     for metrics_category in the_challenge.get("metrics_categories",[]):
         if metrics_category.get("category") == "assessment":
@@ -180,20 +165,8 @@ def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", me
     )
 
 
-DATASET_ORIG_ID_SUFFIX = {
-    "participant": "_P",
-    "assessment": "_A",
-}
-
-TEST_ACTION_ORIG_ID_SUFFIX = {
-    "AggregationEvent": "_Event",
-    "MetricsEvent": "_MetricsEvent",
-}
-
 DATASET_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['Dataset']
 TEST_ACTION_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['TestAction']
-
-TEST_EVENT_INFIX = '_testEvent_'
 
 @dataclasses.dataclass
 class IndexedDatasets:
@@ -205,6 +178,8 @@ class IndexedDatasets:
     level2_min_validator: "Any"
     metrics_graphql: "Sequence[Mapping[str, Any]]"
     community_prefix: "str"
+    benchmarking_event_prefix: "str"
+    challenge_prefix: "str"
     challenge: "Mapping[str, Any]"
     challenge_label: "str"
     cam_d: "Optional[Mapping[str,str]]"
@@ -232,6 +207,7 @@ class IndexedDatasets:
             self.logger.error(f"This instance is focused on datasets of type {self.type}, not of type {d_type}")
             return None
         
+        is_participant = self.type == "participant"
         is_assessment = self.type == "assessment"
         is_aggregation = self.type == "aggregation"
         
@@ -251,13 +227,18 @@ class IndexedDatasets:
             id_to_check = index_id
         
         if id_to_check is not None:
-            if len(raw_dataset.get("challenge_ids",[])) == 1:
-                if not id_to_check.startswith(self.community_prefix):
-                    self.logger.warning(f"Dataset id {id_to_check} (type {self.type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+            if not id_to_check.startswith(self.community_prefix):
+                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+            if is_participant or is_assessment or is_aggregation:
+                if not id_to_check.startswith(self.benchmarking_event_prefix):
+                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the benchmarking event prefix {self.benchmarking_event_prefix}. You should fix it to avoid possible duplicates")
+            if len(raw_dataset.get("challenge_ids",[])) == 1 or is_assessment or is_aggregation:
+                if not id_to_check.startswith(self.challenge_prefix):
+                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the challenge prefix {self.challenge_prefix}. You should fix it to avoid possible duplicates")
         
             expected_suffix = DATASET_ORIG_ID_SUFFIX.get(self.type)
             if (expected_suffix is not None) and not id_to_check.endswith(expected_suffix):
-                self.logger.warning(f"Dataset id {id_to_check} (type {self.type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
+                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
         
         # Some validations
         # Validating the category where it matches
@@ -355,85 +336,93 @@ class IndexedDatasets:
             if len(vis_hints) == 0:
                 self.logger.warning(f"No visualization type for {self.type} dataset {index_id}. Is it missing or intentional??")
                 # TODO: What should we do????
-            elif vis_type == "2D-plot":
-                x_axis_metric_label = vis_hints.get("x_axis")
-                y_axis_metric_label = vis_hints.get("y_axis")
-                if x_axis_metric_label is None:
-                    self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define x_axis label. Fix it")
+            elif vis_type in ("2D-plot", "bar-plot"):
+                suffix = None
+                proposed_suffix = None
                 
-                if y_axis_metric_label is None:
-                    self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define y_axis label. Fix it")
-                
-                if x_axis_metric_label is not None and y_axis_metric_label is not None:
-                    # Check there is some matching metric
-                    x_trio = match_metric_from_label(
-                        logger=self.logger,
-                        metrics_graphql=self.metrics_graphql,
-                        community_prefix=self.community_prefix,
-                        metrics_label=x_axis_metric_label,
-                        challenge_id=self.challenge['_id'],
-                        challenge_acronym=self.challenge['acronym'],
-                        challenge_assessment_metrics_d=self.cam_d,
-                        dataset_id=index_id,
-                    )
-                    if x_trio.metrics_id is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
-                        
-                    y_trio = match_metric_from_label(
-                        logger=self.logger,
-                        metrics_graphql=self.metrics_graphql,
-                        community_prefix=self.community_prefix,
-                        metrics_label=y_axis_metric_label,
-                        challenge_id=self.challenge['_id'],
-                        challenge_acronym=self.challenge['acronym'],
-                        challenge_assessment_metrics_d=self.cam_d,
-                        dataset_id=index_id,
-                    )
-                    if y_trio.metrics_id is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for y axis unmatched metric {y_axis_metric_label}. Fix it")
+                if vis_type == "2D-plot":
+                    x_axis_metric_label = vis_hints.get("x_axis")
+                    y_axis_metric_label = vis_hints.get("y_axis")
+                    if x_axis_metric_label is None:
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define x_axis label. Fix it")
                     
-                    # Check the suffix
-                    suffix = f"_{x_axis_metric_label}+{y_axis_metric_label}"
-                    proposed_suffix = f"_{x_trio.proposed_label}+{y_trio.proposed_label}"
+                    if y_axis_metric_label is None:
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define y_axis label. Fix it")
+                    
+                    if x_axis_metric_label is not None and y_axis_metric_label is not None:
+                        # Check there is some matching metric
+                        x_trio = match_metric_from_label(
+                            logger=self.logger,
+                            metrics_graphql=self.metrics_graphql,
+                            community_prefix=self.community_prefix,
+                            metrics_label=x_axis_metric_label,
+                            challenge_id=self.challenge['_id'],
+                            challenge_acronym=self.challenge['acronym'],
+                            challenge_assessment_metrics_d=self.cam_d,
+                            dataset_id=index_id,
+                        )
+                        if x_trio.metrics_id is None:
+                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
+                            
+                        y_trio = match_metric_from_label(
+                            logger=self.logger,
+                            metrics_graphql=self.metrics_graphql,
+                            community_prefix=self.community_prefix,
+                            metrics_label=y_axis_metric_label,
+                            challenge_id=self.challenge['_id'],
+                            challenge_acronym=self.challenge['acronym'],
+                            challenge_assessment_metrics_d=self.cam_d,
+                            dataset_id=index_id,
+                        )
+                        if y_trio.metrics_id is None:
+                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for y axis unmatched metric {y_axis_metric_label}. Fix it")
+                        
+                        # Saving it for later usage
+                        self.metrics_by_d[index_id] = [
+                            x_trio,
+                            y_trio,
+                        ]
+                        
+                        # Check the suffix
+                        suffix = f"_{x_axis_metric_label}+{y_axis_metric_label}"
+                        proposed_suffix = f"_{x_trio.proposed_label}+{y_trio.proposed_label}"
+                elif vis_type == "bar-plot":
+                    metrics_label = vis_hints.get("metric")
+                    if metrics_label is None:
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
+                    
+                    else:
+                        # Check there is some matching metric
+                        trio = match_metric_from_label(
+                            logger=self.logger,
+                            metrics_graphql=self.metrics_graphql,
+                            community_prefix=self.community_prefix,
+                            metrics_label=metrics_label,
+                            challenge_id=self.challenge['_id'],
+                            challenge_acronym=self.challenge['acronym'],
+                            challenge_assessment_metrics_d=self.cam_d,
+                            dataset_id=index_id,
+                        )
+                        if trio.metrics_id is None:
+                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
+                        
+                        # Saving it for later usage
+                        self.metrics_by_d[index_id] = [
+                            trio,
+                        ]
+                        
+                        # Check the suffix
+                        suffix = f"_{metrics_label}"
+                        proposed_suffix = f"_{trio.proposed_label}"
+                
+                if suffix is not None:
                     if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
                         self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with either computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
                     
-                    # Saving it for later usage
-                    self.metrics_by_d[index_id] = [
-                        x_trio,
-                        y_trio,
-                    ]
+                    proposed_orig_id = self.challenge_prefix + "agg" + proposed_suffix
+                    if index_id_orig is None or index_id_orig != proposed_orig_id:
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not match with proposed original id {proposed_orig_id}. Fix it")
                         
-            elif vis_type == "bar-plot":
-                metrics_label = vis_hints.get("metric")
-                if metrics_label is None:
-                    self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
-                
-                else:
-                    # Check there is some matching metric
-                    trio = match_metric_from_label(
-                        logger=self.logger,
-                        metrics_graphql=self.metrics_graphql,
-                        community_prefix=self.community_prefix,
-                        metrics_label=metrics_label,
-                        challenge_id=self.challenge['_id'],
-                        challenge_acronym=self.challenge['acronym'],
-                        challenge_assessment_metrics_d=self.cam_d,
-                        dataset_id=index_id,
-                    )
-                    if trio.metrics_id is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
-                    
-                    # Check the suffix
-                    suffix = f"_{metrics_label}"
-                    proposed_suffix = f"_{trio.proposed_label}"
-                    if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
-                    
-                    # Saving it for later usage
-                    self.metrics_by_d[index_id] = [
-                        trio,
-                    ]
             else:
                 self.logger.warning(f"Unhandled visualization type {vis_type} for {self.type} dataset {index_id}. Is it a new visualization or a typo??")
             
@@ -506,8 +495,10 @@ class DatasetsCatalog:
                     metrics_graphql=self.metrics_graphql,
                     level2_min_validator=self.level2_min_validator,
                     community_prefix=self.community_prefix,
+                    benchmarking_event_prefix=self.benchmarking_event_prefix,
+                    challenge_prefix=self.challenge_prefix,
                     challenge=self.challenge,
-                    challenge_label=get_challenge_label_from_challenge(self.challenge, self.benchmarking_event_prefix, self.community_prefix),
+                    challenge_label=OpenEBenchUtils.get_challenge_label_from_challenge(self.challenge, self.benchmarking_event_prefix, self.community_prefix),
                     cam_d=cam_d,
                     d_categories=d_categories,
                 )
@@ -593,7 +584,7 @@ class IndexedTestActions:
     in_d_catalog: "Optional[IndexedDatasets]"
     out_d_catalog: "Optional[IndexedDatasets]"
     community_prefix: "str"
-    challenge_label: "str"
+    challenge: "Mapping[str, Any]"
     # Which logger to use
     logger: "Any" = logging
     
@@ -633,15 +624,15 @@ class IndexedTestActions:
         
         if id_to_check is not None:
             if not id_to_check.startswith(self.community_prefix):
-                self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+                self.logger.warning(f"TestAction {index_id} with original id {id_to_check} (type {self.action_type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
             elif self.action_type == "TestEvent":
-                test_event_prefix = self.community_prefix + self.challenge_label + TEST_EVENT_INFIX
-                if not id_to_check.startswith(test_event_prefix):
-                    self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not start with the test action prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+                expected_test_event_prefix = OpenEBenchUtils.gen_test_event_original_id(self.challenge, "")
+                if not id_to_check.startswith(expected_test_event_prefix):
+                    self.logger.warning(f"TestAction {index_id} with original id {id_to_check} (type {self.action_type}) does not start with the test action prefix {expected_test_event_prefix}. You should fix it to avoid possible duplicates")
             
             expected_suffix = TEST_ACTION_ORIG_ID_SUFFIX.get(self.action_type)
             if (expected_suffix is not None) and not id_to_check.endswith(expected_suffix):
-                self.logger.warning(f"TestAction id {id_to_check} (type {self.action_type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
+                self.logger.warning(f"TestAction {index_id} with original id {id_to_check} (type {self.action_type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
         
         # This is needed to check the provenance, as
         # all the outgoing datasets should depend on this tool_id
@@ -689,6 +680,16 @@ class IndexedTestActions:
                     if o_tool_id != transforming_tool_id:
                         self.logger.error(f"Entry {raw_test_action['_id']} (type {self.action_type}) reflects transformation due tool {transforming_tool_id}, but {d_role} dataset {candidate_d_id} depends on {o_tool_id}. Fix it")
                         should_fail = True
+                    
+                    if self.action_type == "MetricsEvent":
+                        expected_metrics_event_id = OpenEBenchUtils.gen_metrics_event_original_id(candidate_d)
+                        if id_to_check != expected_metrics_event_id:
+                            self.logger.warning(f"TestAction {index_id} with original id {id_to_check} (type {self.action_type}) is not the proposed {expected_metrics_event_id}. You should fix it to avoid possible duplicates")
+                    elif self.action_type == "AggregationEvent":
+                        expected_aggregation_event_id = OpenEBenchUtils.gen_aggregation_event_original_id(candidate_d)
+                        if id_to_check != expected_aggregation_event_id:
+                            self.logger.warning(f"TestAction {index_id} with original id {id_to_check} (type {self.action_type}) is not the proposed {expected_aggregation_event_id}. You should fix it to avoid possible duplicates")
+
                 else:
                     unmatched_out_dataset_ids.append(candidate_d_id)
                     should_fail = True
@@ -758,8 +759,6 @@ ActionType2InOutDatasetTypes = {
 class TestActionsCatalog:
     d_catalog: "DatasetsCatalog" = dataclasses.field(default_factory=DatasetsCatalog)
     catalogs: "MutableMapping[str, IndexedTestActions]" = dataclasses.field(default_factory=dict)
-    community_prefix: "str" = ""
-    challenge_label: "str" = ""
     # Which logger to use
     logger: "Any" = logging
     
@@ -786,8 +785,8 @@ class TestActionsCatalog:
                     in_d_catalog=in_d_catalog,
                     out_d_catalog=out_d_catalog,
                     other_d_catalogs=other_d_catalogs,
-                    community_prefix=self.community_prefix,
-                    challenge_label=self.challenge_label,
+                    community_prefix=self.d_catalog.community_prefix,
+                    challenge=self.d_catalog.challenge,
                     logger=self.logger
                 )
                 self.catalogs[a_type] = ita

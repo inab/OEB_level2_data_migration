@@ -86,7 +86,16 @@
     ```
   
   - Any assessment dataset pointing to the participant dataset can also have a `_metadata` section
-    with the key `level_2:participant_id`, then that value is the participant label. The previous example applies.
+    with the keys `level_2:participant_id`, and also `level_2:metric_id`.
+    
+    ```json
+    {
+      "_metadata": {
+        "level_2:participant_id": "Participant 2",
+        "level_2:metric_id": "F1-Score"
+      }
+    }
+    ```
   
   - Unless it is guessed by other means, the last chance comes from reversing the
     process applied to generate the original_id of the participant dataset.

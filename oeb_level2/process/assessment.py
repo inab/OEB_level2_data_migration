@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import inspect
 import logging
 import sys
@@ -11,7 +12,6 @@ import re
 from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
     gen_challenge_assessment_metrics_dict,
-    get_challenge_label_from_challenge,
     match_metric_from_label,
 )
 
@@ -28,21 +28,23 @@ if TYPE_CHECKING:
         Tuple,
     )
     from .participant import ParticipantTuple
-    from ..utils.migration_utils import OpenEBenchUtils
+
+from ..utils.migration_utils import OpenEBenchUtils
 
 class AssessmentTuple(NamedTuple):
     assessment_dataset: "Mapping[str, Any]"
     pt: "ParticipantTuple"
 
-class Assessment():
+class AssessmentBuilder():
 
-    def __init__(self, schemaMappings: "Mapping[str, str]"):
+    def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
             + "::"
             + self.__class__.__name__
         )
         self.schemaMappings = schemaMappings
+        self.migration_utils = migration_utils
 
     def build_assessment_datasets(
         self,
@@ -58,13 +60,10 @@ class Assessment():
         
         valid_participants = {}
         for pvc in valid_participant_tuples:
-            valid_participants[pvc.p_config.participant_id] = pvc
+            valid_participants[pvc.p_config.participant_label] = pvc
             
         self.logger.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
-        
-        
-        
         
         stagedMap = dict()
         for staged_assessment_dataset in staged_assessment_datasets:
@@ -73,19 +72,20 @@ class Assessment():
         # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
         for challenge in challenges_graphql:
-            oeb_challenges[get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)] = challenge
+            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)] = challenge
 
         valid_assessment_tuples = []
         should_end = []
-        for dataset in min_assessment_datasets:
-            assessment_participant_id = dataset.get("participant_id")
-            pvc = valid_participants.get(assessment_participant_id)
+        for min_dataset in min_assessment_datasets:
+            assessment_participant_label = min_dataset.get("participant_id")
+            pvc = valid_participants.get(assessment_participant_label)
             # If not found, next!!!!!!
             if pvc is None:
-                self.logger.warning(f"Assessment dataset {dataset['_id']} was not processed because participant {assessment_participant_id} was not declared, skipping to next assessment element...")
+                self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
                 continue
             
-            participant_id = pvc.p_config.participant_id
+            metrics_label = min_dataset["metrics"]["metric_id"]
+            participant_label = pvc.p_config.participant_label
             valid_participant_data = pvc.participant_dataset
             challenge_pairs = pvc.challenge_pairs
             
@@ -93,19 +93,19 @@ class Assessment():
             community_ids = valid_participant_data["community_ids"]
             
             self.logger.info('Building object "' +
-                             str(dataset["_id"]) + '"...')
+                             str(min_dataset["_id"]) + '"...')
             # initialize new dataset object
-            stagedEntry = stagedMap.get(dataset["_id"])
+            stagedEntry = stagedMap.get(min_dataset["_id"])
             if stagedEntry is None:
                 valid_data = {
-                    "_id": dataset["_id"],
+                    "_id": min_dataset["_id"],
                     "type": "assessment"
                 }
             else:
                 valid_data = {
                     "_id": stagedEntry["_id"],
                     "type": "assessment",
-                    "orig_id": dataset["_id"],
+                    "orig_id": min_dataset["_id"],
                     "dates": stagedEntry["dates"]
                 }
             
@@ -116,36 +116,36 @@ class Assessment():
             # add name and description, if workflow did not provide them
             dataset_name = valid_data.get("name")
             if dataset_name is None:
-                dataset_name = "Metric '" + dataset["metrics"]["metric_id"] + \
-                    "' in challenge '" + dataset["challenge_id"] + "' applied to participant '" + dataset["participant_id"] + "'"
+                dataset_name = "Metric '" + metrics_label + \
+                    "' in challenge '" + min_dataset["challenge_id"] + "' applied to participant '" + min_dataset["participant_id"] + "'"
             valid_data["name"] = dataset_name
             
-            dataset_description = dataset.get("description")
+            dataset_description = min_dataset.get("description")
             if dataset_description is None:
                 dataset_description = "Assessment dataset of applying metric '" + \
-                    dataset["metrics"]["metric_id"] + "' in challenge '" + dataset["challenge_id"] + "' to '"\
-                     + dataset["participant_id"] + "' participant"
+                    metrics_label + "' in challenge '" + min_dataset["challenge_id"] + "' to '"\
+                     + min_dataset["participant_id"] + "' participant"
             valid_data["description"] = dataset_description
 
             challenge_labels_set = set(map(lambda cp: cp[0], challenge_pairs))
-            if dataset["challenge_id"] not in challenge_labels_set:
+            if min_dataset["challenge_id"] not in challenge_labels_set:
                 self.logger.warning("No challenges associated to " +
-                             dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                             min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 self.logger.warning(
-                    dataset["_id"] + " not processed, skipping to next assessment element...")
+                    min_dataset["_id"] + " not processed, skipping to next assessment element...")
                 continue
             
             # replace dataset related challenges with oeb challenge ids
             execution_challenges = []
             try:
-                the_challenge = oeb_challenges[dataset["challenge_id"]]
+                the_challenge = oeb_challenges[min_dataset["challenge_id"]]
                 execution_challenges.append(the_challenge)
                 cam_d = gen_challenge_assessment_metrics_dict(the_challenge)
             except:
                 self.logger.warning("No challenges associated to " +
-                             dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                             min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 self.logger.warning(
-                    dataset["_id"] + " not processed, skipping to next assessment element...")
+                    min_dataset["_id"] + " not processed, skipping to next assessment element...")
                 continue
                 # sys.exit()
 
@@ -166,8 +166,8 @@ class Assessment():
             valid_data.setdefault("dates", {"creation": modtime})["modification"] = modtime
 
             # add assessment metrics values, as inline data
-            metric_value = dataset["metrics"]["value"]
-            error_value = dataset["metrics"]["stderr"]
+            metric_value = min_dataset["metrics"]["value"]
+            error_value = min_dataset["metrics"]["stderr"]
 
             valid_data["datalink"] = {
                 "schema_url": "https://github.com/inab/OEB_level2_data_migration/single-metric",
@@ -177,8 +177,18 @@ class Assessment():
                 }
             }
             
-            # Breadcrumbs about the participant id to ease the discovery
-            valid_data.setdefault("_metadata", {})["level_2:participant_id"] = participant_id
+            # Breadcrumbs about the participant label and metrics label to ease the discovery
+            new_metadata = {
+                "level_2:participant_id": participant_label,
+                "level_2:metric_id": metrics_label,
+            }
+            if stagedEntry is not None:
+                staged_metadata = stagedEntry.get("_metadata")
+                if isinstance(staged_metadata, dict):
+                    updated_metadata = copy.copy(staged_metadata)
+                    updated_metadata.update(new_metadata)
+                    new_metadata = updated_metadata
+            valid_participant_data["_metadata"] = new_metadata
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
@@ -198,11 +208,11 @@ class Assessment():
                 logger=self.logger,
                 metrics_graphql=metrics_graphql,
                 community_prefix=community_prefix,
-                metrics_label=dataset["metrics"]["metric_id"],
+                metrics_label=metrics_label,
                 challenge_id=the_challenge['_id'],
                 challenge_acronym=the_challenge['acronym'],
                 challenge_assessment_metrics_d=cam_d,
-                dataset_id=dataset['_id'],
+                dataset_id=min_dataset['_id'],
             )
             if metric_id is None:
                 should_end.append((the_challenge['_id'], the_challenge['acronym']))
@@ -224,8 +234,17 @@ class Assessment():
             # add dataset contacts ids, based on already processed data
             valid_data["dataset_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
-            self.logger.info('Processed "' + str(dataset["_id"]) + '"...')
+            self.logger.info('Processed "' + str(min_dataset["_id"]) + '"...')
 
+            # It is really a check through comparison of what was generated
+            self.migration_utils.gen_expected_assessment_original_id(
+                valid_data,
+                community_prefix,
+                benchmarking_event_prefix,
+                participant_label,
+                metrics_label,
+            )
+            
             valid_assessment_tuples.append(
                 AssessmentTuple(
                     assessment_dataset=valid_data,
@@ -254,8 +273,7 @@ class Assessment():
             valid_participant_data = pvc.participant_dataset
             tool_id = dataset["depends_on"]["tool_id"]
         
-            orig_id = dataset.get("orig_id",dataset["_id"])
-            event_id = rchop(orig_id, "_A") + "_MetricsEvent"
+            event_id = OpenEBenchUtils.gen_metrics_event_original_id(dataset)
             
             indexed_challenge = indexed_challenges[dataset["challenge_ids"][0]]
             ta_event = indexed_challenge.ta_catalog.get("MetricsEvent").get_by_original_id(event_id)
@@ -315,7 +333,3 @@ class Assessment():
             metrics_events.append(event)
 
         return metrics_events
-
-
-def rchop(s: "str", sub: "str") -> "str":
-    return s[:-len(sub)] if s.endswith(sub) else s

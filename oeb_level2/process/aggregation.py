@@ -10,10 +10,10 @@ import datetime
 import json
 
 from .benchmarking_dataset import BenchmarkingDataset
+from ..schemas import TYPE2SCHEMA_ID
 from ..utils.catalogs import (
     DatasetsCatalog,
     gen_inline_data_label,
-    get_challenge_label_from_challenge,
     TestActionsCatalog,
 )
 
@@ -31,7 +31,8 @@ if TYPE_CHECKING:
         Tuple,
     )
     from .assessment import AssessmentTuple
-    from ..utils.migration_utils import OpenEBenchUtils
+
+from ..utils.migration_utils import OpenEBenchUtils
 
 class IndexedChallenge(NamedTuple):
     challenge: "Mapping[str, Any]"
@@ -79,7 +80,7 @@ class AggregationValidator():
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
             
-            challenge_label = get_challenge_label_from_challenge(agg_ch, benchmarking_event_prefix, community_prefix)
+            challenge_label = OpenEBenchUtils.get_challenge_label_from_challenge(agg_ch, benchmarking_event_prefix, community_prefix)
             
             self.logger.info(f"Validating challenge {challenge_id} ({challenge_label})")
             
@@ -155,8 +156,6 @@ class AggregationValidator():
             # The test actions catalog, which depends on the dataset ones
             ta_catalog = TestActionsCatalog(
                 logger=self.logger,
-                community_prefix=community_prefix,
-                challenge_label=challenge_label,
                 d_catalog=d_catalog,
             )
             
@@ -252,6 +251,7 @@ class AggregationValidator():
                         # Inline data labels by participant dataset id
                         idl_by_d_id = {}
                         
+                        changed_labels = False
                         for potential_inline_data_label in potential_inline_data_labels:
                             part_d_label = potential_inline_data_label['label']
                             part_d_orig_id = potential_inline_data_label['dataset_orig_id']
@@ -273,6 +273,8 @@ class AggregationValidator():
                                     self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} due mismatches with {part_raw_dataset['_id']}")
                             else:
                                 self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} as no dataset was matched")
+                            
+                            changed_labels = changed_labels or discarded_label
                         
                         # Time to fetch
                         rebuild_agg = False
@@ -394,17 +396,55 @@ class AggregationValidator():
                                     
                                     if not rebuild_agg:
                                         self.logger.info(f"False positive rounding mismatch in aggregation dataset {agg_dataset_id}.")
+
+                        if changed_labels:
+                            if len(inline_data_labels) != len(potential_inline_data_labels):
+                                self.logger.error(f"Mismatch in {agg_dataset_id} length of labels\n\n{json.dumps(inline_data_labels, indent=4, sort_keys=True)}\n\n{json.dumps(potential_inline_data_labels, indent=4, sort_keys=True)}")
+                            else:
+                                s_inline_data_labels = sorted(inline_data_labels, key=lambda dl: dl["label"])
+                                s_potential_inline_data_labels = sorted(potential_inline_data_labels, key=lambda dl: dl["label"])
+                                
+                                if s_inline_data_labels != s_potential_inline_data_labels:
+                                    is_false_pos_label = True
+                                    for s_new , s_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
+                                        do_log_error = False
+                                        if set(s_new.keys()) != set(s_raw.keys()):
+                                            do_log_error = True
+                                        else:
+                                            for k in s_new.keys():
+                                                v_new = s_new[k]
+                                                v_raw = s_raw[k]
+                                                
+                                                if v_new != v_raw:
+                                                    do_log_error = True
+                                                    break
+                                        
+                                        if do_log_error:
+                                            self.logger.error(f"Mismatch in {agg_dataset_id} label\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
+                                            
+                                            is_false_pos_label = False
+                                    
+                                    if is_false_pos_label:
+                                        self.logger.info(f"False positive label mismatch in aggregation dataset {agg_dataset_id}.")
                         
                         # Time to compare
-                        if rebuild_agg:
-                            self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
-                            set_diff = rel_ids_set - regen_rel_ids_set
-                            if len(set_diff) > 0:
-                                self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
+                        if rebuild_agg or changed_labels:
+                            if rebuild_agg:
+                                self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
+                                set_diff = rel_ids_set - regen_rel_ids_set
+                                if len(set_diff) > 0:
+                                    self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
+                            
+                            if changed_labels:
+                                self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt because the explicit mapping of labels and original ids has changed")
                             
                             # Last, explicit schema_id
+                            guessed_schema_id = TYPE2SCHEMA_ID.get(vis_type)
                             if found_schema_url is not None:
                                 d_link["schema_url"] = found_schema_url
+                            elif guessed_schema_id is not None:
+                                d_link["schema_url"] = guessed_schema_id
+                            
                             self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
                             failed_agg_dataset = True
             
@@ -430,7 +470,7 @@ class AggregationValidator():
     
         
 
-class Aggregation():
+class AggregationBuilder():
 
     def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
 

@@ -23,6 +23,11 @@ AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migrati
 
 AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
 
+TYPE2SCHEMA_ID = {
+	"2D-plot": AGGREGATION_2D_PLOT_SCHEMA_ID,
+	"bar-plot": AGGREGATION_BAR_PLOT_SCHEMA_ID,
+}
+
 def create_validator(schemas_dir: "Union[str, Sequence[SchemaHashEntry]]", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
 	schema_validators = ExtensibleValidator(config=config)
 	

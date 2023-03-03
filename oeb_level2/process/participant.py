@@ -23,11 +23,8 @@ if TYPE_CHECKING:
         Optional,
         Sequence,
     )
-    from ..utils.migration_utils import OpenEBenchUtils
-
-from ..utils.catalogs import (
-    get_challenge_label_from_challenge,
-)
+   
+from ..utils.migration_utils import OpenEBenchUtils
 
 class ChallengePair(NamedTuple):
     label: "str"
@@ -38,7 +35,7 @@ class ParticipantConfig:
     tool_id: "str"
     data_version: "str"
     data_contacts: "Sequence[str]"
-    participant_id: "Optional[str]"
+    participant_label: "Optional[str]"
     
     def process_contact_ids(self, contacts_graphql: "Mapping[str, Any]") -> "Sequence[str]":
         # add dataset contacts ids
@@ -85,9 +82,9 @@ class ParticipantTuple(NamedTuple):
     community_acronym: "str"
 
 
-class Participant():
+class ParticipantBuilder():
 
-    def __init__(self, schemaMappings: "Mapping[str, str]"):
+    def __init__(self, schemaMappings: "Mapping[str, str]", migration_utils: "OpenEBenchUtils"):
 
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
@@ -95,6 +92,7 @@ class Participant():
             + self.__class__.__name__
         )
         self.schemaMappings = schemaMappings
+        self.migration_utils = migration_utils
 
     def build_participant_dataset(
         self,
@@ -116,7 +114,7 @@ class Participant():
         oeb_challenges = {}
         
         for challenge_graphql in challenges_graphql:
-            oeb_challenges[get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, community_prefix)] = challenge_graphql
+            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, community_prefix)] = challenge_graphql
 
         stagedMap = dict()
         for staged_participant_dataset in staged_participant_datasets:
@@ -245,12 +243,27 @@ class Participant():
             valid_participant_data["dataset_contact_ids"] = p_config.data_contact_ids
             
             # Breadcrumbs about the participant id to ease the discovery
-            valid_participant_data["_metadata"] = {
+            new_metadata = {
                 "level_2:participant_id": min_participant_data["participant_id"],
             }
+            if stagedEntry is not None:
+                staged_metadata = stagedEntry.get("_metadata")
+                if isinstance(staged_metadata, dict):
+                    updated_metadata = copy.copy(staged_metadata)
+                    updated_metadata.update(new_metadata)
+                    new_metadata = updated_metadata
+            valid_participant_data["_metadata"] = new_metadata
 
             self.logger.info(
                 'Processed "' + str(min_participant_data["_id"]) + '"...')
+            
+            # It is really a check through comparison of what was generated
+            self.migration_utils.gen_expected_participant_original_id(
+                valid_participant_data,
+                community_prefix,
+                benchmarking_event_prefix,
+                p_config.participant_label,
+            )
             
             valid_participant_tuples.append(
                 ParticipantTuple(
@@ -277,10 +290,10 @@ class Participant():
 
         # an  new event object will be created for each of the challenge where the participants has taken part in
         for pt in valid_participant_tuples:
-            participant_id = pt.p_config.participant_id
+            participant_label = pt.p_config.participant_label
             for challenge_pair in pt.challenge_pairs:
                 indexed_challenge = indexed_challenges[challenge_pair.entry["_id"]]
-                the_id = pt.community_acronym + ":" + challenge_pair.label + "_testEvent_" + participant_id
+                the_id = OpenEBenchUtils.gen_test_event_original_id(indexed_challenge.challenge, participant_label)
                 self.logger.info(f'Building TestEvent "{the_id}"...')
 
                 ta_event = indexed_challenge.ta_catalog.get("TestEvent").get_by_original_id(the_id)
