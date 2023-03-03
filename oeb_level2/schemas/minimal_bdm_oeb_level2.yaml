@@ -349,7 +349,6 @@ $defs:
                       participant_id:
                         type: string
                         minLength: 1
-                        unique: true
                       metric_value:
                         type: number
                     required:
