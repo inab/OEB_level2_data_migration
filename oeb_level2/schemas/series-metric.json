@@ -1,0 +1,35 @@
+{
+	"$id": "https://github.com/inab/OEB_level2_data_migration/series-metric",
+	"$schema": "https://json-schema.org/draft/2019-09/schema",
+	"title": "Schema that defines an inline data series of values around an specific metric in an assessment dataset",
+	"type": "object",
+        "properties": {
+                "values": {
+                        "title": "The data series of values",
+                        "type": "array",
+                        "items": {
+                                "properties": {
+                                        "value": {
+                                                "title": "the numerical value of the metric",
+                                                "type": "number",
+                                                "minLength": 1
+                                        },
+                                        "error": {
+                                                "title": "the standard error / deviation for the metric (if exists)",
+                                                "type": "number",
+                                                "minLength": 1
+                                        }
+                                },
+                                "unevaluatedProperties": false,
+                                "required": [
+                                        "value"
+                                ]
+                        },
+                        "minItems": 1
+                }
+        },
+        "required": [
+                "values"
+        ],
+        "unevaluatedProperties": false
+}
