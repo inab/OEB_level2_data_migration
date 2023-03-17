@@ -18,16 +18,16 @@
 						"type": "string",
 						"minLength": 1
 					},
-					"metrics": {
+					"metric": {
+						"title": "Label of the metric represented by this data series",
+						"type": "string",
+						"minLength": 1
+					},
+					"values": {
 						"type": "array",
 						"items": {
 							"type": "object",
 							"properties": {
-								"metric": {
-									"title": "Label of the metric represented by this value",
-									"type": "string",
-									"minLength": 1
-								},
 								"metric_value": {
 									"type": "number"
 								},
@@ -37,7 +37,6 @@
 							},
 							"unevaluatedProperties": false,
 							"required": [
-								"metric",
 								"metric_value"
 							]
 						},
@@ -46,6 +45,7 @@
 				},
 				"required": [
 					"tool_id",
+					"metric",
 					"metrics"
 				],
 				"unevaluatedProperties": false
