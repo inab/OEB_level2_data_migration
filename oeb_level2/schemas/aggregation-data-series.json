@@ -25,22 +25,31 @@
 					},
 					"values": {
 						"type": "array",
-						"items": {
-							"type": "object",
-							"properties": {
-								"v": {
-									"type": "number"
-								},
-								"e": {
-									"type": "number"
+						"minItems": 1,
+						"oneOf": [
+							{
+								"items": {
+									"type": "object",
+									"properties": {
+										"v": {
+											"type": "number"
+										},
+										"e": {
+											"type": "number"
+										}
+									},
+									"unevaluatedProperties": false,
+									"required": [
+										"v"
+									]
 								}
 							},
-							"unevaluatedProperties": false,
-							"required": [
-								"v"
-							]
-						},
-						"minItems": 1
+							{
+								"items": {
+									"type": "number"
+								}
+							}
+						]
 					}
 				},
 				"required": [

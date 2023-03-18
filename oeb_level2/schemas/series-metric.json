@@ -7,25 +7,34 @@
                 "values": {
                         "title": "The data series of values",
                         "type": "array",
-                        "items": {
-                                "properties": {
-                                        "value": {
-                                                "title": "the numerical value of the metric",
-                                                "type": "number",
-                                                "minLength": 1
-                                        },
-                                        "error": {
-                                                "title": "the standard error / deviation for the metric (if exists)",
-                                                "type": "number",
-                                                "minLength": 1
+                        "minItems": 1,
+                        "oneOf": [
+                                {
+                                        "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                        "value": {
+                                                                "title": "the numerical value of the metric",
+                                                                "type": "number"
+                                                        },
+                                                        "error": {
+                                                                "title": "the standard error / deviation for the metric (if exists)",
+                                                                "type": "number"
+                                                        }
+                                                },
+                                                "unevaluatedProperties": false,
+                                                "required": [
+                                                        "value",
+                                                        "error"
+                                                ]
                                         }
                                 },
-                                "unevaluatedProperties": false,
-                                "required": [
-                                        "value"
-                                ]
-                        },
-                        "minItems": 1
+                                {
+                                        "items": {
+                                                "type": "number"
+                                        }
+                                }
+                        ]
                 }
         },
         "required": [

@@ -142,18 +142,25 @@ $defs:
             values:
               title: the numerical value of the metric
               type: array
-              items:
-                properties:
-                  stderr:
-                    title: the standard error / deviation for the metric (if exists)
-                    type: number
-                    minLength: 1
-                  value:
-                    title: the numerical value of the metric
-                    type: number
-                    minLength: 1
-                additionalProperties: false
               minItems: 1
+              oneOf:
+              - items:
+                  type: object
+                  properties:
+                    stderr:
+                      title: the standard error / deviation for the metric (if exists)
+                      type: number
+                      minLength: 1
+                    value:
+                      title: the numerical value of the metric
+                      type: number
+                      minLength: 1
+                  unevaluatedProperties: false
+                  required:
+                  - value
+                  - stderr
+              - items:
+                  type: number
           required:
           - values
         - properties:
@@ -444,17 +451,20 @@ $defs:
                         minLength: 1
                       values:
                         type: array
-                        items:
-                          type: object
-                          properties:
-                            v:
-                              type: number
-                            e:
-                              type: number
-                          unevaluatedProperties: false
-                          required:
-                          - v
                         minItems: 1
+                        oneOf:
+                        - items:
+                            type: object
+                            properties:
+                              v:
+                                type: number
+                              e:
+                                type: number
+                            unevaluatedProperties: false
+                            required:
+                            - v
+                        - items:
+                            type: number
                     required:
                     - label
                     - metric_id
@@ -465,13 +475,25 @@ $defs:
                   properties:
                     type:
                       type: string
-                      const: "bar-plot"
-                    metric:
+                      const: "box-plot"
+                    available_metrics:
+                      type: array
+                      items:
+                        type: string
+                        minLength: 1
+                      uniqueItems: true
+                      minItems: 1
+                    optimization:
+                      title: Chart representation optimization (valid for 2D-plot)
                       type: string
-                      minLength: 1
+                      enum:
+                      - top-left
+                      - top-right
+                      - bottom-left
+                      - bottom-right
                   required:
                   - type
-                  - metric
+                  - available_metrics
                   unevaluatedProperties: false
                 labels:
                   title: Mapping labels to dataset assessment original ids. It can be an incomplete list.
