@@ -13,12 +13,12 @@
 			"items": {
 				"type": "object",
 				"properties": {
-					"tool_id": {
+					"label": {
 						"title": "Label of the participant tool",
 						"type": "string",
 						"minLength": 1
 					},
-					"metric": {
+					"metric_id": {
 						"title": "Label of the metric represented by this data series",
 						"type": "string",
 						"minLength": 1
@@ -28,25 +28,25 @@
 						"items": {
 							"type": "object",
 							"properties": {
-								"metric_value": {
+								"v": {
 									"type": "number"
 								},
-								"stderr": {
+								"e": {
 									"type": "number"
 								}
 							},
 							"unevaluatedProperties": false,
 							"required": [
-								"metric_value"
+								"v"
 							]
 						},
 						"minItems": 1
 					}
 				},
 				"required": [
-					"tool_id",
-					"metric",
-					"metrics"
+					"label",
+					"metric_id",
+					"values"
 				],
 				"unevaluatedProperties": false
 			},

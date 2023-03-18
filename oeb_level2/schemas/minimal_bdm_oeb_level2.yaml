@@ -1,11 +1,11 @@
 $id: https://github.com/inab/benchmarking/minimal-json-schemas
 $schema: 'https://json-schema.org/draft/2019-09/schema'
 title: Minimal dataset concept (ELIXIR-EXCELERATE WP2 Benchmarking schemas)
-type: array
-minItems: 1
-items:
-- $ref: '#/$defs/ParticipantEntry'
-additionalItems:
+if:
+  type: array
+then:
+  $ref: '#/$defs/ArrayOfEntries'
+else:
   properties:
     _id:
       title: The unique community-set id of the dataset
@@ -13,16 +13,50 @@ additionalItems:
     id:
       title: The unique community-set id of the challenge
       type: string
-  unevaluatedProperties: false
+    type:
+      type: string
+      enum:
+      - participant
+      - assessment
+      - aggregation
   if:
     required:
     - _id
   then:
-    $ref: '#/$defs/AssAggEntry'
+    if:
+      properties:
+        type:
+          const: participant
+    then:
+      $ref: '#/$defs/ParticipantEntry'
+    else:
+      $ref: '#/$defs/AssAggEntry'
   else:
     $ref: '#/$defs/ChallengeParticipants'
   
 $defs:
+  ArrayOfEntries:
+    type: array
+    minItems: 1
+    items:
+    - $ref: '#/$defs/ParticipantEntry'
+    additionalItems:
+      properties:
+        _id:
+          title: The unique community-set id of the dataset
+          type: string
+        id:
+          title: The unique community-set id of the challenge
+          type: string
+      unevaluatedProperties: false
+      if:
+        required:
+        - _id
+      then:
+        $ref: '#/$defs/AssAggEntry'
+      else:
+        $ref: '#/$defs/ChallengeParticipants'
+  
   ChallengeParticipants:
     type: object
     properties:
@@ -38,7 +72,7 @@ $defs:
           minLength: 1
         uniqueItems: true
         minItems: 1
-    additional_properties: false
+    additionalProperties: false
     required:
     - id
     - participants
@@ -103,32 +137,53 @@ $defs:
 #            - members:
 #              - .
 #              schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Metrics
-          stderr:
-            title: the standard error / deviation for the metric (if exists)
-            type: number
-            minLength: 1
-          value:
-            title: the numerical value of the metric
-            type: number
-            minLength: 1
-        additional_properties: false
+        oneOf:
+        - properties:
+            values:
+              title: the numerical value of the metric
+              type: array
+              items:
+                properties:
+                  stderr:
+                    title: the standard error / deviation for the metric (if exists)
+                    type: number
+                    minLength: 1
+                  value:
+                    title: the numerical value of the metric
+                    type: number
+                    minLength: 1
+                additionalProperties: false
+              minItems: 1
+          required:
+          - values
+        - properties:
+            stderr:
+              title: the standard error / deviation for the metric (if exists)
+              type: number
+              minLength: 1
+            value:
+              title: the numerical value of the metric
+              type: number
+              minLength: 1
+          required:
+          - value
+        unevaluatedProperties: false
         required:
         - metric_id
-        - value
       participant_id:
         title: The id / name of the tool which generated this dataset
         type: string
         minLength: 1
-        foreign_keys:
+        join_keys:
         - members:
           - .
           schema_id: https://github.com/inab/benchmarking/minimal-json-schemas
-          refers_to: participant_id_key
+          refers_to: participant_id_index
       type:
         title: Type of dataset.
         type: string
         const: assessment
-    additionalProperties: false
+    unevaluatedProperties: false
     required:
     - _id
     - community_id
@@ -233,8 +288,8 @@ $defs:
         title: The id / name of the tool which generated this dataset
         type: string
         minLength: 1
-        primary_key:
-          name: participant_id_key
+        index_key:
+          name: participant_id_index
           members:
           - .
 #        foreign_keys:
@@ -314,7 +369,7 @@ $defs:
                     - participant_id
                     - metric_x
                     - metric_y
-                    additional_properties: false
+                    unevaluatedProperties: false
                   unique:
                   - participant_id
                 visualization:
@@ -333,11 +388,11 @@ $defs:
                   - type
                   - x_axis
                   - y_axis
-                  additional_properties: false
+                  unevaluatedProperties: false
               required:
               - challenge_participants
               - visualization
-              additional_properties: false
+              unevaluatedProperties: false
             - type: object
               properties:
                 challenge_participants:
@@ -354,7 +409,6 @@ $defs:
                     required:
                     - participant_id
                     - metric_value
-                    additional_properties: false
                 visualization:
                   type: object
                   properties:
@@ -367,16 +421,87 @@ $defs:
                   required:
                   - type
                   - metric
-                  additional_properties: false
+                  unevaluatedProperties: false
               required:
               - challenge_participants
               - visualization
-              additional_properties: false
+            - type: object
+              properties:
+                series_type:
+                  type: string
+                  const: aggregation-data-series
+                challenge_participants:
+                  description: The metrics data series for each one of the participants
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      label:
+                        type: string
+                        minLength: 1
+                      metric_id:
+                        type: string
+                        minLength: 1
+                      values:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            v:
+                              type: number
+                            e:
+                              type: number
+                          unevaluatedProperties: false
+                          required:
+                          - v
+                        minItems: 1
+                    required:
+                    - label
+                    - metric_id
+                    - values
+                    unevaluatedProperties: false
+                visualization:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      const: "bar-plot"
+                    metric:
+                      type: string
+                      minLength: 1
+                  required:
+                  - type
+                  - metric
+                  unevaluatedProperties: false
+                labels:
+                  title: Mapping labels to dataset assessment original ids. It can be an incomplete list.
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      label:
+                        title: Label representing the participant
+                        type: string
+                        minLength: 1
+                      dataset_orig_id:
+                        title: Participant dataset original id
+                        type: string
+                        minLength: 1
+                    required:
+                    - label
+                    - dataset_orig_id
+                    unevaluatedProperties: false
+                  minItems: 1
+              required:
+              - series_type
+              - challenge_participants
+              - visualization
+            unevaluatedProperties: false
       type:
         title: Type of dataset.
         type: string
         const: aggregation
-    additionalProperties: false
+    unevaluatedProperties: false
     required:
     - _id
     - challenge_ids
