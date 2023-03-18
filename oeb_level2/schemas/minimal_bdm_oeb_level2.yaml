@@ -288,7 +288,7 @@ $defs:
         title: The id / name of the tool which generated this dataset
         type: string
         minLength: 1
-        index_key:
+        index:
           name: participant_id_index
           members:
           - .
