@@ -66,5 +66,5 @@ An example of the dataset is [available here](minimal_dataset_examples/results_e
 # The command must be run with the virtual environment enabled
 
 # This one uplifts the dataset, but it does not load the data in the database
-python push_data_to_oeb.py -i config.json -cr auth_config.json --turst-rest-bdm --dry-run -o uplifted.json
+python push_data_to_oeb.py -i config.json -cr auth_config.json --trust-rest-bdm --dry-run -o uplifted.json
 ```
