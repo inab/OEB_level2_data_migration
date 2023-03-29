@@ -186,6 +186,12 @@
 			    "hidden": true
 			 }
 		},
+		"fix_original_ids": {
+			"title": "Fix non-conformant original ids",
+			"description": "Fix original ids provided by the minimal datasets, so they conform the original id naming conventions",
+			"type": "boolean",
+			"default": true
+		},
 		"data_storage_endpoint": {
 			"$comment": "This key is only allowed for backward compatibility",
 			"title": "Storage endpoint",
@@ -219,9 +225,7 @@
 		"data_visibility",
 		"benchmarking_event_id",
 		"participant_file",
-		"workflow_oeb_id",
-		"data_model_repo",
-		"data_model_tag"
+		"workflow_oeb_id"
 	],
 	"unevaluatedProperties": false
 }

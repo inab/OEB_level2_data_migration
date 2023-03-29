@@ -143,8 +143,8 @@ def validate_transform_and_push(
         bench_event_id = config_params["benchmarking_event_id"]
         file_location = config_params["participant_file"]
         community_id = config_params["community_id"]
-        data_model_repo = config_params["data_model_repo"]
-        data_model_tag = config_params["data_model_tag"]
+        data_model_repo = config_params.get("data_model_repo")
+        data_model_tag = config_params.get("data_model_tag")
         data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
         
         # Tool mapping contains the correspondence from
@@ -362,11 +362,11 @@ def validate_transform_and_push(
     if len(m_a_collisions) > 0:
         sys.exit(5)
     
-    if use_server_schemas:
+    if use_server_schemas or (data_model_repo is None) or (data_model_tag is None):
         logging.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
         schemaMappings = migration_utils.load_schemas_from_server()
     else:
-        logging.info("-> Fetching and using schemas from the repository")
+        logging.info(f"-> Fetching and using schemas from the repository {data_model_repo} (tag {data_model_tag})")
         data_model_repo_dir = migration_utils.doMaterializeRepo(
             data_model_repo, data_model_tag)
         data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
