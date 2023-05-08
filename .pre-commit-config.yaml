@@ -1,6 +1,17 @@
 fail_fast: true
 
 repos:
+  - repo: https://github.com/camptocamp/jsonschema-gentypes.git
+    rev: "2.2.3"
+    hooks:
+      - id: jsonschema-gentypes
+	stages: [manual]
+        files: |
+          (?x)^(
+              \.jsonschema-gentypes\.yaml|
+              oeb_level2/schemas/.*\.json
+          )$
+        args: ["--config", ".jsonschema-gentypes.yaml"]
   - repo: local
     hooks:
       - id: pylint

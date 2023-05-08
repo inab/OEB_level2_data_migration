@@ -1,0 +1,28 @@
+headers: >
+  # Automatically generated file from a JSON schema
+# Used to correctly format the generated file
+#callbacks:
+#  - - black
+#  - - isort
+#pre_commit:
+#  enabled: true
+#  hooks_skip:
+#    - jsonschema-gentypes
+#  arguments:
+#    - --color=never
+generate:
+  - # JSON schema file path
+    source: oeb_level2/schemas/submission_form_schema.json
+    # Python file path
+    destination: oeb_level2/schemas/typed_schemas/submission_form_schema.py
+    # The name of the root element
+    root_name: ConfigParams
+    # Argument passed to the API
+    api_arguments:
+      additional_properties: Only explicit
+    # Rename an element
+    name_mapping: {}
+    # The minimum Python version that the code should support. By default the
+    # currently executing Python version is chosen. Note that the output
+    # may require typing_extensions to be installed.
+    python_version: '3.8'
