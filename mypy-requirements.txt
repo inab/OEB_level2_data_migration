@@ -1,0 +1,3 @@
+types-PYYAML
+types-requests
+typing-extensions
