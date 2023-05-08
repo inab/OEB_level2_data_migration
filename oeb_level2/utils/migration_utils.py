@@ -12,29 +12,60 @@ import json
 import urllib.request
 import urllib.parse
 
+from typing import (
+    cast,
+    NamedTuple,
+    TYPE_CHECKING,
+)
+if TYPE_CHECKING:
+    from typing import(
+        Any,
+        Iterator,
+        Mapping,
+        MutableMapping,
+        MutableSequence,
+        Optional,
+        Sequence,
+        Set,
+        Tuple,
+        Type,
+        Union,
+    )
+    
+    from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
+	
+    from extended_json_schema_validator.extensible_validator import (
+        ExtensibleValidator,
+        ParsedContentEntry,
+    )
+    from extended_json_schema_validator.extensions.abstract_check import SchemaHashEntry
+
 import requests
 
 import yaml
 # We have preference for the C based loader and dumper, but the code
 # should fallback to default implementations when C ones are not present
+YAMLLoader: "Type[Union[yaml.Loader, yaml.CLoader]]"
+YAMLDumper: "Type[Union[yaml.Dumper, yaml.CDumper]]"
 try:
     from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
 except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 from oebtools.fetch import (
+    fetchIdsAndOrigIds,
     checkoutSchemas,
+    query_graphql,
     DEFAULT_BDM_TAG,
+    FLAVOR_SANDBOX,
+    FLAVOR_STAGED,
 )
 
-from oebtools.uploader import (
-    loadSchemas,
-)
-
+from oebtools.uploader import _setupValidator as oeb_setup_validator
 from oebtools.auth import getAccessToken
 
 from ..schemas import (
-    create_validator,
+    LEVEL2_SCHEMA_IDS,
     create_validator_for_oeb_level2,
 )
 
@@ -50,6 +81,15 @@ TEST_ACTION_ORIG_ID_SUFFIX = {
 
 
 GRAPHQL_POSTFIX = "/graphql"
+
+ORIG_ID_SEPARATOR_KEY = "level_2:orig_id_separator"
+
+DEFAULT_ORIG_ID_SEPARATOR = "_"
+
+class ChallengeLabelAndSep(NamedTuple):
+    ch_id: "str"
+    label: "str"
+    sep: "str"
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
@@ -95,7 +135,7 @@ class OpenEBenchUtils():
 
         logging.basicConfig(level=logging.INFO)
         
-        
+        # TODO: to be removed, as it is not needed any more
         local_config = {
             'primary_key': {
                 'provider': [
@@ -111,7 +151,7 @@ class OpenEBenchUtils():
         
         if level2_min_validator is None:
             level2_min_validator, num_level2_schemas = create_validator_for_oeb_level2()
-            if num_level2_schemas < 6:
+            if num_level2_schemas < len(LEVEL2_SCHEMA_IDS):
                 self.logger.error("OEB level2 operational JSON Schemas not found")
                 sys.exit(1)
             
@@ -124,10 +164,10 @@ class OpenEBenchUtils():
         
         self.schema_validators_local_config = local_config
 
-        self.schema_validators = None
+        self.schema_validators: "Optional[ExtensibleValidator]" = None
         self.num_schemas = 0
         
-        self.schemaMappings = None
+        self.schemaMappings: "Optional[Mapping[str, str]]" = None
 
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
     
@@ -136,23 +176,31 @@ class OpenEBenchUtils():
         return OpenEBenchUtils.gen_community_prefix_from_acronym(community["acronym"])
 
     @staticmethod
-    def gen_community_prefix_from_acronym(community_acronym) -> "str":
+    def gen_community_prefix_from_acronym(community_acronym: "str") -> "str":
         community_prefix = community_acronym + ':'
         
         return community_prefix
 
-    def gen_benchmarking_event_prefix(self, bench_event: "Mapping[str, Any]", community_prefix: "str") -> "str":
+    def gen_benchmarking_event_prefix(self, bench_event: "Mapping[str, Any]", community_prefix: "str") -> "Tuple[str, str]":
         if not bench_event.get("orig_id", "").startswith(community_prefix):
             self.logger.warning(f"Benchmarking event {bench_event['_id']} original id {bench_event.get('orig_id')} does not start with community prefix {community_prefix}")
         
-        # Prefixes about benchmarking events
-        benchmarking_event_prefix = bench_event.get("orig_id", community_prefix) + "_"
+        # This code is needed to get custom orig_id separators
+        bench_meta = cast("Optional[Mapping[str, Any]]", bench_event.get('_metadata'))
+        if bench_meta is None:
+            bench_meta = {}
+        bench_event_orig_id_separator = bench_meta.get(ORIG_ID_SEPARATOR_KEY)
+        if bench_event_orig_id_separator is None:
+            bench_event_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         
-        return benchmarking_event_prefix
+        # Prefixes about benchmarking events
+        benchmarking_event_prefix = bench_event.get("orig_id", community_prefix) + bench_event_orig_id_separator
+        
+        return benchmarking_event_prefix, bench_event_orig_id_separator 
     
     @staticmethod
     def gen_test_event_original_id(challenge: "Mapping[str, Any]", participant_label: "str") -> "str":
-        return challenge.get("orig_id", challenge["_id"]) + OpenEBenchUtils.TEST_EVENT_INFIX + participant_label
+        return cast("str", challenge.get("orig_id", challenge["_id"])) + OpenEBenchUtils.TEST_EVENT_INFIX + participant_label
     
     @staticmethod
     def gen_metrics_event_original_id(assessment_dataset: "Mapping[str, Any]") -> "str":
@@ -161,46 +209,68 @@ class OpenEBenchUtils():
     
     @staticmethod
     def gen_aggregation_event_original_id(aggregation_dataset: "Mapping[str, Any]") -> "str":
-        agg_d_id = aggregation_dataset.get("orig_id", aggregation_dataset["_id"])
+        agg_d_id = cast("str", aggregation_dataset.get("orig_id", aggregation_dataset["_id"]))
         return agg_d_id + TEST_ACTION_ORIG_ID_SUFFIX["AggregationEvent"]
     
-    def gen_expected_dataset_prefix(self, dataset: "Mapping[str, Any]", community_prefix: "str", benchmarking_event_prefix: "str") ->  "str":
+    def gen_expected_dataset_prefix(
+        self,
+        dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
+    ) ->  "Tuple[str, str]":
         # First, decide the prefix
         the_prefix = None
         if len(dataset["challenge_ids"]) == 1:
             # Fetching the challenge prefix
             challenge = self.fetchStagedEntry(dataType="Challenge", the_id=dataset["challenge_ids"][0]["_id"])
+            
+            # Getting a possible custom original id separator for this challenge
+            c_meta = challenge.get("_metadata")
+            if c_meta is None:
+                c_meta = {}
+            challenge_orig_id_separator = c_meta.get(ORIG_ID_SEPARATOR_KEY)
+            if challenge_orig_id_separator is None:
+                challenge_orig_id_separator = bench_event_orig_id_separator
+            
             the_prefix = challenge.get("orig_id", "")
             if len(the_prefix) > 0:
-                the_prefix += "_"
+                the_prefix += challenge_orig_id_separator
         elif len(dataset["community_ids"]) > 1:
             the_prefix = ""
+            challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         else:
             benchmarking_event_id = None
+            challenge_orig_id_separator = None
             for challenge_id in dataset["challenge_ids"]:
                 challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
                 if benchmarking_event_id is None:
                     benchmarking_event_id = challenge["benchmarking_event_id"]
+                    challenge_orig_id_separator = bench_event_orig_id_separator
                 elif benchmarking_event_id != challenge["benchmarking_event_id"]:
                     the_prefix = community_prefix
+                    challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
                     break
             else:
                 the_prefix = benchmarking_event_prefix
+                if challenge_orig_id_separator is None:
+                    challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         
-        return the_prefix
+        return the_prefix, challenge_orig_id_separator
     
     def gen_expected_participant_original_id(
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
         benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
         participant_label: "str",
     ) ->  "str":
         """
         It works only for participant and assessment datasets
         """
         # First, obtain the prefix
-        the_prefix = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix)
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator)
         
         # Then, dig in to get the participant label
         the_metadata = dataset.get("_metadata")
@@ -219,6 +289,7 @@ class OpenEBenchUtils():
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
         benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
         participant_label: "str",
         metrics_label: "str",
     ) ->  "str":
@@ -226,7 +297,7 @@ class OpenEBenchUtils():
         It works only for participant and assessment datasets
         """
         # First, obtain the prefix
-        the_prefix = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix)
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator)
         
         # Then, dig in to get the participant label and metrics label
         the_metadata = dataset.get("_metadata")
@@ -234,7 +305,7 @@ class OpenEBenchUtils():
             participant_label = the_metadata.get("level_2:participant_id", participant_label)
             metrics_label = the_metadata.get("level_2:metric_id", metrics_label)
         
-        expected_orig_id = the_prefix + metrics_label + '_' + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
         orig_id = dataset.get("orig_id", dataset["_id"])
         if expected_orig_id != orig_id:
             self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
@@ -242,13 +313,26 @@ class OpenEBenchUtils():
         return expected_orig_id
 
     @staticmethod
-    def get_challenge_label_from_challenge(the_challenge: "Mapping[str, Any]", benchmarking_event_prefix: "str", community_prefix: "str") -> "str":
+    def get_challenge_label_from_challenge(
+        the_challenge: "Mapping[str, Any]",
+        benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
+        community_prefix: "str"
+    ) -> "ChallengeLabelAndSep":
+        """
+        It returns both the challenge label as well as
+        the challenge orig_id separator
+        """
         challenge_label = the_challenge.get("acronym")
         _metadata = the_challenge.get("_metadata")
+        challenge_orig_id_separator = bench_event_orig_id_separator
         if isinstance(_metadata, dict):
             the_label = _metadata.get("level_2:challenge_id")
             if the_label is not None:
                 challenge_label = the_label
+            the_challenge_orig_id_separator = _metadata.get(ORIG_ID_SEPARATOR_KEY)
+            if the_challenge_orig_id_separator is not None:
+                challenge_orig_id_separator = the_challenge_orig_id_separator
         
         if challenge_label is None:
             # Very old school label
@@ -261,21 +345,35 @@ class OpenEBenchUtils():
             else:
                 challenge_label = the_challenge["_id"]
         
-        return challenge_label
+        return ChallengeLabelAndSep(
+            ch_id=cast("str", the_challenge["_id"]),
+            label=cast("str", challenge_label),
+            sep=challenge_orig_id_separator,
+        )
 
     @staticmethod
-    def gen_ch_id_to_label(challenges: "Sequence[Mapping[str, Any]]", benchmarking_event_prefix: "str", community_prefix: "str") -> "Mapping[str, str]":
-        ch_id_to_label = {}
+    def gen_ch_id_to_label_and_sep(
+        challenges: "Sequence[Mapping[str, Any]]",
+        benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
+        community_prefix: "str",
+    ) -> "Mapping[str, ChallengeLabelAndSep]":
+        ch_id_to_label_and_sep = {}
         for challenge in challenges:
-            challenge_label = OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)
-            ch_id_to_label[challenge["_id"]] = challenge_label
+            challenge_label_and_sep = OpenEBenchUtils.get_challenge_label_from_challenge(
+                challenge,
+                benchmarking_event_prefix,
+                bench_event_orig_id_separator,
+                community_prefix,
+            )
+            ch_id_to_label_and_sep[challenge_label_and_sep.ch_id] = challenge_label_and_sep
             ch_orig_id = challenge.get("orig_id")
             if ch_orig_id is not None:
-                ch_id_to_label[ch_orig_id] = challenge_label
+                ch_id_to_label_and_sep[ch_orig_id] = challenge_label_and_sep
         
-        return ch_id_to_label
+        return ch_id_to_label_and_sep
 
-    def doMaterializeRepo(self, git_uri: "str", git_tag: "str") -> "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]":
+    def doMaterializeRepo(self, git_uri: "str", git_tag: "str") -> "str":
 
         repo_hashed_id = hashlib.sha1(git_uri.encode('utf-8')).hexdigest()
         repo_hashed_tag_id = hashlib.sha1(git_tag.encode('utf-8')).hexdigest()
@@ -292,23 +390,24 @@ class OpenEBenchUtils():
                 raise Exception(errstr)
 
         repo_tag_destdir = os.path.join(repo_destdir, repo_hashed_tag_id)
-        return checkoutSchemas(
+        return cast("str",checkoutSchemas(
             checkoutDir=repo_tag_destdir,
             git_repo=git_uri,
             tag=git_tag,
             logger=self.logger
-        )
+        ))
 
     # function that retrieves all the required metadata from OEB database
-    def graphql_query_OEB_DB(self, data_type: "str", bench_event_id: "str") -> "Tuple[Mapping[str, Any], Mapping[str, Mapping[str, Any]]]":
+    def graphql_query_OEB_DB(self, data_type: "str", bench_event_id: "str") -> "Mapping[str, Mapping[str, Any]]":
 
         if data_type == "input":
-#            }
-            json_query = {'query': """query InputQuery($bench_event_id: String) {
+            query_name = "InputQuery"
+            query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
         _id
         orig_id
         community_id
+        _metadata
     }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
@@ -322,13 +421,13 @@ class OpenEBenchUtils():
         _id
         email
     }
-}""",
-                'variables': {
-                    'bench_event_id': bench_event_id,
-                }
+"""
+            variables = {
+                'bench_event_id': bench_event_id,
             }
         elif data_type == "metrics_reference":
-            json_query = {'query': """query MetricsReferenceQuery($bench_event_id: String) {
+            query_name = "MetricsReferenceQuery"
+            query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
         _id
         orig_id
@@ -358,13 +457,13 @@ class OpenEBenchUtils():
         _metadata
         orig_id
     }
-}""",
-                'variables': {
-                    'bench_event_id': bench_event_id,
-                }
+"""
+            variables = {
+                'bench_event_id': bench_event_id,
             }
         elif data_type == "aggregation":
-            json_query = {'query': """query AggregationQuery($bench_event_id: String) {
+            query_name = "AggregationQuery"
+            query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
         _id
         orig_id
@@ -601,10 +700,9 @@ class OpenEBenchUtils():
         _metadata
         orig_id
     }
-}""",
-                'variables': {
-                    'bench_event_id': bench_event_id,
-                }
+"""
+            variables = {
+                'bench_event_id': bench_event_id,
             }
         else:
             self.logger.fatal("Unable to generate graphQL query: Unknown datatype {}".format(data_type))
@@ -612,14 +710,21 @@ class OpenEBenchUtils():
         
         
         try:
-            url = self.oeb_api
+            response = query_graphql(
+                self.oeb_api_base,
+                query,
+                variables=variables,
+                oeb_credentials=self.oeb_token,
+                query_name=query_name,
+                logger=self.logger,
+            )
+            
             # get challenges and input datasets for provided benchmarking event
-            r = requests.post(url=url, json=json_query, headers={'Authorization': 'Bearer {}'.format(self.oeb_token)})
-            response = r.json()
-            data = response.get("data")
-            if data is None:
-                self.logger.fatal(f"For {bench_event_id} got response error from graphql query: {r.text}")
-                sys.exit(6)
+            data = response.get('data')
+            if not isinstance(data, dict):
+                self.logger.fatal(f"graphqL query:\n{query}\nreturned errors:\n{response}")
+                sys.exit(2)
+            
             if len(data["getBenchmarkingEvents"]) == 0:
                 self.logger.fatal(f"Benchmarking event {bench_event_id} is not available in OEB. Please double check the id, or contact OpenEBench support for information about how to open a new benchmarking event")
                 sys.exit(2)
@@ -630,6 +735,14 @@ class OpenEBenchUtils():
                 sys.exit(2)
             
             # Deserializing _metadata
+            benchmarking_events = data.get('getBenchmarkingEvents')
+            if benchmarking_events is not None:
+                for benchmarking_event in benchmarking_events:
+                    metadata = benchmarking_event.get('_metadata')
+                    # Deserialize the metadata
+                    if isinstance(metadata, str):
+                        benchmarking_event['_metadata'] = json.loads(metadata)
+
             challenges = data.get('getChallenges')
             # mapping from challenge _id to challenge label
             if challenges is not None:
@@ -673,13 +786,14 @@ class OpenEBenchUtils():
                     if isinstance(metadata,str):
                         metric['_metadata'] = json.loads(metadata)
             
-            return response
+            return cast("Mapping[str, Mapping[str, Any]]", response)
         except Exception as e:
 
             self.logger.exception(e)
+            raise e
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
-    def upload_to_storage_service(self, participant_data, file_location, contact_email, data_version: "str"):
+    def upload_to_storage_service(self, participant_data: "Mapping[str, str]", file_location: "str", contact_email: "str", data_version: "str") -> "str":
         # First, check whether file_location is an URL
         file_location_parsed = urllib.parse.urlparse(file_location)
         
@@ -760,86 +874,75 @@ class OpenEBenchUtils():
             # print(record_id) https://trng-b2share.eudat.eu/api/records/637a25e86dbf43729d30217613f1218b
             self.logger.info("File '" + file_location +
                          "' uploaded and permanent ID assigned: " + data_doi)
-            return data_doi
+            return cast("str", data_doi)
         else:
             self.logger.fatal('Unsupported storage server type {}'.format(self.storage_server_type))
             sys.exit(5)
 
+    def _setup_oeb_validator(self, data_model_source: "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]") -> "None":
+        # create the cached json schemas for validation
+        self.concept_ids_map = fetchIdsAndOrigIds(
+            self.oeb_api_base,
+            oeb_credentials=self.oeb_token,
+            logger=self.logger,
+        )
+        self.schema_validators, schema_prefix = oeb_setup_validator(
+            self.oeb_api_base,
+            data_model_source,
+            concept_ids_map=self.concept_ids_map,
+            flavor=FLAVOR_SANDBOX,
+            logger=self.logger,
+        )
+
+        num_schemas = 0
+        schemaMappings: "MutableMapping[str, str]" = {}
+        for key in self.schema_validators.getValidSchemas().keys():
+            num_schemas += 1
+            if key.startswith(schema_prefix):
+                concept = key[len(schema_prefix):]
+            else:
+                # This "else" should be discarded in the future
+                concept = key[key.rindex('/')+1:]
+            if concept:
+                schemaMappings[concept] = key
+        
+        if num_schemas == 0:
+            print(
+                "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
+            sys.exit(1)
+        
+        self.schemaMappings = schemaMappings
+        self.num_schemas = num_schemas
+        
     def load_schemas_from_repo(self, data_model_dir: "str", tag: "str" = DEFAULT_BDM_TAG) -> "Mapping[str, str]":
         if self.schema_validators is None:
-            local_config = self.schema_validators_local_config
-            
-            schema_prefix, schema_dir = loadSchemas(
-                data_model_dir,
-                tag=tag,
-                logger=self.logger
-            )
-            
-            local_config['primary_key']['schema_prefix'] = schema_prefix
-            self.logger.debug(json.dumps(local_config))
-            
-            # create the cached json schemas for validation
-            self.schema_validators, self.num_schemas = create_validator(schema_dir, config=local_config)
-
-            if self.num_schemas == 0:
-                print(
-                    "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
-                sys.exit(1)
-            
-            schemaMappings = {}
-            for key in self.schema_validators.getValidSchemas().keys():
-                concept = key[key.rindex('/')+1:]
-                if concept:
-                    schemaMappings[concept] = key
-            
-            self.schemaMappings = schemaMappings
+            self._setup_oeb_validator(data_model_dir)
         
+        assert self.schemaMappings is not None
         return self.schemaMappings
 
     def load_schemas_from_server(self) -> "Mapping[str, str]":
         if self.schema_validators is None:
+            # fetch in memory the cached json schemas for validation
             data_model_in_memory = checkoutSchemas(fetchFromREST=self.oeb_api_base, logger=self.logger)
-            
-            local_config = self.schema_validators_local_config
-            
-            schema_prefix, schema_dir = loadSchemas(
-                data_model_in_memory,
-                logger=self.logger
-            )
-            
-            local_config['primary_key']['schema_prefix'] = schema_prefix
-            self.logger.debug(json.dumps(local_config))
-            
-            # create the cached json schemas for validation
-            self.schema_validators, self.num_schemas = create_validator(schema_dir, config=local_config)
-
-            if self.num_schemas == 0:
-                print(
-                    "FATAL ERROR: No schema was successfully loaded. Exiting...\n", file=sys.stderr)
-                sys.exit(1)
-            
-            schemaMappings = {}
-            for key in self.schema_validators.getValidSchemas().keys():
-                concept = key[key.rindex('/')+1:]
-                if concept:
-                    schemaMappings[concept] = key
-            
-            self.schemaMappings = schemaMappings
+            self._setup_oeb_validator(data_model_in_memory)
         
+        assert self.schemaMappings is not None
         return self.schemaMappings
 
-    def schemas_validation(self, jsonSchemas_array, val_result_filename):
+    def schemas_validation(self, json_data_array: "Sequence[Any]", val_result_filename: "Optional[str]") -> "None":
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         self.logger.info(
             "\n\t==================================\n\t8. Validating datasets and TestActions\n\t==================================\n")
 
-        cached_jsons = []
-        for element in jsonSchemas_array:
+        cached_jsons: "MutableSequence[ParsedContentEntry]" = []
+        for element in json_data_array:
 
             cached_jsons.append(
                 {'json': element, 'file': "inline" + element["_id"], 'errors': []})
 
+        assert self.schema_validators is not None
         val_res = self.schema_validators.jsonValidate(
             *cached_jsons, verbose=True)
         
@@ -889,7 +992,7 @@ class OpenEBenchUtils():
             'Authorization': 'Bearer {}'.format(self.oeb_token)
         }
         
-        seen = set()
+        seen: "Set[str]" = set()
         # sandbox entries take precedence over other ones
         for api_endpoint in (self.oeb_submission_api, *self.oeb_access_api_points):
             if not api_endpoint.endswith('/'):
@@ -901,8 +1004,8 @@ class OpenEBenchUtils():
                     datares_raw = json.load(t)
                     
                     assert isinstance(datares_raw, list), "The answer is expected to be a list"
-                    filtered_datares_raw = list(filter(lambda d: d["_id"] not in seen, datares_raw))
-                    seen.update(map(lambda d: d["_id"], filtered_datares_raw))
+                    filtered_datares_raw = cast("Sequence[Mapping[str,Any]]", list(filter(lambda d: d["_id"] not in seen, datares_raw)))
+                    seen.update(map(lambda d: cast("str", d["_id"]), filtered_datares_raw))
                     if isinstance(filtering_keys, dict) and len(filtering_keys) > 0:
                         yield from self.filter_by(filtered_datares_raw, filtering_keys)
                     else:
@@ -926,7 +1029,7 @@ class OpenEBenchUtils():
             return datares_raw
     
     @staticmethod
-    def filter_by(datares_raw: "Iterator[Mapping[str, Any]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
+    def filter_by(datares_raw: "Union[Sequence[Mapping[str, Any]],Iterator[Mapping[str, Any]]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
             if len(filtering_keys) > 0:
                 fk_set = {
                     fk_key: fk_values if isinstance(fk_values, set) else set(fk_values) 
@@ -948,7 +1051,7 @@ class OpenEBenchUtils():
             else:
                 yield from datares_raw
 
-    def check_min_dataset_collisions(self, db_datasets: "Sequence[Mapping[str, Any]]", input_min_datasets: "Sequence[Mapping[str, Any]]", ch_id_to_label: "Mapping[str, Any]") -> "Sequence[Tuple[str, str]]":
+    def check_min_dataset_collisions(self, db_datasets: "Sequence[Mapping[str, Any]]", input_min_datasets: "Sequence[Mapping[str, Any]]", ch_id_to_label_and_sep: "Mapping[str, ChallengeLabelAndSep]") -> "Sequence[Tuple[str, Optional[str], str]]":
         # This method is only valid for minimal dataset of type participant and assessment
         # Those ones with original ids
         input_d_dict = dict(map(lambda i_d: (i_d["_id"],i_d), input_min_datasets))
@@ -959,7 +1062,7 @@ class OpenEBenchUtils():
             ,
             self.filter_by(db_datasets, {"_id": i_keys})
         ):
-            orig_id = db_dataset.get("orig_id")
+            orig_id = cast("Optional[str]", db_dataset.get("orig_id"))
             if orig_id is not None:
                 input_min_dataset = input_d_dict.get(orig_id)
             else:
@@ -988,7 +1091,11 @@ class OpenEBenchUtils():
             
             # Translation from challenge id to challenge label
             
-            db_ch_set = set(map(lambda d_id: ch_id_to_label.get(d_id), db_dataset["challenge_ids"]))
+            db_ch_set: "Set[str]" = set()
+            for d_id in db_dataset["challenge_ids"]:
+                c_l = ch_id_to_label_and_sep.get(d_id)
+                if c_l is not None:
+                    db_ch_set.add(c_l.label)
             if not db_ch_set.issubset(i_ch_set):
                 self.logger.error(f"Challenges where new dataset {input_min_dataset['_id']} appears is not a superset of the new dataset challenges: {db_ch_set - i_ch_set} ({i_ch_set} vs {db_ch_set})")
                 has_coll = True
@@ -996,7 +1103,7 @@ class OpenEBenchUtils():
             # 
             
             if has_coll:
-                collisions.append((db_dataset['_id'], orig_id, input_min_dataset['_id']))
+                collisions.append((cast("str", db_dataset['_id']), orig_id, cast("str", input_min_dataset['_id'])))
         
         return collisions
     
@@ -1006,8 +1113,9 @@ class OpenEBenchUtils():
         output_datasets: "Sequence[Mapping[str, Any]]",
 #        community_prefix: "str",
 #        benchmarking_event_prefix: "str",
+#        bench_event_orig_id_separator: "str",
         default_schema_url: "Optional[Union[Sequence[str], bool]]" = None
-    ) -> "Sequence[Tuple[str, str]]":
+    ) -> "Sequence[Tuple[str, Optional[str], str]]":
         
         # Those ones with original ids
         output_d_list = list(map(lambda o_d: (o_d.get("orig_id"), o_d["_id"], o_d), output_datasets))
@@ -1023,15 +1131,15 @@ class OpenEBenchUtils():
         for o_dataset in output_datasets:
 #            # Early check
 #            if o_dataset["type"] == "participant":
-#                self.gen_expected_participant_original_id(o_dataset, community_prefix, benchmarking_event_prefix, "")
+#                self.gen_expected_participant_original_id(o_dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator, "")
 #            elif o_dataset["type"] == "assessment":
-#                self.gen_expected_assessment_original_id(o_dataset, community_prefix, benchmarking_event_prefix, "", "")
+#                self.gen_expected_assessment_original_id(o_dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator, "", "")
             
             should_exit = False
             # Should we validate the inline data?
             o_datalink = o_dataset.get("datalink")
             o_type = o_dataset["type"]
-            o_id = o_dataset["_id"]
+            o_id = cast("str", o_dataset["_id"])
             o_orig_id = o_dataset.get("orig_id")
             if (not isinstance(default_schema_url, bool) or default_schema_url) and isinstance(o_datalink, dict):
                 inline_data = o_datalink.get("inline_data")
@@ -1084,7 +1192,10 @@ class OpenEBenchUtils():
                     
                     self.logger.error(json.dumps(db_i_orig_dataset, sort_keys=True, indent=4))
                     self.logger.error(json.dumps(o_dataset, sort_keys=True, indent=4))
-                    collisions.append((o_id, o_orig_id, db_orig_dataset['_id']))
+                    if isinstance(db_orig_dataset, dict):
+                        collisions.append((o_id, o_orig_id, db_orig_dataset['_id']))
+                    else:
+                        collisions.append((o_id, o_orig_id, "MISSING_DB_ORIG_DATASET"))
                     continue
                 elif db_orig_dataset is not None:
                     if d_dataset is None:
@@ -1104,8 +1215,8 @@ class OpenEBenchUtils():
                 self.logger.info(f"Nothing matched output dataset {o_id} (orig {o_orig_id})")
                 continue
             
-            d_orig_id = d_dataset.get("orig_id")
-            d_id = d_dataset["_id"]
+            d_orig_id = cast("Optional[str]", d_dataset.get("orig_id"))
+            d_id = cast("str", d_dataset["_id"])
             
             # Now, corner cases
             # Case 1 o_id matches d_orig_id => good
@@ -1140,13 +1251,22 @@ class OpenEBenchUtils():
         
         return collisions
     
-    def generate_manifest_dataset(self, dataset_submission_id, community_id, benchmarking_event_id, version: "str", data_visibility, final_data):
+    def generate_manifest_dataset(
+        self,
+        dataset_submission_id: "str",
+        community_id: "str",
+        benchmarking_event_id: "str",
+        version: "str",
+        data_visibility: "DatasetsVisibility",
+        final_data: "Sequence[Any]"
+    ) -> "Mapping[str, Any]":
         """
         This method receives both a dataset submission id and
         the array of data elements (datasets, testactions) to
         be stored in the database
         """
         
+        assert self.schemaMappings is not None
         dataset_schema = self.schemaMappings['Dataset']
         umbrella_assembling_timestamp = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0).isoformat()
         
@@ -1192,8 +1312,9 @@ class OpenEBenchUtils():
         
         return umbrella
     
-    def submit_oeb_buffer(self, json_data, community_id):
-
+    def submit_oeb_buffer(self, json_data: "Sequence[Any]", community_id: "str") -> "None":
+        # TODO: remove this method when oeb_sci_admin_tools provides
+        # a method to upload without having to validate twice.
         self.logger.info(f"\n\t==================================\n\t8. Uploading workflow results to {self.oeb_submission_api}\n\t==================================\n")
 
         header = {"Content-Type": "application/json"}

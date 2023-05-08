@@ -11,9 +11,29 @@ import urllib.request
 import logging
 import uuid
 
-import coloredlogs
+from typing import (
+    cast,
+    TYPE_CHECKING,
+)
+if TYPE_CHECKING:
+    from typing import (
+        Optional,
+        Sequence,
+    )
+    
+    from typing_extensions import (
+        NotRequired,
+        TypedDict,
+    )
+    
+    class BasicLoggingConfigDict(TypedDict):
+        filename: NotRequired[str]
+        format: NotRequired[str]
+        level: int
+
+import coloredlogs  # type: ignore[import]
 import requests
-from rfc3339_validator import validate_rfc3339
+from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 from .. import schemas as level2_schemas
 
@@ -42,8 +62,8 @@ def validate_challenges(
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
     log_filename: "Optional[str]" = None,
-):
-    loggingConfig = {
+) -> "None":
+    loggingConfig: "BasicLoggingConfigDict" = {
         "level": logging.INFO,
 #        "format": LOGFORMAT,
     }
@@ -104,7 +124,7 @@ def validate_challenges(
     stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
     
     community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunities[0])
-    benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
+    benchmarking_event_prefix, bench_event_orig_id_separator = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
     
     logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
     process_aggregations = AggregationValidator(schemaMappings, migration_utils)
@@ -114,12 +134,11 @@ def validate_challenges(
     else:
         challenge_ids_set = set(challenge_ids)
         challenges_graphql = []
-        included_challenge_ids = []
         for challenge_graphql in aggregation_query_response["data"]["getChallenges"]:
             if challenge_graphql["_id"] in challenge_ids_set:
                 challenges_graphql.append(challenge_graphql)
         
-        included_challenge_ids = set(map(lambda ch: ch['_id'] , challenges_graphql))
+        included_challenge_ids = set(map(lambda ch: cast("str", ch['_id']), challenges_graphql))
         if len(challenges_graphql) > 0:
             logging.info(f"   Restricting validation to challenges {', '.join(included_challenge_ids)}")
             not_included = challenge_ids_set - included_challenge_ids
@@ -133,11 +152,12 @@ def validate_challenges(
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
         benchmarking_event_prefix,
+        bench_event_orig_id_separator,
         challenges_graphql,
         aggregation_query_response["data"]["getMetrics"],
     )    
 
-def main():
+def main() -> "None":
     parser = argparse.ArgumentParser(description='OEB Scientific Challenge validator', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument(
         "-cr",

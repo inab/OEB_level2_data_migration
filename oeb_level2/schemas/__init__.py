@@ -6,10 +6,13 @@ from extended_json_schema_validator.extensible_validator import ExtensibleValida
 
 if TYPE_CHECKING:
 	from typing import (
+		Sequence,
 		Tuple,
+		Union,
 	)
 	
 	from extended_json_schema_validator.extensible_validator import ExtensibleValidatorConfig
+	from extended_json_schema_validator.extensions.abstract_check import SchemaHashEntry
 
 AUTH_CONFIG_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/configuration-json-schema"
 
@@ -27,6 +30,15 @@ TYPE2SCHEMA_ID = {
 	"2D-plot": AGGREGATION_2D_PLOT_SCHEMA_ID,
 	"bar-plot": AGGREGATION_BAR_PLOT_SCHEMA_ID,
 }
+
+LEVEL2_SCHEMA_IDS = [
+	AUTH_CONFIG_SCHEMA_ID,
+	SUBMISSION_FORM_SCHEMA_ID,
+	MINIMAL_DATA_BLOCK_SCHEMA_ID,
+	SINGLE_METRIC_SCHEMA_ID,
+	AGGREGATION_2D_PLOT_SCHEMA_ID,
+	AGGREGATION_BAR_PLOT_SCHEMA_ID,
+]
 
 def create_validator(schemas_dir: "Union[str, Sequence[SchemaHashEntry]]", config: "ExtensibleValidatorConfig" = {}) -> "Tuple[ExtensibleValidator, int]":
 	schema_validators = ExtensibleValidator(config=config)

@@ -16,6 +16,7 @@ from ..utils.catalogs import (
 )
 
 from typing import (
+    cast,
     NamedTuple,
     TYPE_CHECKING
 )
@@ -24,10 +25,12 @@ if TYPE_CHECKING:
     from typing import (
         Any,
         Mapping,
+        MutableMapping,
         Sequence,
         Tuple,
     )
     from .participant import ParticipantTuple
+    from ..utils.catalogs import IndexedChallenge
 
 from ..utils.migration_utils import OpenEBenchUtils
 
@@ -49,18 +52,19 @@ class AssessmentBuilder():
     def build_assessment_datasets(
         self,
         challenges_graphql: "Sequence[Mapping[str, Any]]",
-        metrics_graphql,
+        metrics_graphql: "Sequence[Mapping[str, Any]]",
         staged_assessment_datasets: "Sequence[Mapping[str, Any]]",
         min_assessment_datasets: "Sequence[Mapping[str, Any]]",
         data_visibility: "str",
         valid_participant_tuples: "Sequence[ParticipantTuple]",
         benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
         community_prefix: "str"
     ) -> "Sequence[AssessmentTuple]":
         
         valid_participants = {}
-        for pvc in valid_participant_tuples:
-            valid_participants[pvc.p_config.participant_label] = pvc
+        for valid_pvc in valid_participant_tuples:
+            valid_participants[valid_pvc.p_config.participant_label] = valid_pvc
             
         self.logger.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
@@ -72,13 +76,13 @@ class AssessmentBuilder():
         # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
         for challenge in challenges_graphql:
-            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, community_prefix)] = challenge
+            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, bench_event_orig_id_separator, community_prefix).label] = challenge
 
         valid_assessment_tuples = []
         should_end = []
         for min_dataset in min_assessment_datasets:
             assessment_participant_label = min_dataset.get("participant_id")
-            pvc = valid_participants.get(assessment_participant_label)
+            pvc = valid_participants.get(assessment_participant_label) if assessment_participant_label is not None else None
             # If not found, next!!!!!!
             if pvc is None:
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
@@ -149,7 +153,7 @@ class AssessmentBuilder():
                 continue
                 # sys.exit()
 
-            valid_data["challenge_ids"] = list(map(lambda ex: ex["_id"] , execution_challenges))
+            valid_data["challenge_ids"] = list(map(lambda ex: cast("str", ex["_id"]) , execution_challenges))
 
             # select metrics_reference datasets used in the challenges
             rel_oeb_datasets = set()
@@ -188,7 +192,7 @@ class AssessmentBuilder():
                     updated_metadata = copy.copy(staged_metadata)
                     updated_metadata.update(new_metadata)
                     new_metadata = updated_metadata
-            valid_participant_data["_metadata"] = new_metadata
+            valid_data["_metadata"] = new_metadata
 
             # add Benchmarking Data Model Schema Location
             valid_data["_schema"] = self.schemaMappings["Dataset"]
@@ -204,7 +208,7 @@ class AssessmentBuilder():
                 })
             
             # Select the metrics just "guessing"
-            metric_id, found_tool_id, _ = match_metric_from_label(
+            matched_metric = match_metric_from_label(
                 logger=self.logger,
                 metrics_graphql=metrics_graphql,
                 community_prefix=community_prefix,
@@ -214,19 +218,19 @@ class AssessmentBuilder():
                 challenge_assessment_metrics_d=cam_d,
                 dataset_id=min_dataset['_id'],
             )
-            if metric_id is None:
+            if matched_metric is None:
                 should_end.append((the_challenge['_id'], the_challenge['acronym']))
                 continue
             
             # Declaring the assessment dependency
             valid_data["depends_on"] = {
                 "rel_dataset_ids": list_oeb_datasets,
-                "metrics_id": metric_id
+                "metrics_id": matched_metric.metrics_id
             }
             # There could be some corner case where no tool_id was declared
             # when the assessment metrics categories were set
-            if found_tool_id is not None:
-                valid_data["depends_on"]["tool_id"] = found_tool_id
+            if matched_metric.tool_id is not None:
+                valid_data["depends_on"]["tool_id"] = matched_metric.tool_id
 
             # add data version
             valid_data["version"] = pvc.p_config.data_version
@@ -241,6 +245,7 @@ class AssessmentBuilder():
                 valid_data,
                 community_prefix,
                 benchmarking_event_prefix,
+                bench_event_orig_id_separator,
                 participant_label,
                 metrics_label,
             )
@@ -276,8 +281,12 @@ class AssessmentBuilder():
             event_id = OpenEBenchUtils.gen_metrics_event_original_id(dataset)
             
             indexed_challenge = indexed_challenges[dataset["challenge_ids"][0]]
-            ta_event = indexed_challenge.ta_catalog.get("MetricsEvent").get_by_original_id(event_id)
+            ita = indexed_challenge.ta_catalog.get("MetricsEvent")
+            assert ita is not None
             
+            ta_event = ita.get_by_original_id(event_id)
+            
+            event: "MutableMapping[str, Any]"
             if ta_event is None:
                 event = {
                     "_id": event_id,

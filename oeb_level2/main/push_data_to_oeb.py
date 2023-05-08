@@ -21,9 +21,38 @@ import urllib.request
 import logging
 import uuid
 
-import coloredlogs
+from typing import (
+    cast,
+    TYPE_CHECKING,
+)
+if TYPE_CHECKING:
+    from typing import (
+        Mapping,
+        MutableMapping,
+        Optional,
+        Set,
+    )
+    
+    from typing_extensions import (
+        NotRequired,
+        TypedDict,
+    )
+    
+    from extended_json_schema_validator.extensible_validator import ParsedContentEntry
+    
+    class BasicLoggingConfigDict(TypedDict):
+        filename: NotRequired[str]
+        format: NotRequired[str]
+        level: int
+
+    from ..schemas.typed_schemas.submission_form_schema import (
+        ConfigParams,
+        _ParticipantElements,
+    )
+
+import coloredlogs  # type: ignore[import]
 import requests
-from rfc3339_validator import validate_rfc3339
+from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 # Just to get the directory through __file__
 from .. import schemas as level2_schemas
@@ -73,14 +102,14 @@ def validate_transform_and_push(
     use_server_schemas: "bool" = False,
     log_filename: "Optional[str]" = None,
     log_level: "int" = logging.INFO,
-):
-    loggingConfig = {
+) -> "None":
+    loggingConfig: "BasicLoggingConfigDict" = {
         "level": log_level,
 #        "format": LOGFORMAT,
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
-            loggingConfig["filename"] = log_filename
+        loggingConfig["filename"] = log_filename
     
     logging.basicConfig(**loggingConfig)
     coloredlogs.install(
@@ -110,7 +139,7 @@ def validate_transform_and_push(
             logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
             sys.exit(2)
         
-        config_params = config_val_block["json"]
+        config_params = cast("ConfigParams", config_val_block["json"])
         
         # Loading and checking the authentication and endpoints file
         oeb_credentials_val_list = level2_min_validator.jsonValidate(oeb_credentials_filename, guess_unmatched=[level2_schemas.AUTH_CONFIG_SCHEMA_ID])
@@ -146,21 +175,23 @@ def validate_transform_and_push(
         data_model_repo = config_params.get("data_model_repo")
         data_model_tag = config_params.get("data_model_tag")
         data_model_reldir = config_params.get("data_model_reldir", DEFAULT_DATA_MODEL_RELDIR)
+        do_fix_orig_ids = config_params.get("fix_original_ids", False)
         
         # Tool mapping contains the correspondence from
         # participant label to official OpenEBench local id
-        tool_mapping: "Mapping[Optional[str], ParticipantConfig]" = {}
+        tool_mapping: "MutableMapping[Optional[str], ParticipantConfig]" = {}
         tool_mapping_list = config_params.get("tool_mapping")
         if tool_mapping_list is None:
             # Old school assumed there were only a tool_id declaration
             # so a "blind mapping" is only possible
-            tool_id = config_params["tool_id"]
+            tool_mapping_old = cast("_ParticipantElements", config_params)
+            tool_id = tool_mapping_old["tool_id"]
             
             tool_mapping[None] = ParticipantConfig(
                 tool_id=tool_id,
-                data_version=str(config_params["data_version"]),
-                data_contacts=config_params["data_contacts"],
-                participant_label=None,
+                data_version=str(tool_mapping_old["data_version"]),
+                data_contacts=tool_mapping_old["data_contacts"],
+                participant_label="TEMPORARY_LABEL",   # This one will be re-set later
             )
         else:
             tool_id = None
@@ -220,6 +251,9 @@ def validate_transform_and_push(
         try:
             with open(input_file, 'r') as f:
                 data = json.load(f)
+                # If could be a single entry
+                if not isinstance(data, list):
+                    data = [ data ]
         except Exception as e:
             logging.fatal(e, "input file " + input_file +
                           " is missing or has incorrect format")
@@ -238,10 +272,10 @@ def validate_transform_and_push(
                     if validate_rfc3339(new_val_date):
                         logging.warning(f"Patching date in entry {data_i} from {input_file}")
                         val_date_b["validation_date"] = new_val_date
-                    
+    
     # Now, it is time to validate the fetched data
     # in inline mode
-    validable_data = {
+    validable_data: "ParsedContentEntry" = {
         "file": input_file if input_url is None else input_url,
         "json": data,
         "errors": []
@@ -261,8 +295,8 @@ def validate_transform_and_push(
     min_aggregation_datasets = []
     # A two level dictionary to account for the
     # number of participant datasets in a given challenge
-    participants_per_challenge = {}
-    participants_set = set()
+    participants_per_challenge: "MutableMapping[str, MutableMapping[str, int]]" = {}
+    participants_set: "Set[str]" = set()
     not_datasets = 0
     discarded_datasets = 0
     for i_dataset, dataset in enumerate(data):
@@ -327,11 +361,28 @@ def validate_transform_and_push(
     logging.info("-> Early checking in the participant tools")
     unique_participant_tool_ids = set(map(lambda pc: pc.tool_id, tool_mapping.values()))
     participant_tools = list(migration_utils.filter_by(allTools, {"_id": unique_participant_tool_ids}))
-    participant_tool_ids = set(map(lambda pt: pt["_id"], participant_tools))
+    participant_tool_ids = set(map(lambda pt: cast("str", pt["_id"]), participant_tools))
     if participant_tool_ids < unique_participant_tool_ids:
         logging.fatal(
             f"Tool ids {', '.join(unique_participant_tool_ids.difference(participant_tool_ids))} could not be found in OEB. Maybe you are using the wrong instance (development instead of production) or the tool ids have a typo. Otherwise, please contact OpenEBench support for information about how to register these tools")
         sys.exit(2)
+
+    # Time to fix original ids, even before the internal validations
+    if do_fix_orig_ids:
+        # We need at this point the community acronym
+        # the benchmarking event original id
+        # the challenge original id
+        # the id separators
+        for min_part_d in min_participant_dataset:
+            # Use a variation of migration_utils.gen_expected_participant_original_id
+            pass
+        
+        for min_ass_d in min_assessment_datasets:
+            # Use a variation of migration_utils.gen_expected_assessment_original_id
+            pass
+        
+        for min_agg_d in min_aggregation_datasets:
+            pass
 
     # Early checks over the minimal input datasets
     logging.info("-> Fetching the list of datasets")
@@ -349,16 +400,21 @@ def validate_transform_and_push(
     )
     
     bench_event = input_query_response["data"]["getBenchmarkingEvents"][0]
-    benchmarking_event_prefix = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
+    benchmarking_event_prefix, bench_event_orig_id_separator = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
 
-    ch_id_to_label = OpenEBenchUtils.gen_ch_id_to_label(input_query_response["data"]["getChallenges"], benchmarking_event_prefix, community_prefix)
+    ch_id_to_label_and_sep = OpenEBenchUtils.gen_ch_id_to_label_and_sep(
+        input_query_response["data"]["getChallenges"],
+        benchmarking_event_prefix,
+        bench_event_orig_id_separator,
+        community_prefix,
+    )
     
     logging.info("-> Early minimal participant datasets check")
-    m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label)
+    m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label_and_sep)
     if len(m_p_collisions) > 0:
         sys.exit(5)
     logging.info("-> Early minimal assessment datasets check")
-    m_a_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_assessment_datasets, ch_id_to_label)
+    m_a_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_assessment_datasets, ch_id_to_label_and_sep)
     if len(m_a_collisions) > 0:
         sys.exit(5)
     
@@ -367,8 +423,7 @@ def validate_transform_and_push(
         schemaMappings = migration_utils.load_schemas_from_server()
     else:
         logging.info(f"-> Fetching and using schemas from the repository {data_model_repo} (tag {data_model_tag})")
-        data_model_repo_dir = migration_utils.doMaterializeRepo(
-            data_model_repo, data_model_tag)
+        data_model_repo_dir = migration_utils.doMaterializeRepo(data_model_repo, data_model_tag)
         data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
         schemaMappings = migration_utils.load_schemas_from_repo(data_model_dir)
     
@@ -399,6 +454,7 @@ def validate_transform_and_push(
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
         benchmarking_event_prefix,
+        bench_event_orig_id_separator,
         aggregation_query_response["data"]["getChallenges"],
         aggregation_query_response["data"]["getMetrics"],
     )
@@ -417,6 +473,7 @@ def validate_transform_and_push(
         file_location, 
         community_id,
         benchmarking_event_prefix,
+        bench_event_orig_id_separator,
         community_prefix,
         tool_mapping
     )
@@ -446,12 +503,12 @@ def validate_transform_and_push(
     )
 
     #ASSESSMENT DATASETS & METRICS EVENT
-    challenge_ids_set = set()
-    community_ids_set = set()
+    challenge_ids_set: "Set[str]" = set()
+    community_ids_set: "Set[str]" = set()
     for pvc in valid_participant_tuples:
         
         community_ids_set.update(pvc.participant_dataset["community_ids"])
-        challenge_ids_set.update(map(lambda chp: chp.entry["_id"], pvc.challenge_pairs))
+        challenge_ids_set.update(map(lambda chp: cast("str", chp.entry["_id"]), pvc.challenge_pairs))
         
     stagedEvents = list(migration_utils.fetchStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     stagedDatasets = list(migration_utils.filter_by(allDatasets, {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
@@ -469,6 +526,7 @@ def validate_transform_and_push(
         data_visibility,
         valid_participant_tuples,
         benchmarking_event_prefix,
+        bench_event_orig_id_separator,
         community_prefix,
     )
     
@@ -526,18 +584,23 @@ def validate_transform_and_push(
     )
 
     # join all elements in a single list, validate, and push them to OEB tmp database
-    final_data = list(map(lambda pt: pt.participant_dataset, valid_participant_tuples)) + \
-        valid_test_events + \
-        list(map(lambda at: at.assessment_dataset, valid_assessment_tuples)) + \
-        valid_metrics_events + \
-        list(map(lambda ag: ag.aggregation_dataset, valid_aggregation_tuples)) + \
-        valid_aggregation_events
+    final_data = list(map(lambda pt: pt.participant_dataset, valid_participant_tuples))
+    final_data.extend(valid_test_events)
+    final_data.extend(map(lambda at: at.assessment_dataset, valid_assessment_tuples))
+    final_data.extend(valid_metrics_events)
+    final_data.extend(map(lambda ag: ag.aggregation_dataset, valid_aggregation_tuples))
+    final_data.extend(valid_aggregation_events)
     
     # Generate the umbrella dataset
     version_str = datetime.datetime.now(datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()
-    umbrella = migration_utils.generate_manifest_dataset(dataset_submission_id, 
-                                                         community_id, bench_event_id, 
-                                                         version_str, data_visibility, final_data)
+    umbrella = migration_utils.generate_manifest_dataset(
+        dataset_submission_id, 
+        community_id,
+        bench_event_id, 
+        version_str,
+        data_visibility,
+        final_data
+    )
     final_data.append(umbrella)
     
     if output_filename is not None:
@@ -553,7 +616,7 @@ def validate_transform_and_push(
         logging.info("Submitting...")
         migration_utils.submit_oeb_buffer(final_data, community_id)
 
-def main():
+def main() -> "None":
     parser = argparse.ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-i", "--dataset_config_json",
                         help="json file which contains all parameters for dataset consolidation and migration", required=True)

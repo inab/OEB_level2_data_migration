@@ -20,9 +20,13 @@ if TYPE_CHECKING:
     from typing import (
         Any,
         Mapping,
+        MutableMapping,
         Optional,
         Sequence,
     )
+    
+    from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
+    from ..utils.catalogs import IndexedChallenge
    
 from ..utils.migration_utils import OpenEBenchUtils
 
@@ -35,9 +39,9 @@ class ParticipantConfig:
     tool_id: "str"
     data_version: "str"
     data_contacts: "Sequence[str]"
-    participant_label: "Optional[str]"
+    participant_label: "str"
     
-    def process_contact_ids(self, contacts_graphql: "Mapping[str, Any]") -> "Sequence[str]":
+    def process_contact_ids(self, contacts_graphql: "Sequence[Mapping[str, Any]]") -> "Sequence[str]":
         # add dataset contacts ids
         # CHECK IF EMAIL IS GIVEN
         # Make a regular expression
@@ -99,10 +103,11 @@ class ParticipantBuilder():
         challenges_graphql: "Sequence[Mapping[str, Any]]",
         staged_participant_datasets: "Sequence[Mapping[str, Any]]",
         min_participant_dataset: "Sequence[Mapping[str, Any]]",
-        data_visibility, 
-        file_location,
+        data_visibility: "DatasetsVisibility", 
+        file_location: "str",
         community_id: "str",
         benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
         community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
     ) -> "Sequence[ParticipantTuple]":
@@ -114,7 +119,7 @@ class ParticipantBuilder():
         oeb_challenges = {}
         
         for challenge_graphql in challenges_graphql:
-            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, community_prefix)] = challenge_graphql
+            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, bench_event_orig_id_separator, community_prefix).label] = challenge_graphql
 
         stagedMap = dict()
         for staged_participant_dataset in staged_participant_datasets:
@@ -262,6 +267,7 @@ class ParticipantBuilder():
                 valid_participant_data,
                 community_prefix,
                 benchmarking_event_prefix,
+                bench_event_orig_id_separator,
                 p_config.participant_label,
             )
             
@@ -296,8 +302,12 @@ class ParticipantBuilder():
                 the_id = OpenEBenchUtils.gen_test_event_original_id(indexed_challenge.challenge, participant_label)
                 self.logger.info(f'Building TestEvent "{the_id}"...')
 
-                ta_event = indexed_challenge.ta_catalog.get("TestEvent").get_by_original_id(the_id)
+                ita = indexed_challenge.ta_catalog.get("TestEvent")
+                assert ita is not None
+                    
+                ta_event = ita.get_by_original_id(the_id)
                 
+                event: "MutableMapping[str, Any]"
                 if ta_event is None:
                     event = {
                         "_id": the_id,

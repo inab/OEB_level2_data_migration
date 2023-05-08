@@ -15,23 +15,48 @@ from ..schemas import (
 )
 
 from typing import (
+    cast,
     NamedTuple,
     TYPE_CHECKING,
 )
 
 if TYPE_CHECKING:
+    from types import ModuleType
+    
     from typing import (
         Any,
         Iterator,
+        KeysView,
         Mapping,
-        Sequence,
         MutableMapping,
         MutableSequence,
+        Optional,
+        Sequence,
         Tuple,
+        Union,
     )
+    
+    from typing_extensions import (
+        Literal,
+        NotRequired,
+        TypedDict,
+    )
+    
+    from .migration_utils import (
+        ChallengeLabelAndSep,
+    )
+    
+    class InlineDataLabel(TypedDict):
+        label: "str"
+        dataset_orig_id: "str"
+
+class DatasetValidationSchema(NamedTuple):
+    dataset_id: "str"
+    schema_id: "Optional[str]"
 
 from .migration_utils import (
     DATASET_ORIG_ID_SUFFIX,
+    DEFAULT_ORIG_ID_SEPARATOR,
     OpenEBenchUtils,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
@@ -49,7 +74,7 @@ def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") ->
     
     return {}
 
-def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]"):
+def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]") -> "Union[Tuple[Literal[None], Literal[None]], Tuple[InlineDataLabel, str]]":
     met_metadata = met_dataset.get("_metadata",{})
     met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
     for par_dataset in par_datasets:
@@ -79,8 +104,8 @@ def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Seque
             if par_label.endswith("_P"):
                 par_label = par_label[:-2]
         
-        par_dataset_id = par_dataset["_id"]
-        inline_data_label = {
+        par_dataset_id = cast("str", par_dataset["_id"])
+        inline_data_label: "InlineDataLabel" = {
             "label": par_label,
             "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
         }
@@ -93,7 +118,7 @@ class MetricsTrio(NamedTuple):
     tool_id: "Optional[str]"
     proposed_label: "str"
 
-def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Union[Tuple[None, None, None], MetricsTrio]":
+def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics_graphql: "Sequence[Mapping[str, Any]]", community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Optional[MetricsTrio]":
     # Select the metrics just "guessing"
     guessed_metrics = []
     dataset_metrics_id_u = metrics_label.upper()
@@ -116,7 +141,7 @@ def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", me
     
     if len(guessed_metrics) == 0:
         logger.critical(f"For {dataset_id}, unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
-        return None, None, None
+        return None
         #should_end.append((the_challenge['_id'], the_challenge['acronym']))
         #continue
     
@@ -126,9 +151,8 @@ def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", me
         if cam is not None:
             matched_metrics.append((cam, guessed_metric))
     
-    metric_id = None
-    tool_id = None
-    proposed_label = None
+    metric_id: "Optional[str]" = None
+    tool_id: "Optional[str]" = None
     mmi = None
     if len(matched_metrics) == 0:
         if len(guessed_metrics) == 1:
@@ -136,7 +160,7 @@ def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", me
             metric_id = mmi["_id"]
             logger.warning(f"Metric {metric_id} (guessed from {metrics_label} at dataset {dataset_id}) is not registered as an assessment metric at challenge {challenge_id} (acronym {challenge_acronym}). Consider register it")
         else:
-            logger.critical(f"Several metrics {', '.join(map(lambda gm: gm['_id'], guessed_metrics))} were guessed from {metrics_label} at dataset {dataset_id} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {challenge_id} (acronym {challenge_acronym}).")
+            logger.critical(f"Several metrics {', '.join(map(lambda gm: cast('str', gm['_id']), guessed_metrics))} were guessed from {metrics_label} at dataset {dataset_id} . No clever heuristic can be applied. Please properly register some of them as an assessment metric at challenge {challenge_id} (acronym {challenge_acronym}).")
             #should_end.append((the_challenge['_id'], the_challenge['acronym']))
             #continue
     elif len(matched_metrics) == 1:
@@ -148,21 +172,26 @@ def match_metric_from_label(logger, metrics_graphql, community_prefix: "str", me
         #should_end.append((the_challenge['_id'], the_challenge['acronym']))
         #continue
     
-    # Getting a proposed label
-    if mmi is not None:
-        mmi_metadata = mmi.get("_metadata")
-        if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
-            proposed_label = mmi_metadata['level_2:metric_id']
-        elif mmi["orig_id"].startswith(community_prefix):
-            proposed_label = mmi["orig_id"][len(community_prefix):]
-        else:
-            proposed_label = mmi["orig_id"]
     
-    return MetricsTrio(
-        metrics_id=metric_id,
-        tool_id=tool_id,
-        proposed_label=proposed_label,
-    )
+    if metric_id is not None:
+        # Getting a proposed label
+        proposed_label: "str"
+        if mmi is not None:
+            mmi_metadata = mmi.get("_metadata")
+            if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
+                proposed_label = cast("str", mmi_metadata['level_2:metric_id'])
+            elif mmi["orig_id"].startswith(community_prefix):
+                proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])
+            else:
+                proposed_label = cast("str", mmi["orig_id"])
+        assert proposed_label is not None
+        return MetricsTrio(
+            metrics_id=metric_id,
+            tool_id=tool_id,
+            proposed_label=proposed_label,
+        )
+    else:
+        return None
 
 
 DATASET_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['Dataset']
@@ -181,10 +210,10 @@ class IndexedDatasets:
     benchmarking_event_prefix: "str"
     challenge_prefix: "str"
     challenge: "Mapping[str, Any]"
-    challenge_label: "str"
-    cam_d: "Optional[Mapping[str,str]]"
+    challenge_label_and_sep: "ChallengeLabelAndSep"
+    cam_d: "Mapping[str, Mapping[str, str]]"
     # dataset categories
-    d_categories: "Optional[Sequence[]]"
+    d_categories: "Optional[Sequence[Mapping[str, Any]]]"
     # Let's index the datasets
     # by _id and orig_id
     # In the case of assessment datasets
@@ -198,9 +227,9 @@ class IndexedDatasets:
     d_m_dict: "MutableMapping[str, MutableSequence[int]]" = dataclasses.field(default_factory=dict)
     # (aggregation)
     # Maps datasets to lists of metric mappings
-    metrics_by_d: "MutableMapping[str, Sequence[MetricsTrio]]" = dataclasses.field(default_factory=dict)
+    metrics_by_d: "MutableMapping[str, Sequence[Optional[MetricsTrio]]]" = dataclasses.field(default_factory=dict)
     
-    def index_dataset(self, raw_dataset: "Mapping[str, Any]") -> "Union[Literal[None], Tuple[IndexedDatasets, Optional[str]]]":
+    def index_dataset(self, raw_dataset: "Mapping[str, Any]") -> "Optional[DatasetValidationSchema]":
         d_type = raw_dataset["type"]
         
         if d_type != self.type:
@@ -213,9 +242,9 @@ class IndexedDatasets:
         
         # Now, time to record the position where the assessment
         # dataset is going to be in the list of assessment datasets
-        index_id_orig = raw_dataset.get("orig_id")
-        index_id = raw_dataset["_id"]
-        d_pos = self.d_dict.get(index_id_orig)
+        index_id_orig = cast("Optional[str]", raw_dataset.get("orig_id"))
+        index_id = cast("str", raw_dataset["_id"])
+        d_pos = self.d_dict.get(index_id_orig) if index_id_orig is not None else None
         if d_pos is None:
             d_pos = self.d_dict.get(index_id)
         
@@ -254,20 +283,21 @@ class IndexedDatasets:
             
             m_matched = None
             m_tool_should = None
-            for m_cat in self.d_categories:
-                for m in m_cat.get("metrics", []):
-                    if m.get("metrics_id") == d_on_metrics_id:
-                        potential_tool_id = m.get("tool_id")
-                        
-                        if potential_tool_id == d_on_tool_id:
-                            m_matched = d_on_metrics_id
-                            break
-                        elif m_tool_should is not None:
-                            self.logger.warning(f"Metrics {d_on_metrics_id}, used for {self.type}, registered more than once in challenge {raw_dataset['challenge_ids'][0]}. Database contents should be curated")
-                        else:
-                            m_tool_should = potential_tool_id
-                if m_matched is not None:
-                    break
+            if self.d_categories is not None:
+                for m_cat in self.d_categories:
+                    for m in m_cat.get("metrics", []):
+                        if m.get("metrics_id") == d_on_metrics_id:
+                            potential_tool_id = m.get("tool_id")
+                            
+                            if potential_tool_id == d_on_tool_id:
+                                m_matched = d_on_metrics_id
+                                break
+                            elif m_tool_should is not None:
+                                self.logger.warning(f"Metrics {d_on_metrics_id}, used for {self.type}, registered more than once in challenge {raw_dataset['challenge_ids'][0]}. Database contents should be curated")
+                            else:
+                                m_tool_should = potential_tool_id
+                    if m_matched is not None:
+                        break
             
             if m_matched is None:
                 if m_tool_should is None:
@@ -280,7 +310,7 @@ class IndexedDatasets:
         # Some additional validations for inline data
         o_datalink = raw_dataset.get("datalink")
         inline_data = None
-        found_schema_url = None
+        found_schema_url: "Optional[str]" = None
         if isinstance(o_datalink, dict):
             inline_data = o_datalink.get("inline_data")
             # Is this dataset an inline one?
@@ -338,7 +368,7 @@ class IndexedDatasets:
                 # TODO: What should we do????
             elif vis_type in ("2D-plot", "bar-plot"):
                 suffix = None
-                proposed_suffix = None
+                proposed_suffix: "str" = "FIX_UNDEFINED_METRIC_LABEL"
                 
                 if vis_type == "2D-plot":
                     x_axis_metric_label = vis_hints.get("x_axis")
@@ -361,8 +391,11 @@ class IndexedDatasets:
                             challenge_assessment_metrics_d=self.cam_d,
                             dataset_id=index_id,
                         )
-                        if x_trio.metrics_id is None:
+                        if x_trio is not None:
+                            x_trio_proposed_label = x_trio.proposed_label
+                        else:
                             self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
+                            x_trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                             
                         y_trio = match_metric_from_label(
                             logger=self.logger,
@@ -374,8 +407,11 @@ class IndexedDatasets:
                             challenge_assessment_metrics_d=self.cam_d,
                             dataset_id=index_id,
                         )
-                        if y_trio.metrics_id is None:
+                        if y_trio is not None:
+                            y_trio_proposed_label = y_trio.proposed_label
+                        else:
                             self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for y axis unmatched metric {y_axis_metric_label}. Fix it")
+                            y_trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                         
                         # Saving it for later usage
                         self.metrics_by_d[index_id] = [
@@ -385,12 +421,11 @@ class IndexedDatasets:
                         
                         # Check the suffix
                         suffix = f"_{x_axis_metric_label}+{y_axis_metric_label}"
-                        proposed_suffix = f"_{x_trio.proposed_label}+{y_trio.proposed_label}"
+                        proposed_suffix = f"_{x_trio_proposed_label}+{y_trio_proposed_label}"
                 elif vis_type == "bar-plot":
                     metrics_label = vis_hints.get("metric")
                     if metrics_label is None:
                         self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
-                    
                     else:
                         # Check there is some matching metric
                         trio = match_metric_from_label(
@@ -403,8 +438,11 @@ class IndexedDatasets:
                             challenge_assessment_metrics_d=self.cam_d,
                             dataset_id=index_id,
                         )
-                        if trio.metrics_id is None:
+                        if trio is not None:
+                            trio_proposed_label = trio.proposed_label
+                        else:
                             self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
+                            trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                         
                         # Saving it for later usage
                         self.metrics_by_d[index_id] = [
@@ -413,7 +451,7 @@ class IndexedDatasets:
                         
                         # Check the suffix
                         suffix = f"_{metrics_label}"
-                        proposed_suffix = f"_{trio.proposed_label}"
+                        proposed_suffix = f"_{trio_proposed_label}"
                 
                 if suffix is not None:
                     if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
@@ -444,20 +482,23 @@ class IndexedDatasets:
             # Overwrite tracked dataset with future version
             self.d_list[d_pos] = raw_dataset
         
-        return index_id, found_schema_url
+        return DatasetValidationSchema(
+            dataset_id=index_id,
+            schema_id=found_schema_url,
+        )
     
     def get(self, dataset_id: "str") -> "Optional[Mapping[str, Any]]":
         the_id = self.d_dict.get(dataset_id)
         
         return self.d_list[the_id] if the_id is not None else None
 
-    def get_metrics_trio(self, dataset_id: "str") -> "Optional[MetricsTrio]":
+    def get_metrics_trio(self, dataset_id: "str") -> "Optional[Sequence[Optional[MetricsTrio]]]":
         return self.metrics_by_d.get(dataset_id)
 
-    def datasets_from_metric(self, metrics_id) -> "Iterator[Mapping[str, Any]]":
+    def datasets_from_metric(self, metrics_id: "str") -> "Iterator[Mapping[str, Any]]":
         return map(lambda d_index: self.d_list[d_index], self.d_m_dict.get(metrics_id, []))
 
-    def keys(self) -> "Iterator[str]":
+    def keys(self) -> "KeysView[str]":
         return self.d_dict.keys()
     
     def datasets(self) -> "Sequence[Mapping[str, Any]]":
@@ -472,11 +513,12 @@ class DatasetsCatalog:
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
     community_prefix: "str" = ""
     benchmarking_event_prefix: "str" = ""
+    bench_event_orig_id_separator: "str" = DEFAULT_ORIG_ID_SEPARATOR
     challenge_prefix: "str" = ""
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
-    def merge_datasets(self, raw_datasets: "Iterator[Mapping[str, Any]]", d_categories = None) -> "Sequence[Tuple[str, str]]":
+    def merge_datasets(self, raw_datasets: "Iterator[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None) -> "Sequence[DatasetValidationSchema]":
         d_indexed = []
         for raw_dataset in raw_datasets:
             d_type = raw_dataset["type"]
@@ -487,7 +529,7 @@ class DatasetsCatalog:
                 if d_type == "aggregation":
                     cam_d = gen_challenge_assessment_metrics_dict(self.challenge)
                 else:
-                    cam_d = None
+                    cam_d = {}
                 
                 idat = IndexedDatasets(
                     type=d_type,
@@ -498,7 +540,12 @@ class DatasetsCatalog:
                     benchmarking_event_prefix=self.benchmarking_event_prefix,
                     challenge_prefix=self.challenge_prefix,
                     challenge=self.challenge,
-                    challenge_label=OpenEBenchUtils.get_challenge_label_from_challenge(self.challenge, self.benchmarking_event_prefix, self.community_prefix),
+                    challenge_label_and_sep=OpenEBenchUtils.get_challenge_label_from_challenge(
+                        self.challenge,
+                        self.benchmarking_event_prefix,
+                        self.bench_event_orig_id_separator,
+                        self.community_prefix,
+                    ),
                     cam_d=cam_d,
                     d_categories=d_categories,
                 )
@@ -542,7 +589,7 @@ class DatasetsCatalog:
                             missing_dataset_ids.append(d_on_id)
                         elif len(d_on_datasets) > 1:
                             ambiguous_dataset_ids.append(d_on_id)
-                        elif challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", [])) == 0:
+                        elif len(challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", []))) == 0:
                             unmatching_dataset_ids.append(d_on_id)
                 
                 if len(ambiguous_dataset_ids) > 0:
@@ -609,9 +656,9 @@ class IndexedTestActions:
         
         # Now, time to record the position where the assessment
         # dataset is going to be in the list of assessment datasets
-        index_id_orig = raw_test_action.get("orig_id")
-        index_id = raw_test_action["_id"]
-        ter_pos = self.a_dict.get(index_id_orig)
+        index_id_orig = cast("Optional[str]", raw_test_action.get("orig_id"))
+        index_id = cast("str", raw_test_action["_id"])
+        ter_pos = self.a_dict.get(index_id_orig) if index_id_orig is not None else None
         if ter_pos is None:
             ter_pos = self.a_dict.get(index_id)
         
@@ -770,16 +817,23 @@ class TestActionsCatalog:
             ita = self.catalogs.get(a_type)
             if ita is None:
                 # Derive the in and out dataset types
-                in_d_type, other_d_types, out_d_type = ActionType2InOutDatasetTypes.get(a_type, (None,None))
+                a_type_got = ActionType2InOutDatasetTypes.get(a_type)
                 
-                if in_d_type is None:
+                if a_type_got is None:
                     self.logger.critical(f"Test action {raw_test_action['_id']} is of unhandable action type {a_type}. Either this program or the database have serious problems")
                     continue
+                
+                in_d_type, other_d_types, out_d_type = a_type_got
                 
                 # Get the in and out dataset catalogs
                 in_d_catalog = self.d_catalog.get(in_d_type)
                 out_d_catalog = self.d_catalog.get(out_d_type)
-                other_d_catalogs = dict(map(lambda d_c_t: (d_c_t, self.d_catalog.get(d_c_t)), other_d_types))
+                other_d_catalogs = {}
+                for d_c_t in other_d_types:
+                    d_c = self.d_catalog.get(d_c_t)
+                    if d_c is not None:
+                        other_d_catalogs[d_c_t] = d_c
+                
                 ita = IndexedTestActions(
                     action_type=a_type,
                     in_d_catalog=in_d_catalog,
@@ -799,3 +853,12 @@ class TestActionsCatalog:
     
     def get(self, action_type: "str") -> "Optional[IndexedTestActions]":
         return self.catalogs.get(action_type)
+
+class IndexedChallenge(NamedTuple):
+    challenge: "Mapping[str, Any]"
+    challenge_id: "str"
+    challenge_label_and_sep: "ChallengeLabelAndSep"
+    d_catalog: "DatasetsCatalog"
+    ta_catalog: "TestActionsCatalog"
+    # Assessment metrics categories catalog
+    ass_cat: "Sequence[Mapping[str, Any]]"

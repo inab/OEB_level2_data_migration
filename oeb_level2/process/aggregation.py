@@ -14,10 +14,12 @@ from ..schemas import TYPE2SCHEMA_ID
 from ..utils.catalogs import (
     DatasetsCatalog,
     gen_inline_data_label,
+    IndexedChallenge,
     TestActionsCatalog,
 )
 
 from typing import (
+    cast,
     NamedTuple,
     TYPE_CHECKING,
 )
@@ -26,22 +28,41 @@ if TYPE_CHECKING:
     from typing import (
         Any,
         Mapping,
+        Optional,
         Sequence,
+        MutableMapping,
         MutableSequence,
         Tuple,
+        Union,
     )
+    
+    from typing_extensions import (
+        NotRequired,
+        Required,
+        TypedDict,
+    )
+    
     from .assessment import AssessmentTuple
+    
+    from ..utils.catalogs import InlineDataLabel
+    
+    class RelDataset(TypedDict):
+        dataset_id: "Required[str]"
+    
+    class ParTool(TypedDict, total=False):
+        tool_id: "str"
+        metric_value: "Union[float, int]"
+        stderr: "Union[float, int]"
+        metric_x: "Union[float, int]"
+        stderr_x: "Union[float, int]"
+        metric_y: "Union[float, int]"
+        stderr_y: "Union[float, int]"
+    
+    class DataLabel(TypedDict):
+        label: "Required[str]"
+        dataset_orig_id: "Required[str]"
 
 from ..utils.migration_utils import OpenEBenchUtils
-
-class IndexedChallenge(NamedTuple):
-    challenge: "Mapping[str, Any]"
-    challenge_id: "str"
-    challenge_label: "str"
-    d_catalog: "DatasetsCatalog"
-    ta_catalog: "TestActionsCatalog"
-    # Assessment metrics categories catalog
-    ass_cat: "Sequence[Mapping[str, Any]]"
 
 class AggregationTuple(NamedTuple):
     aggregation_dataset: "Mapping[str, Any]"
@@ -65,6 +86,7 @@ class AggregationValidator():
         self,
         community_prefix: "str",
         benchmarking_event_prefix: "str",
+        bench_event_orig_id_separator: "str",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
     ) -> "Mapping[str, IndexedChallenge]":
@@ -74,15 +96,20 @@ class AggregationValidator():
         
         # First, let's analyze all existing aggregation datasets
         # nested in the challenges
-        agg_challenges = { }
+        agg_challenges: "MutableMapping[str, IndexedChallenge]" = { }
         should_exit_ch = False
         for agg_ch in challenges_agg_graphql:
             # Garrayo's school label
             challenge_id = agg_ch["_id"]
             
-            challenge_label = OpenEBenchUtils.get_challenge_label_from_challenge(agg_ch, benchmarking_event_prefix, community_prefix)
+            challenge_label_and_sep = OpenEBenchUtils.get_challenge_label_from_challenge(
+                agg_ch,
+                benchmarking_event_prefix,
+                bench_event_orig_id_separator,
+                community_prefix,
+            )
             
-            self.logger.info(f"Validating challenge {challenge_id} ({challenge_label})")
+            self.logger.info(f"Validating challenge {challenge_id} ({challenge_label_and_sep.label})")
             
             challenge_orig_id = agg_ch.get("orig_id")
             if challenge_orig_id is None or not challenge_orig_id.startswith(community_prefix):
@@ -90,16 +117,16 @@ class AggregationValidator():
             if challenge_orig_id is None or not challenge_orig_id.startswith(benchmarking_event_prefix):
                 self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {benchmarking_event_prefix}. Fix it.")
 
-            expected_ch_orig_id = benchmarking_event_prefix + challenge_label
+            expected_ch_orig_id = benchmarking_event_prefix + challenge_label_and_sep.label
             if challenge_orig_id != expected_ch_orig_id:
                 self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It is suggested to be {expected_ch_orig_id}.")
             
             # The existing original id prevails over the suggested one
-            challenge_prefix = ("" if challenge_orig_id is None else challenge_orig_id) + "_"
+            challenge_prefix = ("" if challenge_orig_id is None else challenge_orig_id) + challenge_label_and_sep.sep
             
-            coll_ch = agg_challenges.get(challenge_label)
+            coll_ch = agg_challenges.get(challenge_label_and_sep.label)
             if coll_ch is not None:
-                self.logger.critical(f"Challenge collision: label {challenge_label}, challenges {coll_ch['_id']} and {challenge_id}. Please contact OpenEBench support to report this inconsistency")
+                self.logger.critical(f"Challenge collision: label {challenge_label_and_sep.label}, challenges {coll_ch.challenge_id} and {challenge_id}. Please contact OpenEBench support to report this inconsistency")
                 should_exit_ch = True
                 continue
             
@@ -121,6 +148,7 @@ class AggregationValidator():
                 metrics_graphql=metrics_agg_graphql,
                 community_prefix=community_prefix,
                 benchmarking_event_prefix=benchmarking_event_prefix,
+                bench_event_orig_id_separator=bench_event_orig_id_separator,
                 challenge_prefix=challenge_prefix,
                 challenge=agg_ch,
             )
@@ -196,7 +224,7 @@ class AggregationValidator():
             idat_ass = d_catalog.get("assessment")
             assert idat_ass is not None
             idat_part = d_catalog.get("participant")
-            assert idat_ass is not None
+            assert idat_part is not None
             
             ita_m_events = ta_catalog.get("MetricsEvent")
             assert ita_m_events is not None
@@ -209,11 +237,11 @@ class AggregationValidator():
                 if metrics_trios:
                     # Make an almost shallow copy of the entry
                     # removing what it is going to be populated from ground
-                    r_dataset = copy.copy(raw_dataset)
+                    r_dataset = cast("MutableMapping[str, Any]", copy.copy(raw_dataset))
                     
                     # depends_on is going to be rebuilt
                     d_on = copy.deepcopy(raw_dataset["depends_on"])
-                    rel_dataset_ids = []
+                    rel_dataset_ids: "MutableSequence[RelDataset]" = []
                     d_on["rel_dataset_ids"] = rel_dataset_ids
                     r_dataset["depends_on"] = d_on
                     
@@ -229,10 +257,10 @@ class AggregationValidator():
                     ch_ids_set = set(r_dataset["challenge_ids"])
                     if isinstance(inline_data, dict):
                         # Entry of each challenge participant, by participant label
-                        cha_par_by_id = {}
+                        cha_par_by_id: "MutableMapping[str, ParTool]" = {}
                         # To provide meaningful error messages
-                        ass_par_by_id = {}
-                        challenge_participants = []
+                        ass_par_by_id: "MutableMapping[str, str]" = {}
+                        challenge_participants: "MutableSequence[ParTool]" = []
                         inline_data["challenge_participants"] = challenge_participants
                         
                         # Visualization type determines later the labels
@@ -241,11 +269,11 @@ class AggregationValidator():
                         
                         # This set is used to detect mismatches between
                         # registered and gathered assessment datasets
-                        rel_ids_set = set(map(lambda r: r["dataset_id"], filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
+                        rel_ids_set = set(map(lambda r: cast("str", r["dataset_id"]), filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
                         
                         # Processing and validating already registered labels
-                        potential_inline_data_labels = inline_data.get("labels", [])
-                        inline_data_labels = []
+                        potential_inline_data_labels: "Sequence[DataLabel]" = inline_data.get("labels", [])
+                        inline_data_labels: "MutableSequence[InlineDataLabel]" = []
                         inline_data["labels"] = inline_data_labels
                         
                         # Inline data labels by participant dataset id
@@ -281,10 +309,14 @@ class AggregationValidator():
                         regen_rel_ids_set = set()
                         # Iterating over the different metrics
                         for i_trio, metrics_trio in enumerate(metrics_trios):
+                            if metrics_trio is None:
+                                self.logger.fatal(f"Unable to map metric {i_trio} related to {agg_dataset_id}. It will be discarded in the best case")
+                                failed_agg_dataset = True
+                                continue
                             # To gather the assessment datasets for each metric
                             met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
                             
-                            met_set = set(map(lambda m: m["_id"], met_datasets))
+                            met_set = set(map(lambda m: cast("str", m["_id"]), met_datasets))
                             if not(rel_ids_set > met_set):
                                 new_set = met_set - rel_ids_set
                                 self.logger.error(f"Aggregation dataset {agg_dataset_id} should also depend on {len(new_set)} datasets: {', '.join(new_set)}")
@@ -306,7 +338,7 @@ class AggregationValidator():
                                 # Now, the participant datasets can be rescued
                                 # to get or guess its label
                                 inline_data_label = None
-                                par_dataset_id = None
+                                par_dataset_id: "Optional[str]" = None
                                 par_label = None
                                 for par_dataset in tar.in_d:
                                     inline_data_label = idl_by_d_id.get(par_dataset["_id"])
@@ -316,19 +348,20 @@ class AggregationValidator():
                                         break
                                 
                                 # Bad luck, time to create a new entry
-                                if inline_data_label is None:
+                                if par_label is None:
                                     inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
                                     if inline_data_label is None:
                                         self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
                                         
                                     # Now we should have the participant label
                                     assert inline_data_label is not None
-                                    assert par_dataset_id is not None
                                     
                                     # Last, store it
                                     inline_data_labels.append(inline_data_label)
                                     idl_by_d_id[par_dataset_id] = inline_data_label
                                     par_label = inline_data_label["label"]
+                                
+                                assert par_dataset_id is not None
                                 
                                 mini_entry = cha_par_by_id.get(par_dataset_id)
                                 if mini_entry is None:
@@ -344,17 +377,19 @@ class AggregationValidator():
                                 
                                 ass_inline_data = met_dataset["datalink"]["inline_data"]
                                 if vis_type == "2D-plot":
+                                    mini_entry_values: "ParTool"
                                     if i_trio == 0:
-                                        value_label = "metric_x"
-                                        stderr_label = "stderr_x"
+                                        mini_entry_values = {
+                                            "metric_x": ass_inline_data["value"],
+                                            "stderr_x": ass_inline_data.get("error", 0),
+                                        }
                                     else:
-                                        value_label = "metric_y"
-                                        stderr_label = "stderr_y"
+                                        mini_entry_values = {
+                                            "metric_y": ass_inline_data["value"],
+                                            "stderr_y": ass_inline_data.get("error", 0),
+                                        }
                                     
-                                    mini_entry.update({
-                                        value_label: ass_inline_data["value"],
-                                        stderr_label: ass_inline_data.get("error", 0),
-                                    })
+                                    mini_entry.update(mini_entry_values)
                                 elif vis_type == "bar-plot":
                                     mini_entry.update({
                                         "metric_value": ass_inline_data["value"],
@@ -364,7 +399,7 @@ class AggregationValidator():
                                     self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
                         
                         if not rebuild_agg:
-                            raw_challenge_participants = raw_dataset["datalink"]["inline_data"]["challenge_participants"]
+                            raw_challenge_participants = cast("Sequence[ParTool]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
                             if len(challenge_participants) != len(raw_challenge_participants):
                                 self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
                                 rebuild_agg = True
@@ -374,13 +409,15 @@ class AggregationValidator():
                                 
                                 if s_new_challenge_participants != s_raw_challenge_participants:
                                     for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
+                                        ts_new = cast("Mapping[str, Union[str,int,float]]", s_new)
+                                        ts_raw = cast("Mapping[str, Union[str,int,float]]", s_raw)
                                         do_log_error = False
                                         if set(s_new.keys()) != set(s_raw.keys()):
                                             do_log_error = True
                                         else:
-                                            for k in s_new.keys():
-                                                v_new = s_new[k]
-                                                v_raw = s_raw[k]
+                                            for k in ts_new.keys():
+                                                v_new = ts_new[k]
+                                                v_raw = ts_raw[k]
                                                 
                                                 if isinstance(v_new, str) or isinstance(v_raw, str):
                                                     if v_new != v_raw:
@@ -406,21 +443,23 @@ class AggregationValidator():
                                 
                                 if s_inline_data_labels != s_potential_inline_data_labels:
                                     is_false_pos_label = True
-                                    for s_new , s_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
+                                    for zs_new , zs_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
+                                        ts_new = cast("Mapping[str, Union[str,int,float]]", zs_new)
+                                        ts_raw = cast("Mapping[str, Union[str,int,float]]", zs_raw)
                                         do_log_error = False
-                                        if set(s_new.keys()) != set(s_raw.keys()):
+                                        if set(zs_new.keys()) != set(zs_raw.keys()):
                                             do_log_error = True
                                         else:
-                                            for k in s_new.keys():
-                                                v_new = s_new[k]
-                                                v_raw = s_raw[k]
+                                            for k in ts_new.keys():
+                                                v_new = ts_new[k]
+                                                v_raw = ts_raw[k]
                                                 
                                                 if v_new != v_raw:
                                                     do_log_error = True
                                                     break
                                         
                                         if do_log_error:
-                                            self.logger.error(f"Mismatch in {agg_dataset_id} label\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
+                                            self.logger.error(f"Mismatch in {agg_dataset_id} label\n\n{json.dumps(zs_new, indent=4, sort_keys=True)}\n\n{json.dumps(zs_raw, indent=4, sort_keys=True)}")
                                             
                                             is_false_pos_label = False
                                     
@@ -453,10 +492,10 @@ class AggregationValidator():
                 sys.exit(5)
             
             # Last, but not the least important
-            agg_challenges[challenge_id] = agg_challenges[challenge_label] = IndexedChallenge(
+            agg_challenges[challenge_id] = agg_challenges[challenge_label_and_sep.label] = IndexedChallenge(
                 challenge=agg_ch,
                 challenge_id=challenge_id,
-                challenge_label=challenge_label,
+                challenge_label_and_sep=challenge_label_and_sep,
                 d_catalog=d_catalog,
                 ta_catalog=ta_catalog,
                 ass_cat=ass_cat,
@@ -497,30 +536,30 @@ class AggregationBuilder():
             "\n\t==================================\n\t6. Validating stored aggregation datasets\n\t==================================\n")
         
         # Grouping future assessment dataset tuples by challenge
-        ass_c_dict = {}
+        ass_c_dict: "MutableMapping[str, MutableSequence[AssessmentTuple]]" = {}
         for ass_t in valid_assessment_tuples:
             ass_d = ass_t.assessment_dataset
             for challenge_id in ass_d.get("challenge_ids", []):
                 ass_c_dict.setdefault(challenge_id, []).append(ass_t)
         
-        for idx_agg in agg_challenges.values():
+        for idx_agg_v in agg_challenges.values():
             # Now index the future participant datasets involved in this challenge
-            idx_agg.d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg.challenge_id, [])),
-                d_categories=idx_agg.ass_cat,
+            idx_agg_v.d_catalog.merge_datasets(
+                raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg_v.challenge_id, [])),
+                d_categories=idx_agg_v.ass_cat,
             )
             
             # newly added TestEvent involved in this challenge
-            idx_agg.ta_catalog.merge_test_actions(filter(lambda te: te['challenge_id'] == idx_agg.challenge_id, valid_test_events))
+            idx_agg_v.ta_catalog.merge_test_actions(filter(lambda te: te['challenge_id'] == idx_agg_v.challenge_id, valid_test_events))
             
             # And also index the future assessment datasets involved in this challenge
-            idx_agg.d_catalog.merge_datasets(
-                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(idx_agg.challenge_id, [])),
-                d_categories=idx_agg.ass_cat,
+            idx_agg_v.d_catalog.merge_datasets(
+                raw_datasets=map(lambda ass_t: ass_t.assessment_dataset, ass_c_dict.get(idx_agg_v.challenge_id, [])),
+                d_categories=idx_agg_v.ass_cat,
             )
             
             # newly added MetricsEvent
-            idx_agg.ta_catalog.merge_test_actions(filter(lambda me: me['challenge_id'] == idx_agg.challenge_id, valid_metrics_events))
+            idx_agg_v.ta_catalog.merge_test_actions(filter(lambda me: me['challenge_id'] == idx_agg_v.challenge_id, valid_metrics_events))
 
         # Now it is time to process all the new or updated aggregation datasets
         valid_aggregation_tuples = []
@@ -542,7 +581,7 @@ class AggregationBuilder():
             the_challenge_contacts = []
             workflow_metrics_id = None
             # This is used in the returned dataset
-            the_rel_dataset_ids = []
+            the_rel_dataset_ids: "MutableSequence[RelDataset]" = []
             # This is used to later compute the contents
             met_dataset_groups = []
             
@@ -630,14 +669,14 @@ class AggregationBuilder():
                         datalink = copy.copy(min_datalink)
                         inline_data = copy.deepcopy(min_inline_data)
                         datalink["inline_data"] = inline_data
-                        inline_data_labels = []
+                        inline_data_labels: "MutableSequence[DataLabel]" = []
                         inline_data["labels"] = inline_data_labels
                         # Inline data labels by participant dataset id
-                        idl_by_d_id = {}
-                        challenge_participants = []
+                        idl_by_d_id: "MutableMapping[str, DataLabel]" = {}
+                        challenge_participants: "MutableSequence[ParTool]" = []
                         inline_data["challenge_participants"] = challenge_participants
-                        cha_par_by_id = {}
-                        ass_par_by_id = {}
+                        cha_par_by_id: "MutableMapping[str, ParTool]" = {}
+                        ass_par_by_id: "MutableMapping[str, str]" = {}
                         
                         ita_m_events = idx_agg.ta_catalog.get("MetricsEvent")
                         assert ita_m_events is not None
@@ -653,8 +692,8 @@ class AggregationBuilder():
                                 # Now, the participant datasets can be rescued
                                 # to get or guess its label
                                 inline_data_label = None
-                                par_dataset_id = None
-                                par_label = None
+                                par_dataset_id: "Optional[str]" = None
+                                par_label: "Optional[str]" = None
                                 for par_dataset in tar.in_d:
                                     inline_data_label = idl_by_d_id.get(par_dataset["_id"])
                                     if isinstance(inline_data_label, dict):
@@ -663,7 +702,7 @@ class AggregationBuilder():
                                         break
                                 
                                 # Bad luck, time to create a new entry
-                                if inline_data_label is None:
+                                if par_dataset_id is None:
                                     inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
                                     if inline_data_label is None:
                                         self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
@@ -677,7 +716,7 @@ class AggregationBuilder():
                                     idl_by_d_id[par_dataset_id] = inline_data_label
                                     par_label = inline_data_label["label"]
                                 
-                                
+                                assert par_label is not None
                                 mini_entry = cha_par_by_id.get(par_dataset_id)
                                 if mini_entry is None:
                                     mini_entry = {
@@ -692,17 +731,19 @@ class AggregationBuilder():
                                 
                                 ass_inline_data = met_dataset["datalink"]["inline_data"]
                                 if vis_type == "2D-plot":
+                                    mini_entry_values: "ParTool"
                                     if i_met == 0:
-                                        value_label = "metric_x"
-                                        stderr_label = "stderr_x"
+                                        mini_entry_values = {
+                                            "metric_x": ass_inline_data["value"],
+                                            "stderr_x": ass_inline_data.get("error", 0),
+                                        }
                                     else:
-                                        value_label = "metric_y"
-                                        stderr_label = "stderr_y"
+                                        mini_entry_values = {
+                                            "metric_y": ass_inline_data["value"],
+                                            "stderr_y": ass_inline_data.get("error", 0),
+                                        }
                                     
-                                    mini_entry.update({
-                                        value_label: ass_inline_data["value"],
-                                        stderr_label: ass_inline_data.get("error", 0),
-                                    })
+                                    mini_entry.update(mini_entry_values)
                                 elif vis_type == "bar-plot":
                                     mini_entry.update({
                                         "metric_value": ass_inline_data["value"],
@@ -845,10 +886,14 @@ class AggregationBuilder():
             dataset = agt.aggregation_dataset
             indexed_challenge = agt.idx_challenge
             
+            assert indexed_challenge is not None
+            
             orig_id = dataset.get("orig_id",dataset["_id"])
             event_id = orig_id + "_Event"
             
-            ta_event = indexed_challenge.ta_catalog.get("AggregationEvent").get_by_original_id(event_id)
+            ita = indexed_challenge.ta_catalog.get("AggregationEvent")
+            assert ita is not None
+            ta_event = ita.get_by_original_id(event_id)
             
             if ta_event is None:
                 event = {
