@@ -45,7 +45,7 @@ optional arguments:
 
 ## Usage
 
-First, install the Python dependencies in a virtual environment:
+First, install the Python runtime dependencies in a virtual environment:
 
 ```bash
 python3 -m venv .py3env
@@ -68,3 +68,28 @@ An example of the dataset is [available here](minimal_dataset_examples/results_e
 # This one uplifts the dataset, but it does not load the data in the database
 python push_data_to_oeb.py -i config.json -cr auth_config.json --trust-rest-bdm --dry-run -o uplifted.json
 ```
+
+## Development
+
+First, install the Python development dependencies in the very same virtual environment as the runtime ones:
+
+```bash
+python3 -m venv .py3env
+source .py3env/bin/activate
+pip install -r dev-requirements.txt -r mypy-requirements.txt
+pre-commit install
+```
+
+so every commit is checked against pylint and mypy before is accepted.
+
+If you change [oeb_level2/schemas/submission_form_schema.json](oeb_level2/schemas/submission_form_schema.json) you have to run one of the next commands:
+
+```bash
+pre-commit run --hook-stage manual jsonschema-gentypes
+
+# or
+
+pre-commit run -a --hook-stage manual jsonschema-gentypes
+```
+
+in order to re-generate [oeb_level2/schemas/typed_schemas/](oeb_level2/schemas/typed_schemas/) contents.
