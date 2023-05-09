@@ -13,19 +13,18 @@
                                         "items": {
                                                 "type": "object",
                                                 "properties": {
-                                                        "value": {
+                                                        "v": {
                                                                 "title": "the numerical value of the metric",
                                                                 "type": "number"
                                                         },
-                                                        "error": {
+                                                        "e": {
                                                                 "title": "the standard error / deviation for the metric (if exists)",
                                                                 "type": "number"
                                                         }
                                                 },
                                                 "unevaluatedProperties": false,
                                                 "required": [
-                                                        "value",
-                                                        "error"
+                                                        "v"
                                                 ]
                                         }
                                 },
