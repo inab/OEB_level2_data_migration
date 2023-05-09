@@ -33,6 +33,10 @@ if TYPE_CHECKING:
     from ..utils.catalogs import IndexedChallenge
 
 from ..utils.migration_utils import OpenEBenchUtils
+from ..schemas import (
+    SERIES_METRIC_SCHEMA_ID,
+    SINGLE_METRIC_SCHEMA_ID,
+)
 
 class AssessmentTuple(NamedTuple):
     assessment_dataset: "Mapping[str, Any]"
@@ -88,7 +92,8 @@ class AssessmentBuilder():
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
                 continue
             
-            metrics_label = min_dataset["metrics"]["metric_id"]
+            min_d_metrics = min_dataset["metrics"]
+            metrics_label = min_d_metrics["metric_id"]
             participant_label = pvc.p_config.participant_label
             valid_participant_data = pvc.participant_dataset
             challenge_pairs = pvc.challenge_pairs
@@ -170,16 +175,27 @@ class AssessmentBuilder():
             valid_data.setdefault("dates", {"creation": modtime})["modification"] = modtime
 
             # add assessment metrics values, as inline data
-            metric_value = min_dataset["metrics"]["value"]
-            error_value = min_dataset["metrics"]["stderr"]
-
-            valid_data["datalink"] = {
-                "schema_url": "https://github.com/inab/OEB_level2_data_migration/single-metric",
-                "inline_data": {
-                    "value": metric_value,
-                    "error": error_value
+            if "value" in min_d_metrics:
+                metric_value = min_d_metrics["value"]
+                error_value = min_d_metrics["stderr"]
+                datalink_payload = {
+                    "schema_url": SINGLE_METRIC_SCHEMA_ID,
+                    "inline_data": {
+                        "value": metric_value,
+                        "error": error_value,
+                    }
                 }
-            }
+            elif "values" in min_d_metrics:
+                datalink_payload = {
+                    "schema_url": SERIES_METRIC_SCHEMA_ID,
+                    "inline_data": {
+                        "values": min_d_metrics["values"],
+                    }
+                }
+            else:
+                self.logger.critical("FIXME: unexpected assessment metric (talk to the developers)")
+
+            valid_data["datalink"] = datalink_payload
             
             # Breadcrumbs about the participant label and metrics label to ease the discovery
             new_metadata = {

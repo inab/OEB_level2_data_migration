@@ -22,6 +22,8 @@ MINIMAL_DATA_BLOCK_SCHEMA_ID = "https://github.com/inab/benchmarking/minimal-jso
 
 SINGLE_METRIC_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/single-metric"
 
+SERIES_METRIC_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/series-metric"
+
 AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-2d-plot"
 
 AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
@@ -36,6 +38,7 @@ LEVEL2_SCHEMA_IDS = [
 	SUBMISSION_FORM_SCHEMA_ID,
 	MINIMAL_DATA_BLOCK_SCHEMA_ID,
 	SINGLE_METRIC_SCHEMA_ID,
+	SERIES_METRIC_SCHEMA_ID,
 	AGGREGATION_2D_PLOT_SCHEMA_ID,
 	AGGREGATION_BAR_PLOT_SCHEMA_ID,
 ]
