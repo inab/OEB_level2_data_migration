@@ -5,7 +5,7 @@ repos:
     rev: "2.2.3"
     hooks:
       - id: jsonschema-gentypes
-	stages: [manual]
+        stages: [manual]
         files: |
           (?x)^(
               \.jsonschema-gentypes\.yaml|
