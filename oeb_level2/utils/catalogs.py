@@ -131,12 +131,12 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
             # First guess
             if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
                 guessed_metrics.append(metric)
-            
-            # Second guess (it can introduce false crosses)
-            metric_metadata = metric.get("_metadata")
-            if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
-                if metric_metadata['level_2:metric_id'].upper() == dataset_metrics_id_u:
-                    guessed_metrics.append(metric)
+            else:
+                # Second guess (it can introduce false crosses)
+                metric_metadata = metric.get("_metadata")
+                if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
+                    if metric_metadata['level_2:metric_id'].upper() == dataset_metrics_id_u:
+                        guessed_metrics.append(metric)
     
     
     if len(guessed_metrics) == 0:
