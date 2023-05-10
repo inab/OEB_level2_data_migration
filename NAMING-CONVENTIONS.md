@@ -25,7 +25,7 @@
 followed by the benchmarking event original id separator,
 and then should be followed by the challenge label.
 
-* The original id separator is by default '_'. It can be customized both at the
+* The original id separator is by default `_`. It can be customized both at the
   benchmarking event and the challenge levels, including the key
   `level_2:orig_id_separator`. Example: 
 
@@ -41,6 +41,17 @@ and then should be followed by the challenge label.
   event level, the separator between the benchmarking event original id and challenge
   label would be `_`, and the separator for further content would be `>` 
 
+* The aggregation dataset separator is by default `agg`. It can be customized both at the
+  benchmarking event and the challenge levels, including the key
+  `level_2:aggregation_separator`. Example: 
+
+  ```json
+  {
+    "_metadata": {
+      "level_2:aggregation_separator": "Aggregation"
+    }
+  }
+  ```
 
 * The challenge label is derived using next rules, by their precedence:
 
@@ -137,7 +148,8 @@ and then should be followed by the challenge label.
 * [W] An assessment dataset's original id must end with the metrics label of the involved metric,
   plus challenge original id separator, plus the participant label, plus '_A'.
 
-* [W] An aggregation dataset's original id must end with 'agg_', plus the labels of the involved metrics, joined by '+'.
+* [W] An aggregation dataset's original id must end with the orig_id separator,
+  plus the aggregation separator plus the orig_id separator, plus labels of the involved metrics, joined by '+'.
 
 ## TestActions
 

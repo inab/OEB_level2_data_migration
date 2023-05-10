@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     )
     from .participant import ParticipantTuple
     from ..utils.catalogs import IndexedChallenge
+    from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
 
 from ..utils.migration_utils import OpenEBenchUtils
 from ..schemas import (
@@ -61,8 +62,7 @@ class AssessmentBuilder():
         min_assessment_datasets: "Sequence[Mapping[str, Any]]",
         data_visibility: "str",
         valid_participant_tuples: "Sequence[ParticipantTuple]",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str"
     ) -> "Sequence[AssessmentTuple]":
         
@@ -80,7 +80,13 @@ class AssessmentBuilder():
         # replace the datasets challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
         for challenge in challenges_graphql:
-            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge, benchmarking_event_prefix, bench_event_orig_id_separator, community_prefix).label] = challenge
+            oeb_challenges[
+                OpenEBenchUtils.get_challenge_label_from_challenge(
+                    challenge,
+                    bench_event_prefix_et_al,
+                    community_prefix
+                ).label
+            ] = challenge
 
         valid_assessment_tuples = []
         should_end = []
@@ -260,8 +266,7 @@ class AssessmentBuilder():
             self.migration_utils.gen_expected_assessment_original_id(
                 valid_data,
                 community_prefix,
-                benchmarking_event_prefix,
-                bench_event_orig_id_separator,
+                bench_event_prefix_et_al,
                 participant_label,
                 metrics_label,
             )

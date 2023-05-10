@@ -27,7 +27,8 @@ if TYPE_CHECKING:
     
     from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
     from ..utils.catalogs import IndexedChallenge
-   
+    from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
+
 from ..utils.migration_utils import OpenEBenchUtils
 
 class ChallengePair(NamedTuple):
@@ -106,8 +107,7 @@ class ParticipantBuilder():
         data_visibility: "DatasetsVisibility", 
         file_location: "str",
         community_id: "str",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
     ) -> "Sequence[ParticipantTuple]":
@@ -119,7 +119,13 @@ class ParticipantBuilder():
         oeb_challenges = {}
         
         for challenge_graphql in challenges_graphql:
-            oeb_challenges[OpenEBenchUtils.get_challenge_label_from_challenge(challenge_graphql, benchmarking_event_prefix, bench_event_orig_id_separator, community_prefix).label] = challenge_graphql
+            oeb_challenges[
+                OpenEBenchUtils.get_challenge_label_from_challenge(
+                    challenge_graphql,
+                    bench_event_prefix_et_al,
+                    community_prefix
+                ).label
+            ] = challenge_graphql
 
         stagedMap = dict()
         for staged_participant_dataset in staged_participant_datasets:
@@ -266,8 +272,7 @@ class ParticipantBuilder():
             self.migration_utils.gen_expected_participant_original_id(
                 valid_participant_data,
                 community_prefix,
-                benchmarking_event_prefix,
-                bench_event_orig_id_separator,
+                bench_event_prefix_et_al,
                 p_config.participant_label,
             )
             

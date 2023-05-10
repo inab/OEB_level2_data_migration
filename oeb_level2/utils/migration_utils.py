@@ -85,14 +85,24 @@ GRAPHQL_POSTFIX = "/graphql"
 
 ORIG_ID_SEPARATOR_KEY = "level_2:orig_id_separator"
 
+AGGREGATION_SEPARATOR_KEY = "level_2:aggregation_separator"
+
 COMMUNITY_LABEL_KEY = "level_2:community_label"
 
 DEFAULT_ORIG_ID_SEPARATOR = "_"
 
+DEFAULT_AGGREGATION_SEPARATOR = "agg"
+
 class ChallengeLabelAndSep(NamedTuple):
     ch_id: "str"
     label: "str"
-    sep: "str"
+    sep: "str" = DEFAULT_ORIG_ID_SEPARATOR
+    aggregation_sep: "str" = DEFAULT_AGGREGATION_SEPARATOR
+
+class BenchmarkingEventPrefixEtAl(NamedTuple):
+    prefix: "str" = ""
+    sep: "str" = DEFAULT_ORIG_ID_SEPARATOR
+    aggregation_sep: "str" = DEFAULT_AGGREGATION_SEPARATOR
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
@@ -191,7 +201,7 @@ class OpenEBenchUtils():
         
         return community_prefix
 
-    def gen_benchmarking_event_prefix(self, bench_event: "Mapping[str, Any]", community_prefix: "str") -> "Tuple[str, str]":
+    def gen_benchmarking_event_prefix(self, bench_event: "Mapping[str, Any]", community_prefix: "str") -> "BenchmarkingEventPrefixEtAl":
         if not bench_event.get("orig_id", "").startswith(community_prefix):
             self.logger.warning(f"Benchmarking event {bench_event['_id']} original id {bench_event.get('orig_id')} does not start with community prefix {community_prefix}")
         
@@ -199,14 +209,27 @@ class OpenEBenchUtils():
         bench_meta = cast("Optional[Mapping[str, Any]]", bench_event.get('_metadata'))
         if bench_meta is None:
             bench_meta = {}
+        
         bench_event_orig_id_separator = bench_meta.get(ORIG_ID_SEPARATOR_KEY)
         if bench_event_orig_id_separator is None:
             bench_event_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         
-        # Prefixes about benchmarking events
-        benchmarking_event_prefix = bench_event.get("orig_id", community_prefix) + bench_event_orig_id_separator
+        bench_event_aggregation_separator = bench_meta.get(AGGREGATION_SEPARATOR_KEY)
+        if bench_event_aggregation_separator is None:
+            bench_event_aggregation_separator = DEFAULT_AGGREGATION_SEPARATOR
         
-        return benchmarking_event_prefix, bench_event_orig_id_separator 
+        # Prefixes about benchmarking events
+        benchmarking_event_prefix = bench_event.get("orig_id")
+        if benchmarking_event_prefix is not None:
+            benchmarking_event_prefix += bench_event_orig_id_separator
+        else:
+            benchmarking_event_prefix = community_prefix
+        
+        return BenchmarkingEventPrefixEtAl(
+            prefix=benchmarking_event_prefix,
+            sep=bench_event_orig_id_separator,
+            aggregation_sep=bench_event_aggregation_separator,
+        )
     
     @staticmethod
     def gen_test_event_original_id(challenge: "Mapping[str, Any]", participant_label: "str") -> "str":
@@ -226,14 +249,15 @@ class OpenEBenchUtils():
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
     ) ->  "Tuple[str, str]":
         # First, decide the prefix
         the_prefix = None
         if len(dataset["challenge_ids"]) == 1:
             # Fetching the challenge prefix
-            challenge = self.fetchStagedEntry(dataType="Challenge", the_id=dataset["challenge_ids"][0]["_id"])
+            challenge_elem = dataset["challenge_ids"][0]
+            challenge_id = challenge_elem["_id"] if isinstance(challenge_elem, dict)  else challenge_elem
+            challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
             
             # Getting a possible custom original id separator for this challenge
             c_meta = challenge.get("_metadata")
@@ -241,7 +265,7 @@ class OpenEBenchUtils():
                 c_meta = {}
             challenge_orig_id_separator = c_meta.get(ORIG_ID_SEPARATOR_KEY)
             if challenge_orig_id_separator is None:
-                challenge_orig_id_separator = bench_event_orig_id_separator
+                challenge_orig_id_separator = bench_event_prefix_et_al.sep
             
             the_prefix = challenge.get("orig_id", "")
             if len(the_prefix) > 0:
@@ -252,17 +276,19 @@ class OpenEBenchUtils():
         else:
             benchmarking_event_id = None
             challenge_orig_id_separator = None
-            for challenge_id in dataset["challenge_ids"]:
+            for challenge_elem in dataset["challenge_ids"]:
+                challenge_id = challenge_elem["_id"] if isinstance(challenge_elem, dict)  else challenge_elem
+                    
                 challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
                 if benchmarking_event_id is None:
                     benchmarking_event_id = challenge["benchmarking_event_id"]
-                    challenge_orig_id_separator = bench_event_orig_id_separator
+                    challenge_orig_id_separator = bench_event_prefix_et_al.sep
                 elif benchmarking_event_id != challenge["benchmarking_event_id"]:
                     the_prefix = community_prefix
                     challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
                     break
             else:
-                the_prefix = benchmarking_event_prefix
+                the_prefix = bench_event_prefix_et_al.sep
                 if challenge_orig_id_separator is None:
                     challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         
@@ -272,15 +298,14 @@ class OpenEBenchUtils():
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         participant_label: "str",
     ) ->  "str":
         """
         It works only for participant and assessment datasets
         """
         # First, obtain the prefix
-        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator)
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, bench_event_prefix_et_al)
         
         # Then, dig in to get the participant label
         the_metadata = dataset.get("_metadata")
@@ -298,8 +323,7 @@ class OpenEBenchUtils():
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         participant_label: "str",
         metrics_label: "str",
     ) ->  "str":
@@ -307,7 +331,7 @@ class OpenEBenchUtils():
         It works only for participant and assessment datasets
         """
         # First, obtain the prefix
-        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator)
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, bench_event_prefix_et_al)
         
         # Then, dig in to get the participant label and metrics label
         the_metadata = dataset.get("_metadata")
@@ -325,8 +349,7 @@ class OpenEBenchUtils():
     @staticmethod
     def get_challenge_label_from_challenge(
         the_challenge: "Mapping[str, Any]",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str"
     ) -> "ChallengeLabelAndSep":
         """
@@ -335,21 +358,27 @@ class OpenEBenchUtils():
         """
         challenge_label = the_challenge.get("acronym")
         _metadata = the_challenge.get("_metadata")
-        challenge_orig_id_separator = bench_event_orig_id_separator
+        challenge_orig_id_separator = bench_event_prefix_et_al.sep
+        challenge_aggregation_separator = bench_event_prefix_et_al.aggregation_sep
         if isinstance(_metadata, dict):
             the_label = _metadata.get("level_2:challenge_id")
             if the_label is not None:
                 challenge_label = the_label
             the_challenge_orig_id_separator = _metadata.get(ORIG_ID_SEPARATOR_KEY)
+            
             if the_challenge_orig_id_separator is not None:
                 challenge_orig_id_separator = the_challenge_orig_id_separator
+            
+            the_challenge_aggregation_separator = _metadata.get(AGGREGATION_SEPARATOR_KEY)
+            if the_challenge_aggregation_separator is not None:
+                challenge_aggregation_separator = the_challenge_aggregation_separator
         
         if challenge_label is None:
             # Very old school label
             challenge_label = the_challenge.get("orig_id")
             if challenge_label is not None:
-                if challenge_label.startswith(benchmarking_event_prefix):
-                    challenge_label = challenge_label[len(benchmarking_event_prefix):]
+                if challenge_label.startswith(bench_event_prefix_et_al.prefix):
+                    challenge_label = challenge_label[len(bench_event_prefix_et_al.prefix):]
                 elif challenge_label.startswith(community_prefix):
                     challenge_label = challenge_label[len(community_prefix):]
             else:
@@ -359,21 +388,20 @@ class OpenEBenchUtils():
             ch_id=cast("str", the_challenge["_id"]),
             label=cast("str", challenge_label),
             sep=challenge_orig_id_separator,
+            aggregation_sep=challenge_aggregation_separator,
         )
 
     @staticmethod
     def gen_ch_id_to_label_and_sep(
         challenges: "Sequence[Mapping[str, Any]]",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str",
     ) -> "Mapping[str, ChallengeLabelAndSep]":
         ch_id_to_label_and_sep = {}
         for challenge in challenges:
             challenge_label_and_sep = OpenEBenchUtils.get_challenge_label_from_challenge(
                 challenge,
-                benchmarking_event_prefix,
-                bench_event_orig_id_separator,
+                bench_event_prefix_et_al,
                 community_prefix,
             )
             ch_id_to_label_and_sep[challenge_label_and_sep.ch_id] = challenge_label_and_sep
@@ -1122,8 +1150,7 @@ class OpenEBenchUtils():
         db_datasets: "Sequence[Mapping[str, Any]]",
         output_datasets: "Sequence[Mapping[str, Any]]",
 #        community_prefix: "str",
-#        benchmarking_event_prefix: "str",
-#        bench_event_orig_id_separator: "str",
+#        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         default_schema_url: "Optional[Union[Sequence[str], bool]]" = None
     ) -> "Sequence[Tuple[str, Optional[str], str]]":
         
@@ -1141,9 +1168,9 @@ class OpenEBenchUtils():
         for o_dataset in output_datasets:
 #            # Early check
 #            if o_dataset["type"] == "participant":
-#                self.gen_expected_participant_original_id(o_dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator, "")
+#                self.gen_expected_participant_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "")
 #            elif o_dataset["type"] == "assessment":
-#                self.gen_expected_assessment_original_id(o_dataset, community_prefix, benchmarking_event_prefix, bench_event_orig_id_separator, "", "")
+#                self.gen_expected_assessment_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "", "")
             
             should_exit = False
             # Should we validate the inline data?

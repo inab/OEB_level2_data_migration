@@ -9,9 +9,8 @@ import sys
 from oebtools.fetch import OEB_CONCEPT_PREFIXES
 
 from ..schemas import (
-    AGGREGATION_2D_PLOT_SCHEMA_ID,
-    AGGREGATION_BAR_PLOT_SCHEMA_ID,
-    SINGLE_METRIC_SCHEMA_ID,
+    ASSESSMENT_INLINE_SCHEMAS,
+    AGGREGATION_INLINE_SCHEMAS,
 )
 
 from typing import (
@@ -55,8 +54,8 @@ class DatasetValidationSchema(NamedTuple):
     schema_id: "Optional[str]"
 
 from .migration_utils import (
+    BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
-    DEFAULT_ORIG_ID_SEPARATOR,
     OpenEBenchUtils,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
@@ -207,13 +206,14 @@ class IndexedDatasets:
     level2_min_validator: "Any"
     metrics_graphql: "Sequence[Mapping[str, Any]]"
     community_prefix: "str"
-    benchmarking_event_prefix: "str"
     challenge_prefix: "str"
     challenge: "Mapping[str, Any]"
     challenge_label_and_sep: "ChallengeLabelAndSep"
     cam_d: "Mapping[str, Mapping[str, str]]"
     # dataset categories
     d_categories: "Optional[Sequence[Mapping[str, Any]]]"
+    # Benchmarking event prefix, separator, and aggregation separator
+    bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl" = dataclasses.field(default_factory=BenchmarkingEventPrefixEtAl)
     # Let's index the datasets
     # by _id and orig_id
     # In the case of assessment datasets
@@ -259,8 +259,8 @@ class IndexedDatasets:
             if not id_to_check.startswith(self.community_prefix):
                 self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
             if is_participant or is_assessment or is_aggregation:
-                if not id_to_check.startswith(self.benchmarking_event_prefix):
-                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the benchmarking event prefix {self.benchmarking_event_prefix}. You should fix it to avoid possible duplicates")
+                if not id_to_check.startswith(self.bench_event_prefix_et_al.prefix):
+                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the benchmarking event prefix {self.bench_event_prefix_et_al.prefix}. You should fix it to avoid possible duplicates")
             if len(raw_dataset.get("challenge_ids",[])) == 1 or is_assessment or is_aggregation:
                 if not id_to_check.startswith(self.challenge_prefix):
                     self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the challenge prefix {self.challenge_prefix}. You should fix it to avoid possible duplicates")
@@ -320,14 +320,9 @@ class IndexedDatasets:
                 inline_schemas = None
                 if schema_url is None:
                     if is_assessment:
-                        inline_schemas = [
-                            SINGLE_METRIC_SCHEMA_ID,
-                        ]
+                        inline_schemas = ASSESSMENT_INLINE_SCHEMAS
                     elif is_aggregation:
-                        inline_schemas = [
-                            AGGREGATION_2D_PLOT_SCHEMA_ID,
-                            AGGREGATION_BAR_PLOT_SCHEMA_ID,
-                        ]
+                        inline_schemas = AGGREGATION_INLINE_SCHEMAS
                 else:
                     inline_schemas = [
                         schema_url
@@ -366,7 +361,7 @@ class IndexedDatasets:
             if len(vis_hints) == 0:
                 self.logger.warning(f"No visualization type for {self.type} dataset {index_id}. Is it missing or intentional??")
                 # TODO: What should we do????
-            elif vis_type in ("2D-plot", "bar-plot"):
+            elif vis_type in ("2D-plot", "bar-plot", "box-plot"):
                 suffix = None
                 proposed_suffix: "str" = "FIX_UNDEFINED_METRIC_LABEL"
                 
@@ -420,8 +415,8 @@ class IndexedDatasets:
                         ]
                         
                         # Check the suffix
-                        suffix = f"_{x_axis_metric_label}+{y_axis_metric_label}"
-                        proposed_suffix = f"_{x_trio_proposed_label}+{y_trio_proposed_label}"
+                        suffix = self.challenge_label_and_sep.sep + f"{x_axis_metric_label}+{y_axis_metric_label}"
+                        proposed_suffix = self.challenge_label_and_sep.sep + f"{x_trio_proposed_label}+{y_trio_proposed_label}"
                 elif vis_type == "bar-plot":
                     metrics_label = vis_hints.get("metric")
                     if metrics_label is None:
@@ -450,14 +445,47 @@ class IndexedDatasets:
                         ]
                         
                         # Check the suffix
-                        suffix = f"_{metrics_label}"
-                        proposed_suffix = f"_{trio_proposed_label}"
+                        suffix = self.challenge_label_and_sep.sep + metrics_label
+                        proposed_suffix = self.challenge_label_and_sep.sep + trio_proposed_label
+                elif vis_type == "box-plot":
+                    available_metrics = vis_hints.get("available_metrics")
+                    if available_metrics is None:
+                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define available metrics labels. Fix it")
+                    else:
+                        matched_trios = []
+                        proposed_labels = []
+                        for metrics_label in available_metrics:
+                            # Check there is some matching metric
+                            trio = match_metric_from_label(
+                                logger=self.logger,
+                                metrics_graphql=self.metrics_graphql,
+                                community_prefix=self.community_prefix,
+                                metrics_label=metrics_label,
+                                challenge_id=self.challenge['_id'],
+                                challenge_acronym=self.challenge['acronym'],
+                                challenge_assessment_metrics_d=self.cam_d,
+                                dataset_id=index_id,
+                            )
+                            matched_trios.append(trio)
+                            if trio is not None:
+                                trio_proposed_label = trio.proposed_label
+                            else:
+                                self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
+                                trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
+                            proposed_labels.append(trio_proposed_label)
+                        
+                        # Saving it for later usage
+                        self.metrics_by_d[index_id] = matched_trios
+                        
+                        # Check the suffix
+                        suffix = self.challenge_label_and_sep.sep + '+'.join(available_metrics)
+                        proposed_suffix = self.challenge_label_and_sep.sep + '+'.join(proposed_labels)
                 
                 if suffix is not None:
                     if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
                         self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with either computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
                     
-                    proposed_orig_id = self.challenge_prefix + "agg" + proposed_suffix
+                    proposed_orig_id = self.challenge_prefix + self.challenge_label_and_sep.aggregation_sep + proposed_suffix
                     if index_id_orig is None or index_id_orig != proposed_orig_id:
                         self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not match with proposed original id {proposed_orig_id}. Fix it")
                         
@@ -512,8 +540,7 @@ class DatasetsCatalog:
     level2_min_validator: "Any" = None
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
     community_prefix: "str" = ""
-    benchmarking_event_prefix: "str" = ""
-    bench_event_orig_id_separator: "str" = DEFAULT_ORIG_ID_SEPARATOR
+    bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl" = dataclasses.field(default_factory=BenchmarkingEventPrefixEtAl)
     challenge_prefix: "str" = ""
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
@@ -537,13 +564,12 @@ class DatasetsCatalog:
                     metrics_graphql=self.metrics_graphql,
                     level2_min_validator=self.level2_min_validator,
                     community_prefix=self.community_prefix,
-                    benchmarking_event_prefix=self.benchmarking_event_prefix,
+                    bench_event_prefix_et_al=self.bench_event_prefix_et_al,
                     challenge_prefix=self.challenge_prefix,
                     challenge=self.challenge,
                     challenge_label_and_sep=OpenEBenchUtils.get_challenge_label_from_challenge(
                         self.challenge,
-                        self.benchmarking_event_prefix,
-                        self.bench_event_orig_id_separator,
+                        self.bench_event_prefix_et_al,
                         self.community_prefix,
                     ),
                     cam_d=cam_d,

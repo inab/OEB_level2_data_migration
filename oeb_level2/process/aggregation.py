@@ -46,6 +46,8 @@ if TYPE_CHECKING:
     
     from ..utils.catalogs import InlineDataLabel
     
+    from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
+    
     from numbers import Real
     
     class RelDataset(TypedDict):
@@ -99,8 +101,7 @@ class AggregationValidator():
     def check_and_index_challenges(
         self,
         community_prefix: "str",
-        benchmarking_event_prefix: "str",
-        bench_event_orig_id_separator: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
     ) -> "Mapping[str, IndexedChallenge]":
@@ -118,8 +119,7 @@ class AggregationValidator():
             
             challenge_label_and_sep = OpenEBenchUtils.get_challenge_label_from_challenge(
                 agg_ch,
-                benchmarking_event_prefix,
-                bench_event_orig_id_separator,
+                bench_event_prefix_et_al,
                 community_prefix,
             )
             
@@ -128,10 +128,10 @@ class AggregationValidator():
             challenge_orig_id = agg_ch.get("orig_id")
             if challenge_orig_id is None or not challenge_orig_id.startswith(community_prefix):
                 self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {community_prefix}. Fix it.")
-            if challenge_orig_id is None or not challenge_orig_id.startswith(benchmarking_event_prefix):
-                self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {benchmarking_event_prefix}. Fix it.")
+            if challenge_orig_id is None or not challenge_orig_id.startswith(bench_event_prefix_et_al.prefix):
+                self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It must start with {bench_event_prefix_et_al.prefix}. Fix it.")
 
-            expected_ch_orig_id = benchmarking_event_prefix + challenge_label_and_sep.label
+            expected_ch_orig_id = bench_event_prefix_et_al.prefix + challenge_label_and_sep.label
             if challenge_orig_id != expected_ch_orig_id:
                 self.logger.warning(f"Challenge {challenge_id} has as original id {challenge_orig_id}. It is suggested to be {expected_ch_orig_id}.")
             
@@ -161,8 +161,7 @@ class AggregationValidator():
                 level2_min_validator=self.level2_min_validator,
                 metrics_graphql=metrics_agg_graphql,
                 community_prefix=community_prefix,
-                benchmarking_event_prefix=benchmarking_event_prefix,
-                bench_event_orig_id_separator=bench_event_orig_id_separator,
+                bench_event_prefix_et_al=bench_event_prefix_et_al,
                 challenge_prefix=challenge_prefix,
                 challenge=agg_ch,
             )
@@ -730,20 +729,27 @@ class AggregationBuilder():
                 if isinstance(vis, dict):
                     vis_type = vis.get("type")
                     
+                    agg_postfix = idx_agg.challenge_label_and_sep.sep + idx_agg.challenge_label_and_sep.aggregation_sep
+                    the_id_postfix = idx_agg.challenge_label_and_sep.sep
                     if vis_type == "2D-plot":
-                        the_id += "_" + f"{vis['x_axis']}+{vis['y_axis']}"
+                        the_id_postfix += f"{vis['x_axis']}+{vis['y_axis']}"
                         metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
                         manage_datalink = True
                     elif vis_type == "bar-plot":
-                        the_id += "_" + vis['metric']
+                        the_id_postfix += vis['metric']
                         metrics_str = vis['metric']
                         manage_datalink = True
                     elif vis_type == "box-plot":
-                        the_id += "_" + '+'.join(vis['available_metrics'])
+                        the_id_postfix += '+'.join(vis['available_metrics'])
                         metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
                     else:
                         self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
+                    
+                    if the_id.endswith(agg_postfix):
+                        the_id += the_id_postfix
+                    if not the_id.endswith(the_id_postfix):
+                        the_id += agg_postfix + the_id_postfix
                     
                     # Initialize
                     the_vis_optim = vis.get("optimization")

@@ -400,12 +400,11 @@ def validate_transform_and_push(
     )
     
     bench_event = input_query_response["data"]["getBenchmarkingEvents"][0]
-    benchmarking_event_prefix, bench_event_orig_id_separator = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
+    bench_event_prefix_et_al = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
 
     ch_id_to_label_and_sep = OpenEBenchUtils.gen_ch_id_to_label_and_sep(
         input_query_response["data"]["getChallenges"],
-        benchmarking_event_prefix,
-        bench_event_orig_id_separator,
+        bench_event_prefix_et_al,
         community_prefix,
     )
     
@@ -453,8 +452,7 @@ def validate_transform_and_push(
     # Check and index challenges and their main components
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
-        benchmarking_event_prefix,
-        bench_event_orig_id_separator,
+        bench_event_prefix_et_al,
         aggregation_query_response["data"]["getChallenges"],
         aggregation_query_response["data"]["getMetrics"],
     )
@@ -472,8 +470,7 @@ def validate_transform_and_push(
         data_visibility,
         file_location, 
         community_id,
-        benchmarking_event_prefix,
-        bench_event_orig_id_separator,
+        bench_event_prefix_et_al,
         community_prefix,
         tool_mapping
     )
@@ -525,8 +522,7 @@ def validate_transform_and_push(
         min_assessment_datasets, 
         data_visibility,
         valid_participant_tuples,
-        benchmarking_event_prefix,
-        bench_event_orig_id_separator,
+        bench_event_prefix_et_al,
         community_prefix,
     )
     

@@ -121,10 +121,10 @@ def validate_challenges(
     community_id = bench_event["community_id"]
     
     # Prefixes about communities
-    stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
+    stagedCommunity = migration_utils.fetchStagedEntry("Community", community_id)
     
-    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunities[0])
-    benchmarking_event_prefix, bench_event_orig_id_separator = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
+    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunity)
+    bench_event_prefix_et_al = migration_utils.gen_benchmarking_event_prefix(bench_event, community_prefix)
     
     logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
     process_aggregations = AggregationValidator(schemaMappings, migration_utils)
@@ -151,8 +151,7 @@ def validate_challenges(
     # Check and index challenges and their main components
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
-        benchmarking_event_prefix,
-        bench_event_orig_id_separator,
+        bench_event_prefix_et_al,
         challenges_graphql,
         aggregation_query_response["data"]["getMetrics"],
     )    
