@@ -147,18 +147,17 @@ $defs:
               - items:
                   type: object
                   properties:
-                    stderr:
+                    e:
                       title: the standard error / deviation for the metric (if exists)
                       type: number
                       minLength: 1
-                    value:
+                    v:
                       title: the numerical value of the metric
                       type: number
                       minLength: 1
                   unevaluatedProperties: false
                   required:
-                  - value
-                  - stderr
+                  - v
               - items:
                   type: number
           required:
