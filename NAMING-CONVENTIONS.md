@@ -2,11 +2,24 @@
 
 ## Benchmarking events
 
-* [W] Original id from a benchmarking event must start with the community acronym, followed by ':'.
+* [W] Original id from a benchmarking event must start with the community prefix,
+  which is the community label followed by ':'.
+
+* The community label is usually the `acronym` from the **`Community`** entry. In some cases
+  where the label should be something easier or custom, it can be customized at the community
+  entry level, including the key `level_2:community_label` in `_metadata` section. Example:
+
+  ```json
+  {
+    "_metadata": {
+      "level_2:community_label": "SIMPLELABEL"
+    }
+  }
+  ```
 
 ## Challenges
 
-* [W] Original id from a challenge must start with the community acronym, followed by ':'.
+* [W] Original id from a challenge must start with the community prefix.
 
 * [W] Original id from a challenge must start with the benchmarking event original id,
 followed by the benchmarking event original id separator,
@@ -48,7 +61,7 @@ and then should be followed by the challenge label.
       benchmarking event original id separator, that prefix is removed and the rest is used as label.
       
     - If the benchmarking event prefix does not match, but the community prefix
-      (community acronym plus ':') matches, then that prefix is removed and the
+      (community label plus ':') matches, then that prefix is removed and the
       rest is used as label.
       
     - Otherwise, use the original id as label.
@@ -59,7 +72,7 @@ and then should be followed by the challenge label.
 
 * [I] Metrics (the abstract definition) which are narrowed to specific communities due
     their definition or labelling should have their `orig_id` prefixed by the
-    community's acronym plus ':'.
+    community prefix.
     
 * Metrics label is obtained from the corresponding metrics entry through next rules,
   by their precedence:
@@ -75,15 +88,15 @@ and then should be followed by the challenge label.
     }
     ```
     
-  - If the metrics entry has an `orig_id`, and the original id has as prefix the community acronym
-    plus ':', then the metrics label is the result of removing the prefix.
+  - If the metrics entry has an `orig_id`, and the original id has as prefix the community prefix,
+    then the metrics label is the result of removing the prefix.
   
   - In the worst cases, if the metrics entry has an `orig_id`, the original id is the metrics label.
     Else the label is the metrics id.
 
 ## Datasets
 
-* [W] Original id from a dataset tied to a single community must start with the community acronym, followed by ':'.
+* [W] Original id from a dataset tied to a single community must start with the community prefix.
 
 * [W] Original id from a dataset tied to a single benchmarking event must start with the benchmarking event original_id,
   followed by benchmarking event original id separator.
@@ -128,7 +141,7 @@ and then should be followed by the challenge label.
 
 ## TestActions
 
-* [W] A test action original id must start with the community acronym, followed by ':'.
+* [W] A test action original id must start with the community prefix.
 
 * [W] A test action original id must start with the benchmarking event `orig_id`,
   followed by benchmarking event original id separator.

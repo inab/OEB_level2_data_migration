@@ -85,6 +85,8 @@ GRAPHQL_POSTFIX = "/graphql"
 
 ORIG_ID_SEPARATOR_KEY = "level_2:orig_id_separator"
 
+COMMUNITY_LABEL_KEY = "level_2:community_label"
+
 DEFAULT_ORIG_ID_SEPARATOR = "_"
 
 class ChallengeLabelAndSep(NamedTuple):
@@ -174,11 +176,18 @@ class OpenEBenchUtils():
     
     @staticmethod
     def gen_community_prefix(community: "Mapping[str, Any]") -> "str":
-        return OpenEBenchUtils.gen_community_prefix_from_acronym(community["acronym"])
+        comm_meta = cast("Optional[Mapping[str, Any]]", community.get('_metadata'))
+        if comm_meta is None:
+            comm_meta = {}
+        community_label = comm_meta.get(COMMUNITY_LABEL_KEY)
+        if community_label is None:
+            community_label = community["acronym"]
+        
+        return OpenEBenchUtils.gen_community_prefix_from_label(community_label)
 
     @staticmethod
-    def gen_community_prefix_from_acronym(community_acronym: "str") -> "str":
-        community_prefix = community_acronym + ':'
+    def gen_community_prefix_from_label(community_label: "str") -> "str":
+        community_prefix = community_label + ':'
         
         return community_prefix
 
