@@ -53,8 +53,9 @@ except ImportError:
     from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
 
 from oebtools.fetch import (
-    fetchIdsAndOrigIds,
     checkoutSchemas,
+    fetchEntriesFromIds,
+    fetchIdsAndOrigIds,
     query_graphql,
     DEFAULT_BDM_TAG,
     FLAVOR_SANDBOX,
@@ -1015,19 +1016,19 @@ class OpenEBenchUtils():
                     self.logger.exception(f"Failed to fetch {dataType} data from {data_endpoint}")
     
     def fetchStagedEntry(self, dataType: "str", the_id: "str") -> "Mapping[str, Any]":
-        headers = {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer {}'.format(self.oeb_token)
-        }
-        
-        req = urllib.request.Request(self.oeb_submission_api + '/' + urllib.parse.quote(dataType) + '/' + urllib.parse.quote(the_id), headers=headers, method='GET')
-        with urllib.request.urlopen(req) as t:
-            datares_raw = json.load(t)
-            
-            assert isinstance(datares_raw, dict), "The answer is expected to be a dictionary"
-            
+        for fetched_data_type, datares_raw in fetchEntriesFromIds(
+            [the_id],
+            self.oeb_api_base,
+            oeb_credentials=self.oeb_token,
+            flavor=FLAVOR_STAGED,
+            logger=self.logger,
+        ):
+            if dataType != fetched_data_type:
+                raise ValueError(f"Expected {the_id} to be {dataType} instead of {fetched_data_type}")
             return datares_raw
-    
+        
+        raise LookupError(f"Unable to fetch {the_id} ({dataType})")
+        
     @staticmethod
     def filter_by(datares_raw: "Union[Sequence[Mapping[str, Any]],Iterator[Mapping[str, Any]]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
             if len(filtering_keys) > 0:

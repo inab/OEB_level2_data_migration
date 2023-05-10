@@ -389,8 +389,8 @@ def validate_transform_and_push(
     allDatasets = list(migration_utils.fetchStagedData('Dataset'))
     
     # Prefixes about communities
-    stagedCommunities = list(migration_utils.fetchStagedData("Community", {"_id": [community_id]}))
-    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunities[0])
+    stagedCommunity = migration_utils.fetchStagedEntry("Community", community_id)
+    community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunity)
     
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")

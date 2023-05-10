@@ -6,7 +6,7 @@ import logging
 import re
 import sys
 
-from oebtools.fetch import OEB_ID_PREFIX
+from oebtools.fetch import OEB_CONCEPT_PREFIXES
 
 from ..schemas import (
     AGGREGATION_2D_PLOT_SCHEMA_ID,
@@ -194,8 +194,8 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
         return None
 
 
-DATASET_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['Dataset']
-TEST_ACTION_ID_PREFIX = dict(map(lambda pt: (pt[1], pt[0]), OEB_ID_PREFIX))['TestAction']
+DATASET_ID_PREFIX = OEB_CONCEPT_PREFIXES['Dataset']
+TEST_ACTION_ID_PREFIX = OEB_CONCEPT_PREFIXES['TestAction']
 
 @dataclasses.dataclass
 class IndexedDatasets:
