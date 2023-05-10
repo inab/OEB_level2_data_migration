@@ -233,342 +233,343 @@ class AggregationValidator():
             
             # Let's rebuild the aggregation datasets, from the minimal information
             idat_agg = d_catalog.get("aggregation")
-            assert idat_agg is not None
-            
-            idat_ass = d_catalog.get("assessment")
-            assert idat_ass is not None
-            idat_part = d_catalog.get("participant")
-            assert idat_part is not None
-            
-            ita_m_events = ta_catalog.get("MetricsEvent")
-            assert ita_m_events is not None
-            
-            failed_agg_dataset = False
-            for raw_dataset in idat_agg.datasets():
-                agg_dataset_id = raw_dataset["_id"]
-                found_schema_url = agg_d_schema_dict.get(agg_dataset_id)
-                metrics_trios = idat_agg.get_metrics_trio(agg_dataset_id)
-                if metrics_trios:
-                    # Make an almost shallow copy of the entry
-                    # removing what it is going to be populated from ground
-                    r_dataset = cast("MutableMapping[str, Any]", copy.copy(raw_dataset))
-                    
-                    # depends_on is going to be rebuilt
-                    d_on = copy.deepcopy(raw_dataset["depends_on"])
-                    rel_dataset_ids: "MutableSequence[RelDataset]" = []
-                    d_on["rel_dataset_ids"] = rel_dataset_ids
-                    r_dataset["depends_on"] = d_on
-                    
-                    # datalink contents are going to be rebuilt, also
-                    d_link = copy.deepcopy(raw_dataset["datalink"])
-                    r_dataset["datalink"] = d_link
-                    inline_data = d_link.get("inline_data")
-                    
-                    if ("_metadata" in r_dataset) and r_dataset["_metadata"] is None:
-                        del r_dataset["_metadata"]
-                    
-                    # Challenge ids of this dataset (to check other dataset validness)
-                    ch_ids_set = set(r_dataset["challenge_ids"])
-                    if isinstance(inline_data, dict):
-                        # Entry of each challenge participant, by participant label
-                        # The right type should be "Union[MutableMapping[str, BarData], MutableMapping[str, ScatterData], MutableMapping[str, SeriesData]]"
-                        # but the validation gets more complicated
-                        cha_par_by_id = cast("MutableMapping[str, Union[BarData, ScatterData, SeriesData]]", {})
-                        # To provide meaningful error messages
-                        ass_par_by_id: "MutableMapping[str, str]" = {}
-                        # The right type should be "Union[MutableSequence[BarData], MutableSequence[ScatterData], MutableSequence[SeriesData]]"
-                        # but the validation gets more complicated
-                        challenge_participants = cast("MutableSequence[Union[BarData, ScatterData, SeriesData]]", [])
-                        inline_data["challenge_participants"] = challenge_participants
+            # A new community has no aggregation dataset
+            if idat_agg is not None:
+                
+                idat_ass = d_catalog.get("assessment")
+                assert idat_ass is not None
+                idat_part = d_catalog.get("participant")
+                assert idat_part is not None
+                
+                ita_m_events = ta_catalog.get("MetricsEvent")
+                assert ita_m_events is not None
+                
+                failed_agg_dataset = False
+                for raw_dataset in idat_agg.datasets():
+                    agg_dataset_id = raw_dataset["_id"]
+                    found_schema_url = agg_d_schema_dict.get(agg_dataset_id)
+                    metrics_trios = idat_agg.get_metrics_trio(agg_dataset_id)
+                    if metrics_trios:
+                        # Make an almost shallow copy of the entry
+                        # removing what it is going to be populated from ground
+                        r_dataset = cast("MutableMapping[str, Any]", copy.copy(raw_dataset))
                         
-                        # Visualization type determines later the labels
-                        # to use in each entry of challenge_participants
-                        vis_type = inline_data.get("visualization",{}).get("type")
-                        if vis_type == "box-plot":
-                            inline_data["series_type"] = "aggregation-data-series"
+                        # depends_on is going to be rebuilt
+                        d_on = copy.deepcopy(raw_dataset["depends_on"])
+                        rel_dataset_ids: "MutableSequence[RelDataset]" = []
+                        d_on["rel_dataset_ids"] = rel_dataset_ids
+                        r_dataset["depends_on"] = d_on
                         
-                        # This set is used to detect mismatches between
-                        # registered and gathered assessment datasets
-                        rel_ids_set = set(map(lambda r: cast("str", r["dataset_id"]), filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
+                        # datalink contents are going to be rebuilt, also
+                        d_link = copy.deepcopy(raw_dataset["datalink"])
+                        r_dataset["datalink"] = d_link
+                        inline_data = d_link.get("inline_data")
                         
-                        # Processing and validating already registered labels
-                        potential_inline_data_labels: "Sequence[DataLabel]" = inline_data.get("labels", [])
-                        inline_data_labels: "MutableSequence[InlineDataLabel]" = []
-                        inline_data["labels"] = inline_data_labels
+                        if ("_metadata" in r_dataset) and r_dataset["_metadata"] is None:
+                            del r_dataset["_metadata"]
                         
-                        # Inline data labels by participant dataset id
-                        idl_by_d_id = {}
-                        
-                        changed_labels = False
-                        for potential_inline_data_label in potential_inline_data_labels:
-                            part_d_label = potential_inline_data_label['label']
-                            part_d_orig_id = potential_inline_data_label['dataset_orig_id']
+                        # Challenge ids of this dataset (to check other dataset validness)
+                        ch_ids_set = set(r_dataset["challenge_ids"])
+                        if isinstance(inline_data, dict):
+                            # Entry of each challenge participant, by participant label
+                            # The right type should be "Union[MutableMapping[str, BarData], MutableMapping[str, ScatterData], MutableMapping[str, SeriesData]]"
+                            # but the validation gets more complicated
+                            cha_par_by_id = cast("MutableMapping[str, Union[BarData, ScatterData, SeriesData]]", {})
+                            # To provide meaningful error messages
+                            ass_par_by_id: "MutableMapping[str, str]" = {}
+                            # The right type should be "Union[MutableSequence[BarData], MutableSequence[ScatterData], MutableSequence[SeriesData]]"
+                            # but the validation gets more complicated
+                            challenge_participants = cast("MutableSequence[Union[BarData, ScatterData, SeriesData]]", [])
+                            inline_data["challenge_participants"] = challenge_participants
                             
-                            discarded_label = True
-                            # Let's obtain the raw entry of the participant
-                            part_raw_dataset = idat_part.get(part_d_orig_id)
-                            if part_raw_dataset is not None:
-                                # Checking its availability
-                                part_raw_metadata = part_raw_dataset.get("_metadata")
-                                if part_raw_metadata is None:
-                                    part_raw_metadata = {}
-                                part_raw_label = part_raw_metadata.get("level_2:participant_id", part_d_label)
-                                if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
-                                    inline_data_labels.append(potential_inline_data_label)
-                                    idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label
-                                    discarded_label = False
-                                else:
-                                    self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} due mismatches with {part_raw_dataset['_id']}")
-                            else:
-                                self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} as no dataset was matched")
+                            # Visualization type determines later the labels
+                            # to use in each entry of challenge_participants
+                            vis_type = inline_data.get("visualization",{}).get("type")
+                            if vis_type == "box-plot":
+                                inline_data["series_type"] = "aggregation-data-series"
                             
-                            changed_labels = changed_labels or discarded_label
-                        
-                        # Time to fetch
-                        rebuild_agg = False
-                        regen_rel_ids_set = set()
-                        # Iterating over the different metrics
-                        for i_trio, metrics_trio in enumerate(metrics_trios):
-                            if metrics_trio is None:
-                                self.logger.fatal(f"Unable to map metric {i_trio} related to {agg_dataset_id}. It will be discarded in the best case")
-                                failed_agg_dataset = True
-                                continue
-                            # To gather the assessment datasets for each metric
-                            met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
+                            # This set is used to detect mismatches between
+                            # registered and gathered assessment datasets
+                            rel_ids_set = set(map(lambda r: cast("str", r["dataset_id"]), filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
                             
-                            met_set = set(map(lambda m: cast("str", m["_id"]), met_datasets))
-                            if not(rel_ids_set > met_set):
-                                new_set = met_set - rel_ids_set
-                                self.logger.error(f"Aggregation dataset {agg_dataset_id} should also depend on {len(new_set)} datasets: {', '.join(new_set)}")
-                                rebuild_agg = True
-                            regen_rel_ids_set.update(met_set)
-                            rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
+                            # Processing and validating already registered labels
+                            potential_inline_data_labels: "Sequence[DataLabel]" = inline_data.get("labels", [])
+                            inline_data_labels: "MutableSequence[InlineDataLabel]" = []
+                            inline_data["labels"] = inline_data_labels
                             
-                            for met_dataset in met_datasets:
-                                # Fetch the TestActionRel MetricsEvent entry
-                                tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
-                                if tar is None:
-                                    self.logger.error(f"Unindexed MetricsEvent TestAction for dataset {met_dataset['_id']}")
-                                    #for m_k, m_p in ita_m_events.a_dict.items():
-                                    #    self.logger.error(m_k)
-                                    #    self.logger.error(ita_m_events.a_list[m_p])
-                                    rebuild_agg = True
-                                    continue
+                            # Inline data labels by participant dataset id
+                            idl_by_d_id = {}
+                            
+                            changed_labels = False
+                            for potential_inline_data_label in potential_inline_data_labels:
+                                part_d_label = potential_inline_data_label['label']
+                                part_d_orig_id = potential_inline_data_label['dataset_orig_id']
                                 
-                                # Now, the participant datasets can be rescued
-                                # to get or guess its label
-                                inline_data_label = None
-                                par_dataset_id: "Optional[str]" = None
-                                par_label = None
-                                for par_dataset in tar.in_d:
-                                    inline_data_label = idl_by_d_id.get(par_dataset["_id"])
-                                    if isinstance(inline_data_label, dict):
-                                        par_dataset_id = par_dataset["_id"]
-                                        par_label = inline_data_label["label"]
-                                        break
-                                
-                                # Bad luck, time to create a new entry
-                                if par_label is None:
-                                    inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
-                                    if inline_data_label is None:
-                                        self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
-                                        
-                                    # Now we should have the participant label
-                                    assert inline_data_label is not None
-                                    
-                                    # Last, store it
-                                    inline_data_labels.append(inline_data_label)
-                                    idl_by_d_id[par_dataset_id] = inline_data_label
-                                    par_label = inline_data_label["label"]
-                                
-                                assert par_dataset_id is not None
-                                
-                                mini_entry = cha_par_by_id.get(par_dataset_id)
-                                mini_entry_2d: "Optional[ScatterData]" = None
-                                mini_entry_b: "Optional[BarData]" = None
-                                mini_entry_s: "Optional[SeriesData]" = None
-                                do_processing = True
-                                if mini_entry is None:
-                                    if vis_type == "2D-plot":
-                                        mini_entry_2d = {
-                                            "tool_id": par_label,
-                                        }
-                                        mini_entry = mini_entry_2d
-                                    elif vis_type == "bar-plot":
-                                        mini_entry_b = {
-                                            "tool_id": par_label,
-                                        }
-                                        mini_entry = mini_entry_b
+                                discarded_label = True
+                                # Let's obtain the raw entry of the participant
+                                part_raw_dataset = idat_part.get(part_d_orig_id)
+                                if part_raw_dataset is not None:
+                                    # Checking its availability
+                                    part_raw_metadata = part_raw_dataset.get("_metadata")
+                                    if part_raw_metadata is None:
+                                        part_raw_metadata = {}
+                                    part_raw_label = part_raw_metadata.get("level_2:participant_id", part_d_label)
+                                    if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
+                                        inline_data_labels.append(potential_inline_data_label)
+                                        idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label
+                                        discarded_label = False
                                     else:
-                                        mini_entry_s = {
-                                            "label": par_label,
-                                            "metric_id": metrics_trio.proposed_label,
-                                        }
-                                        mini_entry = mini_entry_s
-                                    
-                                    challenge_participants.append(mini_entry)
-                                    cha_par_by_id[par_dataset_id] = mini_entry
-                                    ass_par_by_id[par_dataset_id] = met_dataset['_id']
-                                elif i_trio == 0:
-                                    self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by {agg_dataset_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
-                                    rebuild_agg = True
-                                    do_processing = False
-                                elif vis_type == "2D-plot":
-                                    mini_entry_2d = cast("ScatterData", mini_entry)
-                                elif vis_type == "bar-plot":
-                                    mini_entry_b = cast("BarData", mini_entry)
-                                elif vis_type == "box-plot":
-                                    mini_entry_s = cast("SeriesData", mini_entry)
+                                        self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} due mismatches with {part_raw_dataset['_id']}")
                                 else:
-                                    self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
-                                    do_processing = False
-                                    
-                                if do_processing:
-                                    ass_inline_data = met_dataset["datalink"]["inline_data"]
-                                    if mini_entry_2d is not None:
-                                        mini_entry_values: "ScatterData"
-                                        if i_trio == 0:
-                                            mini_entry_values = {
-                                                "metric_x": ass_inline_data["value"],
-                                                "stderr_x": ass_inline_data.get("error", 0),
-                                            }
-                                        else:
-                                            mini_entry_values = {
-                                                "metric_y": ass_inline_data["value"],
-                                                "stderr_y": ass_inline_data.get("error", 0),
-                                            }
-                                        
-                                        mini_entry_2d.update(mini_entry_values)
-                                    elif mini_entry_b:
-                                        mini_entry_b.update({
-                                            "metric_value": ass_inline_data["value"],
-                                            "stderr": ass_inline_data.get("error", 0),
-                                        })
-                                    elif mini_entry_s:
-                                        mini_entry_s.update({
-                                            "values": ass_inline_data["values"],
-                                        })
-                        
-                        if not rebuild_agg:
-                            raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
-                            if len(challenge_participants) != len(raw_challenge_participants):
-                                self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
-                                rebuild_agg = True
-                            else:
-                                s_new_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
-                                s_raw_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
-                                if vis_type == "box-plot":
-                                    s_new_challenge_participants = sorted(cast("Sequence[SeriesData]", challenge_participants), key=lambda cp: cp["label"])
-                                    s_raw_challenge_participants = sorted(cast("Sequence[SeriesData]", raw_challenge_participants), key=lambda cp: cp["label"])
-                                elif vis_type == "2D-plot":
-                                    s_new_challenge_participants = sorted(cast("Sequence[ScatterData]", challenge_participants), key=lambda cp: cp["tool_id"])
-                                    s_raw_challenge_participants = sorted(cast("Sequence[ScatterData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
-                                elif vis_type == "bar-plot":
-                                    s_new_challenge_participants = sorted(cast("Sequence[BarData]", challenge_participants), key=lambda cp: cp["tool_id"])
-                                    s_raw_challenge_participants = sorted(cast("Sequence[BarData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
-                                else:
-                                    # This should not happen
-                                    raise Exception("This should not happen. Contact some OpenEBench developer")
+                                    self.logger.warning(f"Discarded previous label {part_d_label} associated to {part_d_orig_id} in dataset {agg_dataset_id} as no dataset was matched")
                                 
-                                if s_new_challenge_participants != s_raw_challenge_participants:
-                                    for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
-                                        ts_new = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_new)
-                                        ts_raw = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_raw)
-                                        do_log_error = False
-                                        if set(s_new.keys()) != set(s_raw.keys()):
-                                            do_log_error = True
+                                changed_labels = changed_labels or discarded_label
+                            
+                            # Time to fetch
+                            rebuild_agg = False
+                            regen_rel_ids_set = set()
+                            # Iterating over the different metrics
+                            for i_trio, metrics_trio in enumerate(metrics_trios):
+                                if metrics_trio is None:
+                                    self.logger.fatal(f"Unable to map metric {i_trio} related to {agg_dataset_id}. It will be discarded in the best case")
+                                    failed_agg_dataset = True
+                                    continue
+                                # To gather the assessment datasets for each metric
+                                met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
+                                
+                                met_set = set(map(lambda m: cast("str", m["_id"]), met_datasets))
+                                if not(rel_ids_set > met_set):
+                                    new_set = met_set - rel_ids_set
+                                    self.logger.error(f"Aggregation dataset {agg_dataset_id} should also depend on {len(new_set)} datasets: {', '.join(new_set)}")
+                                    rebuild_agg = True
+                                regen_rel_ids_set.update(met_set)
+                                rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
+                                
+                                for met_dataset in met_datasets:
+                                    # Fetch the TestActionRel MetricsEvent entry
+                                    tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
+                                    if tar is None:
+                                        self.logger.error(f"Unindexed MetricsEvent TestAction for dataset {met_dataset['_id']}")
+                                        #for m_k, m_p in ita_m_events.a_dict.items():
+                                        #    self.logger.error(m_k)
+                                        #    self.logger.error(ita_m_events.a_list[m_p])
+                                        rebuild_agg = True
+                                        continue
+                                    
+                                    # Now, the participant datasets can be rescued
+                                    # to get or guess its label
+                                    inline_data_label = None
+                                    par_dataset_id: "Optional[str]" = None
+                                    par_label = None
+                                    for par_dataset in tar.in_d:
+                                        inline_data_label = idl_by_d_id.get(par_dataset["_id"])
+                                        if isinstance(inline_data_label, dict):
+                                            par_dataset_id = par_dataset["_id"]
+                                            par_label = inline_data_label["label"]
+                                            break
+                                    
+                                    # Bad luck, time to create a new entry
+                                    if par_label is None:
+                                        inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
+                                        if inline_data_label is None:
+                                            self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
+                                            
+                                        # Now we should have the participant label
+                                        assert inline_data_label is not None
+                                        
+                                        # Last, store it
+                                        inline_data_labels.append(inline_data_label)
+                                        idl_by_d_id[par_dataset_id] = inline_data_label
+                                        par_label = inline_data_label["label"]
+                                    
+                                    assert par_dataset_id is not None
+                                    
+                                    mini_entry = cha_par_by_id.get(par_dataset_id)
+                                    mini_entry_2d: "Optional[ScatterData]" = None
+                                    mini_entry_b: "Optional[BarData]" = None
+                                    mini_entry_s: "Optional[SeriesData]" = None
+                                    do_processing = True
+                                    if mini_entry is None:
+                                        if vis_type == "2D-plot":
+                                            mini_entry_2d = {
+                                                "tool_id": par_label,
+                                            }
+                                            mini_entry = mini_entry_2d
+                                        elif vis_type == "bar-plot":
+                                            mini_entry_b = {
+                                                "tool_id": par_label,
+                                            }
+                                            mini_entry = mini_entry_b
                                         else:
-                                            for k in ts_new.keys():
-                                                v_new = ts_new[k]
-                                                v_raw = ts_raw[k]
-                                                
-                                                if isinstance(v_new, str) or isinstance(v_raw, str):
+                                            mini_entry_s = {
+                                                "label": par_label,
+                                                "metric_id": metrics_trio.proposed_label,
+                                            }
+                                            mini_entry = mini_entry_s
+                                        
+                                        challenge_participants.append(mini_entry)
+                                        cha_par_by_id[par_dataset_id] = mini_entry
+                                        ass_par_by_id[par_dataset_id] = met_dataset['_id']
+                                    elif i_trio == 0:
+                                        self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by {agg_dataset_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
+                                        rebuild_agg = True
+                                        do_processing = False
+                                    elif vis_type == "2D-plot":
+                                        mini_entry_2d = cast("ScatterData", mini_entry)
+                                    elif vis_type == "bar-plot":
+                                        mini_entry_b = cast("BarData", mini_entry)
+                                    elif vis_type == "box-plot":
+                                        mini_entry_s = cast("SeriesData", mini_entry)
+                                    else:
+                                        self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
+                                        do_processing = False
+                                        
+                                    if do_processing:
+                                        ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                        if mini_entry_2d is not None:
+                                            mini_entry_values: "ScatterData"
+                                            if i_trio == 0:
+                                                mini_entry_values = {
+                                                    "metric_x": ass_inline_data["value"],
+                                                    "stderr_x": ass_inline_data.get("error", 0),
+                                                }
+                                            else:
+                                                mini_entry_values = {
+                                                    "metric_y": ass_inline_data["value"],
+                                                    "stderr_y": ass_inline_data.get("error", 0),
+                                                }
+                                            
+                                            mini_entry_2d.update(mini_entry_values)
+                                        elif mini_entry_b:
+                                            mini_entry_b.update({
+                                                "metric_value": ass_inline_data["value"],
+                                                "stderr": ass_inline_data.get("error", 0),
+                                            })
+                                        elif mini_entry_s:
+                                            mini_entry_s.update({
+                                                "values": ass_inline_data["values"],
+                                            })
+                            
+                            if not rebuild_agg:
+                                raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
+                                if len(challenge_participants) != len(raw_challenge_participants):
+                                    self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
+                                    rebuild_agg = True
+                                else:
+                                    s_new_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
+                                    s_raw_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
+                                    if vis_type == "box-plot":
+                                        s_new_challenge_participants = sorted(cast("Sequence[SeriesData]", challenge_participants), key=lambda cp: cp["label"])
+                                        s_raw_challenge_participants = sorted(cast("Sequence[SeriesData]", raw_challenge_participants), key=lambda cp: cp["label"])
+                                    elif vis_type == "2D-plot":
+                                        s_new_challenge_participants = sorted(cast("Sequence[ScatterData]", challenge_participants), key=lambda cp: cp["tool_id"])
+                                        s_raw_challenge_participants = sorted(cast("Sequence[ScatterData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
+                                    elif vis_type == "bar-plot":
+                                        s_new_challenge_participants = sorted(cast("Sequence[BarData]", challenge_participants), key=lambda cp: cp["tool_id"])
+                                        s_raw_challenge_participants = sorted(cast("Sequence[BarData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
+                                    else:
+                                        # This should not happen
+                                        raise Exception("This should not happen. Contact some OpenEBench developer")
+                                    
+                                    if s_new_challenge_participants != s_raw_challenge_participants:
+                                        for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
+                                            ts_new = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_new)
+                                            ts_raw = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_raw)
+                                            do_log_error = False
+                                            if set(s_new.keys()) != set(s_raw.keys()):
+                                                do_log_error = True
+                                            else:
+                                                for k in ts_new.keys():
+                                                    v_new = ts_new[k]
+                                                    v_raw = ts_raw[k]
+                                                    
+                                                    if isinstance(v_new, str) or isinstance(v_raw, str):
+                                                        if v_new != v_raw:
+                                                            do_log_error = True
+                                                            break
+                                                    elif isinstance(v_new, list) or isinstance(v_raw, list):
+                                                        lv_new = cast("Sequence[Real]", v_new)
+                                                        lv_raw = cast("Sequence[Real]", v_raw)
+                                                        if len(lv_new) == len(lv_raw):
+                                                            for lv_n, lv_r in zip(lv_new, lv_raw):
+                                                                if not math.isclose(lv_n, lv_r):
+                                                                    do_log_error = True
+                                                                    break
+                                                            if do_log_error:
+                                                                break
+                                                        else:
+                                                            do_log_error = True
+                                                            break
+                                                    else:
+                                                        sv_new = cast("Real", v_new)
+                                                        sv_raw = cast("Real", v_raw)
+                                                        if not math.isclose(sv_new, sv_raw):
+                                                            do_log_error = True
+                                                            break
+                                            
+                                            if do_log_error:
+                                                rebuild_agg = True
+                                                self.logger.error(f"Mismatch in {agg_dataset_id} challenge_participants\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
+                                        
+                                        if not rebuild_agg:
+                                            self.logger.info(f"False positive rounding mismatch in aggregation dataset {agg_dataset_id}.")
+
+                            if changed_labels:
+                                if len(inline_data_labels) != len(potential_inline_data_labels):
+                                    self.logger.error(f"Mismatch in {agg_dataset_id} length of labels\n\n{json.dumps(inline_data_labels, indent=4, sort_keys=True)}\n\n{json.dumps(potential_inline_data_labels, indent=4, sort_keys=True)}")
+                                else:
+                                    s_inline_data_labels = sorted(inline_data_labels, key=lambda dl: dl["label"])
+                                    s_potential_inline_data_labels = sorted(potential_inline_data_labels, key=lambda dl: dl["label"])
+                                    
+                                    if s_inline_data_labels != s_potential_inline_data_labels:
+                                        is_false_pos_label = True
+                                        for zs_new , zs_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
+                                            ts_new = cast("Mapping[str, Union[str, Real]]", zs_new)
+                                            ts_raw = cast("Mapping[str, Union[str, Real]]", zs_raw)
+                                            do_log_error = False
+                                            if set(zs_new.keys()) != set(zs_raw.keys()):
+                                                do_log_error = True
+                                            else:
+                                                for k in ts_new.keys():
+                                                    v_new = ts_new[k]
+                                                    v_raw = ts_raw[k]
+                                                    
                                                     if v_new != v_raw:
                                                         do_log_error = True
                                                         break
-                                                elif isinstance(v_new, list) or isinstance(v_raw, list):
-                                                    lv_new = cast("Sequence[Real]", v_new)
-                                                    lv_raw = cast("Sequence[Real]", v_raw)
-                                                    if len(lv_new) == len(lv_raw):
-                                                        for lv_n, lv_r in zip(lv_new, lv_raw):
-                                                            if not math.isclose(lv_n, lv_r):
-                                                                do_log_error = True
-                                                                break
-                                                        if do_log_error:
-                                                            break
-                                                    else:
-                                                        do_log_error = True
-                                                        break
-                                                else:
-                                                    sv_new = cast("Real", v_new)
-                                                    sv_raw = cast("Real", v_raw)
-                                                    if not math.isclose(sv_new, sv_raw):
-                                                        do_log_error = True
-                                                        break
-                                        
-                                        if do_log_error:
-                                            rebuild_agg = True
-                                            self.logger.error(f"Mismatch in {agg_dataset_id} challenge_participants\n\n{json.dumps(s_new, indent=4, sort_keys=True)}\n\n{json.dumps(s_raw, indent=4, sort_keys=True)}")
-                                    
-                                    if not rebuild_agg:
-                                        self.logger.info(f"False positive rounding mismatch in aggregation dataset {agg_dataset_id}.")
-
-                        if changed_labels:
-                            if len(inline_data_labels) != len(potential_inline_data_labels):
-                                self.logger.error(f"Mismatch in {agg_dataset_id} length of labels\n\n{json.dumps(inline_data_labels, indent=4, sort_keys=True)}\n\n{json.dumps(potential_inline_data_labels, indent=4, sort_keys=True)}")
-                            else:
-                                s_inline_data_labels = sorted(inline_data_labels, key=lambda dl: dl["label"])
-                                s_potential_inline_data_labels = sorted(potential_inline_data_labels, key=lambda dl: dl["label"])
-                                
-                                if s_inline_data_labels != s_potential_inline_data_labels:
-                                    is_false_pos_label = True
-                                    for zs_new , zs_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
-                                        ts_new = cast("Mapping[str, Union[str, Real]]", zs_new)
-                                        ts_raw = cast("Mapping[str, Union[str, Real]]", zs_raw)
-                                        do_log_error = False
-                                        if set(zs_new.keys()) != set(zs_raw.keys()):
-                                            do_log_error = True
-                                        else:
-                                            for k in ts_new.keys():
-                                                v_new = ts_new[k]
-                                                v_raw = ts_raw[k]
-                                                
-                                                if v_new != v_raw:
-                                                    do_log_error = True
-                                                    break
-                                        
-                                        if do_log_error:
-                                            self.logger.error(f"Mismatch in {agg_dataset_id} label\n\n{json.dumps(zs_new, indent=4, sort_keys=True)}\n\n{json.dumps(zs_raw, indent=4, sort_keys=True)}")
                                             
-                                            is_false_pos_label = False
-                                    
-                                    if is_false_pos_label:
-                                        self.logger.info(f"False positive label mismatch in aggregation dataset {agg_dataset_id}.")
-                        
-                        # Time to compare
-                        if rebuild_agg or changed_labels:
-                            if rebuild_agg:
-                                self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
-                                set_diff = rel_ids_set - regen_rel_ids_set
-                                if len(set_diff) > 0:
-                                    self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
+                                            if do_log_error:
+                                                self.logger.error(f"Mismatch in {agg_dataset_id} label\n\n{json.dumps(zs_new, indent=4, sort_keys=True)}\n\n{json.dumps(zs_raw, indent=4, sort_keys=True)}")
+                                                
+                                                is_false_pos_label = False
+                                        
+                                        if is_false_pos_label:
+                                            self.logger.info(f"False positive label mismatch in aggregation dataset {agg_dataset_id}.")
                             
-                            if changed_labels:
-                                self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt because the explicit mapping of labels and original ids has changed")
-                            
-                            # Last, explicit schema_id
-                            guessed_schema_id = TYPE2SCHEMA_ID.get(vis_type)
-                            if found_schema_url is not None:
-                                d_link["schema_url"] = found_schema_url
-                            elif guessed_schema_id is not None:
-                                d_link["schema_url"] = guessed_schema_id
-                            
-                            self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
-                            failed_agg_dataset = True
-            
-            if failed_agg_dataset:
-                self.logger.critical("As some aggregation datasets seem corrupted, fix them to continue")
-                sys.exit(5)
+                            # Time to compare
+                            if rebuild_agg or changed_labels:
+                                if rebuild_agg:
+                                    self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
+                                    set_diff = rel_ids_set - regen_rel_ids_set
+                                    if len(set_diff) > 0:
+                                        self.logger.error(f"Also, {len(set_diff)} datasets do not appear in proposed rebuilt entry: {', '.join(set_diff)}")
+                                
+                                if changed_labels:
+                                    self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt because the explicit mapping of labels and original ids has changed")
+                                
+                                # Last, explicit schema_id
+                                guessed_schema_id = TYPE2SCHEMA_ID.get(vis_type)
+                                if found_schema_url is not None:
+                                    d_link["schema_url"] = found_schema_url
+                                elif guessed_schema_id is not None:
+                                    d_link["schema_url"] = guessed_schema_id
+                                
+                                self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
+                                failed_agg_dataset = True
+                
+                if failed_agg_dataset:
+                    self.logger.critical("As some aggregation datasets seem corrupted, fix them to continue")
+                    sys.exit(5)
             
             # Last, but not the least important
             agg_challenges[challenge_id] = agg_challenges[challenge_label_and_sep.label] = IndexedChallenge(
@@ -1006,8 +1007,11 @@ class AggregationBuilder():
             event_id = orig_id + "_Event"
             
             ita = indexed_challenge.ta_catalog.get("AggregationEvent")
-            assert ita is not None
-            ta_event = ita.get_by_original_id(event_id)
+            if ita is not None:
+                ta_event = ita.get_by_original_id(event_id)
+            else:
+                # Corner case of newly created community
+                ta_event = None
             
             if ta_event is None:
                 event = {
