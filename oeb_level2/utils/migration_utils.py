@@ -971,6 +971,7 @@ class OpenEBenchUtils():
     def schemas_validation(self, json_data_array: "Sequence[Any]", val_result_filename: "Optional[str]") -> "None":
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
+        assert self.schema_validators is not None
         self.logger.info(
             "\n\t==================================\n\t8. Validating datasets and TestActions\n\t==================================\n")
 
@@ -980,7 +981,7 @@ class OpenEBenchUtils():
             cached_jsons.append(
                 {'json': element, 'file': "inline" + element["_id"], 'errors': []})
 
-        assert self.schema_validators is not None
+        self.schema_validators.warmUpCaches()
         val_res = self.schema_validators.jsonValidate(
             *cached_jsons, verbose=True)
         
