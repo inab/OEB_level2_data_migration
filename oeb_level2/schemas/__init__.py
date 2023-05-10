@@ -28,9 +28,12 @@ AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migrati
 
 AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
 
+AGGREGATION_BOX_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series"
+
 TYPE2SCHEMA_ID = {
 	"2D-plot": AGGREGATION_2D_PLOT_SCHEMA_ID,
 	"bar-plot": AGGREGATION_BAR_PLOT_SCHEMA_ID,
+	"box-plot": AGGREGATION_BOX_PLOT_SCHEMA_ID,
 }
 
 LEVEL2_SCHEMA_IDS = [

@@ -46,17 +46,31 @@ if TYPE_CHECKING:
     
     from ..utils.catalogs import InlineDataLabel
     
+    from numbers import Real
+    
     class RelDataset(TypedDict):
         dataset_id: "Required[str]"
     
-    class ParTool(TypedDict, total=False):
+    class BarData(TypedDict, total=False):
         tool_id: "str"
-        metric_value: "Union[float, int]"
-        stderr: "Union[float, int]"
-        metric_x: "Union[float, int]"
-        stderr_x: "Union[float, int]"
-        metric_y: "Union[float, int]"
-        stderr_y: "Union[float, int]"
+        metric_value: "Real"
+        stderr: "Real"
+    
+    class ScatterData(TypedDict, total=False):
+        tool_id: "str"
+        metric_x: "Real"
+        stderr_x: "Real"
+        metric_y: "Real"
+        stderr_y: "Real"
+    
+    class SeriesVal(TypedDict):
+        v: "Required[Real]"
+        e: "NotRequired[Real]"
+    
+    class SeriesData(TypedDict, total=False):
+        label: "str"
+        metric_id: "str"
+        values: "Union[Sequence[Real], Sequence[SeriesVal]]"
     
     class DataLabel(TypedDict):
         label: "Required[str]"
@@ -257,15 +271,21 @@ class AggregationValidator():
                     ch_ids_set = set(r_dataset["challenge_ids"])
                     if isinstance(inline_data, dict):
                         # Entry of each challenge participant, by participant label
-                        cha_par_by_id: "MutableMapping[str, ParTool]" = {}
+                        # The right type should be "Union[MutableMapping[str, BarData], MutableMapping[str, ScatterData], MutableMapping[str, SeriesData]]"
+                        # but the validation gets more complicated
+                        cha_par_by_id = cast("MutableMapping[str, Union[BarData, ScatterData, SeriesData]]", {})
                         # To provide meaningful error messages
                         ass_par_by_id: "MutableMapping[str, str]" = {}
-                        challenge_participants: "MutableSequence[ParTool]" = []
+                        # The right type should be "Union[MutableSequence[BarData], MutableSequence[ScatterData], MutableSequence[SeriesData]]"
+                        # but the validation gets more complicated
+                        challenge_participants = cast("MutableSequence[Union[BarData, ScatterData, SeriesData]]", [])
                         inline_data["challenge_participants"] = challenge_participants
                         
                         # Visualization type determines later the labels
                         # to use in each entry of challenge_participants
                         vis_type = inline_data.get("visualization",{}).get("type")
+                        if vis_type == "box-plot":
+                            inline_data["series_type"] = "aggregation-data-series"
                         
                         # This set is used to detect mismatches between
                         # registered and gathered assessment datasets
@@ -364,53 +384,96 @@ class AggregationValidator():
                                 assert par_dataset_id is not None
                                 
                                 mini_entry = cha_par_by_id.get(par_dataset_id)
+                                mini_entry_2d: "Optional[ScatterData]" = None
+                                mini_entry_b: "Optional[BarData]" = None
+                                mini_entry_s: "Optional[SeriesData]" = None
+                                do_processing = True
                                 if mini_entry is None:
-                                    mini_entry = {
-                                        "tool_id": par_label,
-                                    }
+                                    if vis_type == "2D-plot":
+                                        mini_entry_2d = {
+                                            "tool_id": par_label,
+                                        }
+                                        mini_entry = mini_entry_2d
+                                    elif vis_type == "bar-plot":
+                                        mini_entry_b = {
+                                            "tool_id": par_label,
+                                        }
+                                        mini_entry = mini_entry_b
+                                    else:
+                                        mini_entry_s = {
+                                            "label": par_label,
+                                            "metric_id": metrics_trio.proposed_label,
+                                        }
+                                        mini_entry = mini_entry_s
+                                    
                                     challenge_participants.append(mini_entry)
                                     cha_par_by_id[par_dataset_id] = mini_entry
                                     ass_par_by_id[par_dataset_id] = met_dataset['_id']
                                 elif i_trio == 0:
                                     self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by {agg_dataset_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
                                     rebuild_agg = True
-                                
-                                ass_inline_data = met_dataset["datalink"]["inline_data"]
-                                if vis_type == "2D-plot":
-                                    mini_entry_values: "ParTool"
-                                    if i_trio == 0:
-                                        mini_entry_values = {
-                                            "metric_x": ass_inline_data["value"],
-                                            "stderr_x": ass_inline_data.get("error", 0),
-                                        }
-                                    else:
-                                        mini_entry_values = {
-                                            "metric_y": ass_inline_data["value"],
-                                            "stderr_y": ass_inline_data.get("error", 0),
-                                        }
-                                    
-                                    mini_entry.update(mini_entry_values)
+                                    do_processing = False
+                                elif vis_type == "2D-plot":
+                                    mini_entry_2d = cast("ScatterData", mini_entry)
                                 elif vis_type == "bar-plot":
-                                    mini_entry.update({
-                                        "metric_value": ass_inline_data["value"],
-                                        "stderr": ass_inline_data.get("error", 0),
-                                    })
+                                    mini_entry_b = cast("BarData", mini_entry)
+                                elif vis_type == "box-plot":
+                                    mini_entry_s = cast("SeriesData", mini_entry)
                                 else:
                                     self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
+                                    do_processing = False
+                                    
+                                if do_processing:
+                                    ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                    if mini_entry_2d is not None:
+                                        mini_entry_values: "ScatterData"
+                                        if i_trio == 0:
+                                            mini_entry_values = {
+                                                "metric_x": ass_inline_data["value"],
+                                                "stderr_x": ass_inline_data.get("error", 0),
+                                            }
+                                        else:
+                                            mini_entry_values = {
+                                                "metric_y": ass_inline_data["value"],
+                                                "stderr_y": ass_inline_data.get("error", 0),
+                                            }
+                                        
+                                        mini_entry_2d.update(mini_entry_values)
+                                    elif mini_entry_b:
+                                        mini_entry_b.update({
+                                            "metric_value": ass_inline_data["value"],
+                                            "stderr": ass_inline_data.get("error", 0),
+                                        })
+                                    elif mini_entry_s:
+                                        mini_entry_s.update({
+                                            "values": ass_inline_data["values"],
+                                        })
                         
                         if not rebuild_agg:
-                            raw_challenge_participants = cast("Sequence[ParTool]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
+                            raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
                             if len(challenge_participants) != len(raw_challenge_participants):
                                 self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
                                 rebuild_agg = True
                             else:
-                                s_new_challenge_participants = sorted(challenge_participants, key=lambda cp: cp["tool_id"])
-                                s_raw_challenge_participants = sorted(raw_challenge_participants, key=lambda cp: cp["tool_id"])
+                                s_new_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
+                                s_raw_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
+                                if vis_type == "box-plot":
+                                    s_new_challenge_participants = sorted(cast("Sequence[SeriesData]", challenge_participants), key=lambda cp: cp["label"])
+                                    s_raw_challenge_participants = sorted(cast("Sequence[SeriesData]", raw_challenge_participants), key=lambda cp: cp["label"])
+                                elif vis_type == "2D-plot":
+                                    s_new_challenge_participants = sorted(cast("Sequence[ScatterData]", challenge_participants), key=lambda cp: cp["tool_id"])
+                                    s_raw_challenge_participants = sorted(cast("Sequence[ScatterData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
+                                elif vis_type == "bar-plot":
+                                    s_new_challenge_participants = sorted(cast("Sequence[BarData]", challenge_participants), key=lambda cp: cp["tool_id"])
+                                    s_raw_challenge_participants = sorted(cast("Sequence[BarData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
+                                else:
+                                    # This should not happen
+                                    raise Exception("This should not happen. Contact some OpenEBench developer")
                                 
                                 if s_new_challenge_participants != s_raw_challenge_participants:
                                     for s_new , s_raw in zip(s_new_challenge_participants, s_raw_challenge_participants):
-                                        ts_new = cast("Mapping[str, Union[str,int,float]]", s_new)
-                                        ts_raw = cast("Mapping[str, Union[str,int,float]]", s_raw)
+                                        ts_new = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_new)
+                                        ts_raw = cast("Mapping[str, Union[str, Real, Sequence[Real]]]", s_raw)
                                         do_log_error = False
                                         if set(s_new.keys()) != set(s_raw.keys()):
                                             do_log_error = True
@@ -423,9 +486,25 @@ class AggregationValidator():
                                                     if v_new != v_raw:
                                                         do_log_error = True
                                                         break
-                                                elif not math.isclose(v_new, v_raw):
-                                                    do_log_error = True
-                                                    break
+                                                elif isinstance(v_new, list) or isinstance(v_raw, list):
+                                                    lv_new = cast("Sequence[Real]", v_new)
+                                                    lv_raw = cast("Sequence[Real]", v_raw)
+                                                    if len(lv_new) == len(lv_raw):
+                                                        for lv_n, lv_r in zip(lv_new, lv_raw):
+                                                            if not math.isclose(lv_n, lv_r):
+                                                                do_log_error = True
+                                                                break
+                                                        if do_log_error:
+                                                            break
+                                                    else:
+                                                        do_log_error = True
+                                                        break
+                                                else:
+                                                    sv_new = cast("Real", v_new)
+                                                    sv_raw = cast("Real", v_raw)
+                                                    if not math.isclose(sv_new, sv_raw):
+                                                        do_log_error = True
+                                                        break
                                         
                                         if do_log_error:
                                             rebuild_agg = True
@@ -444,8 +523,8 @@ class AggregationValidator():
                                 if s_inline_data_labels != s_potential_inline_data_labels:
                                     is_false_pos_label = True
                                     for zs_new , zs_raw in zip(s_inline_data_labels, s_potential_inline_data_labels):
-                                        ts_new = cast("Mapping[str, Union[str,int,float]]", zs_new)
-                                        ts_raw = cast("Mapping[str, Union[str,int,float]]", zs_raw)
+                                        ts_new = cast("Mapping[str, Union[str, Real]]", zs_new)
+                                        ts_raw = cast("Mapping[str, Union[str, Real]]", zs_raw)
                                         do_log_error = False
                                         if set(zs_new.keys()) != set(zs_raw.keys()):
                                             do_log_error = True
@@ -651,12 +730,16 @@ class AggregationBuilder():
                     vis_type = vis.get("type")
                     
                     if vis_type == "2D-plot":
-                        the_id += f"_{vis['x_axis']}+{vis['y_axis']}"
+                        the_id += "_" + f"{vis['x_axis']}+{vis['y_axis']}"
                         metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
                         manage_datalink = True
-                    elif vis_type == "box-plot":
-                        the_id += f"_{vis['metric']}"
+                    elif vis_type == "bar-plot":
+                        the_id += "_" + vis['metric']
                         metrics_str = vis['metric']
+                        manage_datalink = True
+                    elif vis_type == "box-plot":
+                        the_id += "_" + '+'.join(vis['available_metrics'])
+                        metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
                     else:
                         self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
@@ -669,13 +752,15 @@ class AggregationBuilder():
                         datalink = copy.copy(min_datalink)
                         inline_data = copy.deepcopy(min_inline_data)
                         datalink["inline_data"] = inline_data
+                        if vis_type == "box-plot":
+                            inline_data["series_type"] = "aggregation-data-series"
                         inline_data_labels: "MutableSequence[DataLabel]" = []
                         inline_data["labels"] = inline_data_labels
                         # Inline data labels by participant dataset id
                         idl_by_d_id: "MutableMapping[str, DataLabel]" = {}
-                        challenge_participants: "MutableSequence[ParTool]" = []
+                        challenge_participants: "MutableSequence[Union[BarData, ScatterData, SeriesData]]" = []
                         inline_data["challenge_participants"] = challenge_participants
-                        cha_par_by_id: "MutableMapping[str, ParTool]" = {}
+                        cha_par_by_id: "MutableMapping[str, Union[BarData, ScatterData, SeriesData]]" = {}
                         ass_par_by_id: "MutableMapping[str, str]" = {}
                         
                         ita_m_events = idx_agg.ta_catalog.get("MetricsEvent")
@@ -718,40 +803,69 @@ class AggregationBuilder():
                                 
                                 assert par_label is not None
                                 mini_entry = cha_par_by_id.get(par_dataset_id)
+                                mini_entry_2d: "Optional[ScatterData]" = None
+                                mini_entry_b: "Optional[BarData]" = None
+                                mini_entry_s: "Optional[SeriesData]" = None
                                 if mini_entry is None:
-                                    mini_entry = {
-                                        "tool_id": par_label,
-                                    }
+                                    if vis_type == "2D-plot":
+                                        mini_entry_2d = {
+                                            "tool_id": par_label,
+                                        }
+                                        mini_entry = mini_entry_2d
+                                    elif vis_type == "bar-plot":
+                                        mini_entry_b = {
+                                            "tool_id": par_label,
+                                        }
+                                        mini_entry = mini_entry_b
+                                    else:
+                                        mini_entry_s = {
+                                            "label": par_label,
+                                            # This is clearly wrong
+                                            "metric_id": vis["available_metrics"][i_met],
+                                        }
+                                        mini_entry = mini_entry_s
+                                    
                                     challenge_participants.append(mini_entry)
                                     cha_par_by_id[par_dataset_id] = mini_entry
                                     ass_par_by_id[par_dataset_id] = met_dataset['_id']
                                 elif i_met == 0:
                                     self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by minimal {the_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
                                     failed_min_agg = True
-                                
-                                ass_inline_data = met_dataset["datalink"]["inline_data"]
-                                if vis_type == "2D-plot":
-                                    mini_entry_values: "ParTool"
-                                    if i_met == 0:
-                                        mini_entry_values = {
-                                            "metric_x": ass_inline_data["value"],
-                                            "stderr_x": ass_inline_data.get("error", 0),
-                                        }
-                                    else:
-                                        mini_entry_values = {
-                                            "metric_y": ass_inline_data["value"],
-                                            "stderr_y": ass_inline_data.get("error", 0),
-                                        }
-                                    
-                                    mini_entry.update(mini_entry_values)
+                                elif vis_type == "2D-plot":
+                                    mini_entry_2d = cast("ScatterData", mini_entry)
                                 elif vis_type == "bar-plot":
-                                    mini_entry.update({
-                                        "metric_value": ass_inline_data["value"],
-                                        "stderr": ass_inline_data.get("error", 0),
-                                    })
+                                    mini_entry_b = cast("BarData", mini_entry)
+                                elif vis_type == "box-plot":
+                                    mini_entry_s = cast("SeriesData", mini_entry)
                                 else:
                                     self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
                                     failed_min_agg = True
+                                
+                                if not failed_min_agg:
+                                    ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                    if mini_entry_2d is not None:
+                                        mini_entry_values: "ScatterData"
+                                        if i_met == 0:
+                                            mini_entry_values = {
+                                                "metric_x": ass_inline_data["value"],
+                                                "stderr_x": ass_inline_data.get("error", 0),
+                                            }
+                                        else:
+                                            mini_entry_values = {
+                                                "metric_y": ass_inline_data["value"],
+                                                "stderr_y": ass_inline_data.get("error", 0),
+                                            }
+                                        
+                                        mini_entry_2d.update(mini_entry_values)
+                                    elif mini_entry_b:
+                                        mini_entry_b.update({
+                                            "metric_value": ass_inline_data["value"],
+                                            "stderr": ass_inline_data.get("error", 0),
+                                        })
+                                    elif mini_entry_s:
+                                        mini_entry_s.update({
+                                            "values": ass_inline_data["values"],
+                                        })
 
 
                 
