@@ -298,9 +298,11 @@ class AssessmentBuilder():
             
             indexed_challenge = indexed_challenges[dataset["challenge_ids"][0]]
             ita = indexed_challenge.ta_catalog.get("MetricsEvent")
-            assert ita is not None
-            
-            ta_event = ita.get_by_original_id(event_id)
+            if ita is not None:
+                ta_event = ita.get_by_original_id(event_id)
+            else:
+                # Corner case of newly created community
+                ta_event = None
             
             event: "MutableMapping[str, Any]"
             if ta_event is None:

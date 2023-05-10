@@ -303,9 +303,11 @@ class ParticipantBuilder():
                 self.logger.info(f'Building TestEvent "{the_id}"...')
 
                 ita = indexed_challenge.ta_catalog.get("TestEvent")
-                assert ita is not None
-                    
-                ta_event = ita.get_by_original_id(the_id)
+                if ita is not None:
+                    ta_event = ita.get_by_original_id(the_id)
+                else:
+                    # Corner case of newly created community
+                    ta_event = None
                 
                 event: "MutableMapping[str, Any]"
                 if ta_event is None:
