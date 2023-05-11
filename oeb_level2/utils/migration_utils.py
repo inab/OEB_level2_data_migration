@@ -2,6 +2,7 @@
 
 import os
 import sys
+import copy
 import datetime
 import hashlib
 import inspect
@@ -64,6 +65,8 @@ from oebtools.fetch import (
 
 from oebtools.uploader import _setupValidator as oeb_setup_validator
 from oebtools.auth import getAccessToken
+
+from .memoized_method import memoized_method
 
 from ..schemas import (
     LEVEL2_SCHEMA_IDS,
@@ -288,22 +291,19 @@ class OpenEBenchUtils():
                     challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
                     break
             else:
-                the_prefix = bench_event_prefix_et_al.sep
+                the_prefix = bench_event_prefix_et_al.prefix
                 if challenge_orig_id_separator is None:
                     challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         
         return the_prefix, challenge_orig_id_separator
     
-    def gen_expected_participant_original_id(
+    def gen_participant_original_id_from_dataset(
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         participant_label: "str",
-    ) ->  "str":
-        """
-        It works only for participant and assessment datasets
-        """
+    ) -> "str":
         # First, obtain the prefix
         the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, bench_event_prefix_et_al)
         
@@ -313,23 +313,47 @@ class OpenEBenchUtils():
             participant_label = the_metadata.get("level_2:participant_id", participant_label)
         
         expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
-        orig_id = dataset.get("orig_id", dataset["_id"])
-        if expected_orig_id != orig_id:
-            self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
         
         return expected_orig_id
-
-    def gen_expected_assessment_original_id(
+        
+    def fix_participant_original_id(
+        self,
+        dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        participant_label: "str",
+        do_fix_orig_id: "bool",
+    ) ->  "Optional[Mapping[str, Any]]":
+        """
+        It works only for participant and assessment datasets
+        """
+        expected_orig_id = self.gen_participant_original_id_from_dataset(
+            dataset,
+            community_prefix,
+            bench_event_prefix_et_al,
+            participant_label,
+        )
+        o_key = "orig_id"  if "orig_id" in dataset else "_id"
+        orig_id = dataset[o_key]
+        fixable_dataset = None
+        if expected_orig_id != orig_id:
+            if do_fix_orig_id:
+                fixable_dataset = cast("MutableMapping[str, Any]", copy.copy(dataset))
+                fixable_dataset[o_key] = expected_orig_id
+                self.logger.info(f"For {dataset['type']} dataset {dataset['_id']}, renamed from {orig_id} to {expected_orig_id}")
+            else:
+                self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
+        
+        return fixable_dataset
+    
+    def gen_assessment_original_id_from_dataset(
         self,
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         participant_label: "str",
         metrics_label: "str",
-    ) ->  "str":
-        """
-        It works only for participant and assessment datasets
-        """
+    ) -> "str":
         # First, obtain the prefix
         the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(dataset, community_prefix, bench_event_prefix_et_al)
         
@@ -340,11 +364,41 @@ class OpenEBenchUtils():
             metrics_label = the_metadata.get("level_2:metric_id", metrics_label)
         
         expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
-        orig_id = dataset.get("orig_id", dataset["_id"])
-        if expected_orig_id != orig_id:
-            self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
         
         return expected_orig_id
+        
+    def fix_assessment_original_id(
+        self,
+        dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        participant_label: "str",
+        metrics_label: "str",
+        do_fix_orig_id: "bool",
+    ) ->  "Optional[Mapping[str, Any]]":
+        """
+        It works only for participant and assessment datasets
+        """
+        expected_orig_id = self.gen_assessment_original_id_from_dataset(
+            dataset,
+            community_prefix,
+            bench_event_prefix_et_al,
+            participant_label,
+            metrics_label,
+        )
+        
+        o_key = "orig_id"  if "orig_id" in dataset else "_id"
+        orig_id = dataset[o_key]
+        fixable_dataset = None
+        if expected_orig_id != orig_id:
+            if do_fix_orig_id:
+                fixable_dataset = cast("MutableMapping[str, Any]", copy.copy(dataset))
+                fixable_dataset[o_key] = expected_orig_id
+                self.logger.info(f"For {dataset['type']} dataset {dataset['_id']}, renamed from {orig_id} to {expected_orig_id}")
+            else:
+                self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
+        
+        return fixable_dataset
 
     @staticmethod
     def get_challenge_label_from_challenge(
@@ -1053,6 +1107,7 @@ class OpenEBenchUtils():
                 except:
                     self.logger.exception(f"Failed to fetch {dataType} data from {data_endpoint}")
     
+    @memoized_method(maxsize=None)
     def fetchStagedEntry(self, dataType: "str", the_id: "str") -> "Mapping[str, Any]":
         for fetched_data_type, datares_raw in fetchEntriesFromIds(
             [the_id],

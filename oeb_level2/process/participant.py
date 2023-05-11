@@ -110,6 +110,7 @@ class ParticipantBuilder():
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
+        do_fix_orig_ids: "bool",
     ) -> "Sequence[ParticipantTuple]":
        
         self.logger.info(
@@ -134,10 +135,25 @@ class ParticipantBuilder():
         valid_participant_tuples = []
         should_exit_challenge = False
         for min_participant_data in min_participant_dataset:
+            # Get the participant_config
+            p_config = tool_mapping.get(min_participant_data["participant_id"])
+            ## This dataset has the minimum data needed for the generation
+            #mock_dataset = {
+            #    "challenge_ids":,
+            #    "community_ids":,
+            #}
+            #expected_orig_id = self.migration_utils.gen_participant_original_id_from_dataset(
+            #    mock_dataset,
+            #    community_prefix,
+            #    bench_event_prefix_et_al,
+            #    p_config.participant_label,
+            #)
+
             the_id = min_participant_data["_id"]
             
             stagedEntry = stagedMap.get(the_id)
             # initialize new dataset object
+            valid_participant_data: "MutableMapping[str, Any]"
             if stagedEntry is None:
                 valid_participant_data = {
                     "_id": the_id,
@@ -163,8 +179,6 @@ class ParticipantBuilder():
                     min_participant_data["participant_id"] + " participant"
             valid_participant_data["name"] = min_participant_data_name
             
-            # Get the participant_config
-            p_config = tool_mapping.get(min_participant_data["participant_id"])
             # Default case
             if p_config is None:
                 if len(tool_mapping) > 1 or (None not in tool_mapping):
@@ -269,17 +283,18 @@ class ParticipantBuilder():
                 'Processed "' + str(min_participant_data["_id"]) + '"...')
             
             # It is really a check through comparison of what was generated
-            self.migration_utils.gen_expected_participant_original_id(
+            fixed_entry = self.migration_utils.fix_participant_original_id(
                 valid_participant_data,
                 community_prefix,
                 bench_event_prefix_et_al,
                 p_config.participant_label,
+                do_fix_orig_ids,
             )
             
             valid_participant_tuples.append(
                 ParticipantTuple(
                     p_config=p_config,
-                    participant_dataset=valid_participant_data,
+                    participant_dataset=valid_participant_data if fixed_entry is None else fixed_entry,
                     challenge_pairs=challenge_pairs,
                     community_acronym=min_participant_data["community_id"]
                 )

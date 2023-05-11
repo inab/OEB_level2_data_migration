@@ -63,7 +63,8 @@ class AssessmentBuilder():
         data_visibility: "str",
         valid_participant_tuples: "Sequence[ParticipantTuple]",
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
-        community_prefix: "str"
+        community_prefix: "str",
+        do_fix_orig_ids: "bool",
     ) -> "Sequence[AssessmentTuple]":
         
         valid_participants = {}
@@ -111,6 +112,7 @@ class AssessmentBuilder():
                              str(min_dataset["_id"]) + '"...')
             # initialize new dataset object
             stagedEntry = stagedMap.get(min_dataset["_id"])
+            valid_data: "MutableMapping[str, Any]"
             if stagedEntry is None:
                 valid_data = {
                     "_id": min_dataset["_id"],
@@ -263,17 +265,18 @@ class AssessmentBuilder():
             self.logger.info('Processed "' + str(min_dataset["_id"]) + '"...')
 
             # It is really a check through comparison of what was generated
-            self.migration_utils.gen_expected_assessment_original_id(
+            fixed_entry = self.migration_utils.fix_assessment_original_id(
                 valid_data,
                 community_prefix,
                 bench_event_prefix_et_al,
                 participant_label,
                 metrics_label,
+                do_fix_orig_ids,
             )
             
             valid_assessment_tuples.append(
                 AssessmentTuple(
-                    assessment_dataset=valid_data,
+                    assessment_dataset=valid_data if fixed_entry is None else fixed_entry,
                     pt=pvc,
                 )
             )

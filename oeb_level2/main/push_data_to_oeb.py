@@ -472,7 +472,8 @@ def validate_transform_and_push(
         community_id,
         bench_event_prefix_et_al,
         community_prefix,
-        tool_mapping
+        tool_mapping,
+        do_fix_orig_ids,
     )
     
     # Now it is time to check anomalous collisions
@@ -524,6 +525,7 @@ def validate_transform_and_push(
         valid_participant_tuples,
         bench_event_prefix_et_al,
         community_prefix,
+        do_fix_orig_ids,
     )
     
     logging.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
