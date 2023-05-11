@@ -53,7 +53,14 @@ $defs:
         required:
         - _id
       then:
-        $ref: '#/$defs/AssAggEntry'
+        if:
+          properties:
+            type:
+              const: participant
+        then:
+          $ref: '#/$defs/ParticipantEntry'
+        else:
+          $ref: '#/$defs/AssAggEntry'
       else:
         $ref: '#/$defs/ChallengeParticipants'
   
