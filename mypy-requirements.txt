@@ -1,3 +1,5 @@
 types-PYYAML
 types-requests
 typing-extensions
+mypy-extensions
+types-mypy-extensions
