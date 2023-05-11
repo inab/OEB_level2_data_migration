@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         Any,
         Mapping,
         MutableMapping,
+        MutableSequence,
         Sequence,
         Tuple,
     )
@@ -67,9 +68,9 @@ class AssessmentBuilder():
         do_fix_orig_ids: "bool",
     ) -> "Sequence[AssessmentTuple]":
         
-        valid_participants = {}
+        valid_participants: "MutableMapping[str, MutableSequence[ParticipantTuple]]" = {}
         for valid_pvc in valid_participant_tuples:
-            valid_participants[valid_pvc.p_config.participant_label] = valid_pvc
+            valid_participants.setdefault(valid_pvc.p_config.participant_label,[]).append(valid_pvc)
             
         self.logger.info(
             "\n\t==================================\n\t3. Processing assessment datasets\n\t==================================\n")
@@ -93,10 +94,24 @@ class AssessmentBuilder():
         should_end = []
         for min_dataset in min_assessment_datasets:
             assessment_participant_label = min_dataset.get("participant_id")
-            pvc = valid_participants.get(assessment_participant_label) if assessment_participant_label is not None else None
+            pvcs = valid_participants.get(assessment_participant_label) if assessment_participant_label is not None else None
             # If not found, next!!!!!!
-            if pvc is None:
+            if pvcs is None:
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
+                continue
+            
+            # Matching the correct challenge pair
+            min_challenge_id = min_dataset["challenge_id"]
+            for pvc in pvcs:
+                got_challenge = False
+                for challenge_pair in pvc.challenge_pairs:
+                    if challenge_pair.label == min_challenge_id:
+                        got_challenge = True
+                        break
+                if got_challenge:
+                    break
+            else:
+                self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} with challenge {min_challenge_id} was not matched, skipping to next assessment element...")
                 continue
             
             min_d_metrics = min_dataset["metrics"]
@@ -144,7 +159,7 @@ class AssessmentBuilder():
                      + min_dataset["participant_id"] + "' participant"
             valid_data["description"] = dataset_description
 
-            challenge_labels_set = set(map(lambda cp: cp[0], challenge_pairs))
+            challenge_labels_set = set(map(lambda cp: cp.label, challenge_pairs))
             if min_dataset["challenge_id"] not in challenge_labels_set:
                 self.logger.warning("No challenges associated to " +
                              min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
