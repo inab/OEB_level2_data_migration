@@ -106,6 +106,11 @@ class BenchmarkingEventPrefixEtAl(NamedTuple):
     sep: "str" = DEFAULT_ORIG_ID_SEPARATOR
     aggregation_sep: "str" = DEFAULT_AGGREGATION_SEPARATOR
 
+class MetricsTrio(NamedTuple):
+    metrics_id: "str"
+    tool_id: "Optional[str]"
+    proposed_label: "str"
+
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
     DEFAULT_OEB_SUBMISSION_API = "https://dev-openebench.bsc.es/api/scientific/submission/"
@@ -1424,6 +1429,28 @@ class OpenEBenchUtils():
             self.logger.info(
                 "\n\tData uploaded correctly...finalizing migration\n\n")
 
+    @staticmethod
+    def getMetricsTrioFromMetric(mmi: "Mapping[str, Any]", community_prefix: "str", tool_id: "Optional[str]") -> "MetricsTrio":
+        # Getting a proposed label
+        proposed_label: "str"
+        mmi_metadata = mmi.get("_metadata")
+        if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
+            proposed_label = cast("str", mmi_metadata['level_2:metric_id'])
+        elif mmi["orig_id"].startswith(community_prefix):
+            proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])
+        else:
+            proposed_label = cast("str", mmi["orig_id"])
+        
+        assert proposed_label is not None
+        return MetricsTrio(
+            metrics_id=mmi["_id"],
+            tool_id=tool_id,
+            proposed_label=proposed_label,
+        )
+    
+    def getMetricsTrioFromMetricsId(self, metrics_id: "str", community_prefix: "str", tool_id: "Optional[str]") -> "MetricsTrio":
+        mmi = self.fetchStagedEntry("Metrics", metrics_id)
+        return self.getMetricsTrioFromMetric(mmi, community_prefix, tool_id)
 
 def rchop(s: "str", sub: "str") -> "str":
     return s[:-len(sub)] if s.endswith(sub) else s

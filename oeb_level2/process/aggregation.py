@@ -43,7 +43,10 @@ if TYPE_CHECKING:
     
     from .assessment import AssessmentTuple
     
-    from ..utils.catalogs import InlineDataLabel
+    from ..utils.catalogs import (
+        IndexedDatasets,
+        InlineDataLabel,
+    )
     
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
     
@@ -607,7 +610,7 @@ class AggregationBuilder():
             + self.__class__.__name__
         )
         self.schemaMappings = schemaMappings
-        self.level2_min_validator = migration_utils.level2_min_validator
+        self.migration_utils = migration_utils
     
     def build_aggregation_datasets(
         self,
@@ -630,8 +633,9 @@ class AggregationBuilder():
             for challenge_id in ass_d.get("challenge_ids", []):
                 ass_c_dict.setdefault(challenge_id, []).append(ass_t)
         
+        # For each indexed challenge
         for idx_agg_v in agg_challenges.values():
-            # Now index the future participant datasets involved in this challenge
+            # index the future participant datasets involved in this challenge
             idx_agg_v.d_catalog.merge_datasets(
                 raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg_v.challenge_id, [])),
                 d_categories=idx_agg_v.ass_cat,
@@ -671,11 +675,12 @@ class AggregationBuilder():
             # This is used in the returned dataset
             the_rel_dataset_ids: "MutableSequence[RelDataset]" = []
             # This is used to later compute the contents
-            met_dataset_groups = []
+            met_dataset_groups: "MutableSequence[Tuple[Sequence[Mapping[str, Any]], IndexedDatasets]]" = []
             
             idx_agg = None
             idat_ass = None
             ita_m_events = None
+            met_datasets: "Sequence[Mapping[str, Any]]"
             for challenge_label in min_dataset["challenge_ids"]:
                 idx_agg = agg_challenges.get(challenge_label)
                 if idx_agg is None:
@@ -835,10 +840,13 @@ class AggregationBuilder():
                                         }
                                         mini_entry = mini_entry_b
                                     else:
+                                        m_depends_on = met_dataset["depends_on"]
+                                        d_on_metrics_id = m_depends_on["metrics_id"]
+                                        d_on_tool_id = m_depends_on.get("tool_id")
+                                        ass_trio = self.migration_utils.getMetricsTrioFromMetricsId(d_on_metrics_id, idat_ass.community_prefix, d_on_tool_id)
                                         mini_entry_s = {
                                             "label": par_label,
-                                            # This is clearly wrong
-                                            "metric_id": vis["available_metrics"][i_met],
+                                            "metric_id": ass_trio.proposed_label,
                                         }
                                         mini_entry = mini_entry_s
                                     

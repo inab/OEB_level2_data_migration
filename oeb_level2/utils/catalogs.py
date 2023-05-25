@@ -64,6 +64,7 @@ class DatasetValidationSchema(NamedTuple):
 from .migration_utils import (
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
+    MetricsTrio,
     OpenEBenchUtils,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
@@ -120,11 +121,6 @@ def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Seque
     
     return None, None
 
-class MetricsTrio(NamedTuple):
-    metrics_id: "str"
-    tool_id: "Optional[str]"
-    proposed_label: "str"
-
 def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics_graphql: "Sequence[Mapping[str, Any]]", community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Optional[MetricsTrio]":
     # Select the metrics just "guessing"
     guessed_metrics = []
@@ -180,23 +176,8 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
         #continue
     
     
-    if metric_id is not None:
-        # Getting a proposed label
-        proposed_label: "str"
-        if mmi is not None:
-            mmi_metadata = mmi.get("_metadata")
-            if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
-                proposed_label = cast("str", mmi_metadata['level_2:metric_id'])
-            elif mmi["orig_id"].startswith(community_prefix):
-                proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])
-            else:
-                proposed_label = cast("str", mmi["orig_id"])
-        assert proposed_label is not None
-        return MetricsTrio(
-            metrics_id=metric_id,
-            tool_id=tool_id,
-            proposed_label=proposed_label,
-        )
+    if mmi is not None:
+        return OpenEBenchUtils.getMetricsTrioFromMetric(mmi, community_prefix, tool_id)
     else:
         return None
 
@@ -284,6 +265,7 @@ class IndexedDatasets:
         # Some validations
         # Validating the category where it matches
         d_on_metrics_id = None
+        d_on_tool_id = None
         if is_assessment or is_aggregation:
             raw_challenge_ids = raw_dataset.get("challenge_ids",[])
             if len(raw_challenge_ids) > 1:
