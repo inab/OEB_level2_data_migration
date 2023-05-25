@@ -111,7 +111,7 @@ def validate_transform_and_push(
 ) -> "None":
     loggingConfig: "BasicLoggingConfigDict" = {
         "level": log_level,
-#        "format": LOGFORMAT,
+        "format": VERBOSE_LOGFORMAT if log_level < logging.INFO else LOGFORMAT,
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
