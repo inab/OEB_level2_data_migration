@@ -689,14 +689,14 @@ def main() -> "None":
 
     validate_transform_and_push(
         config_json_filename,
-        args.oeb_submit_api_creds,
-        args.oeb_submit_api_token,
-        args.val_output,
-        args.submit_output_file,
-        args.dry_run,
-        args.trustREST,
-        args.logFilename,
-        logging.INFO if args.logLevel is None else args.logLevel,
+        oeb_credentials_filename=args.oeb_submit_api_creds,
+        oeb_token=args.oeb_submit_api_token,
+        val_result_filename=args.val_output,
+        output_filename=args.submit_output_file,
+        dry_run=args.dry_run,
+        use_server_schemas=args.trustREST,
+        log_filename=args.logFilename,
+        log_level=logging.INFO if args.logLevel is None else args.logLevel,
         payload_mode=args.payload_mode,
     )
 
