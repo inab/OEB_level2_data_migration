@@ -140,12 +140,17 @@ def validate_transform_and_push(
         config_val_list = level2_min_validator.jsonValidate(config_json_filename, guess_unmatched=[level2_schemas.SUBMISSION_FORM_SCHEMA_ID])
         assert len(config_val_list) > 0
         config_val_block = config_val_list[0]
+        config_json = config_val_block.get("json")
+        if config_json is None:
+            config_val_block_errors = config_val_block.get("errors", [])
+            logging.fatal(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
+            sys.exit(2)
         config_val_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.SUBMISSION_FORM_SCHEMA_ID, config_val_block.get("errors", [])))
         if len(config_val_block_errors) > 0:
             logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
             sys.exit(2)
-        
-        config_params = cast("ConfigParams", config_val_block["json"])
+            
+        config_params = cast("ConfigParams", config_json)
         
         # Loading and checking the authentication and endpoints file
         oeb_credentials_val_list = level2_min_validator.jsonValidate(oeb_credentials_filename, guess_unmatched=[level2_schemas.AUTH_CONFIG_SCHEMA_ID])
@@ -231,7 +236,7 @@ def validate_transform_and_push(
             ts = uuid.uuid1()
             dataset_submission_id = str(ts)
             
-        #check partiicpant file location is a valid url
+        # check participant file location is a valid url
         valid = validate_url(file_location)
         if not valid:
             logging.fatal("Participant file location invalid: "+file_location)
@@ -239,7 +244,7 @@ def validate_transform_and_push(
 
     except Exception as e:
 
-        logging.fatal(e, "config file " + config_json_filename +
+        logging.exception("config file " + config_json_filename +
                       " is missing or has incorrect format")
         sys.exit(1)
     
