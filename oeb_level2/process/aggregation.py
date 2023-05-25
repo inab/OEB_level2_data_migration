@@ -701,6 +701,8 @@ class AggregationBuilder():
                 
                 for metrics_category in idx_agg.challenge.get("metrics_categories",[]):
                     m_cat = metrics_category.get("category")
+                    # TODO: how to deal with cases where more
+                    #  than one aggregation metrics happens
                     if m_cat == "aggregation":
                         if not wmi_was_set:
                             for metric_decl in metrics_category.get("metrics", []):
@@ -746,7 +748,7 @@ class AggregationBuilder():
                     agg_postfix = idx_agg.challenge_label_and_sep.sep + idx_agg.challenge_label_and_sep.aggregation_sep
                     the_id_postfix = idx_agg.challenge_label_and_sep.sep
                     if vis_type == "2D-plot":
-                        the_id_postfix += f"{vis['x_axis']}+{vis['y_axis']}"
+                        the_id_postfix += f"{vis['x_axis']}{idx_agg.challenge_label_and_sep.metrics_label_sep}{vis['y_axis']}"
                         metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
                         manage_datalink = True
                     elif vis_type == "bar-plot":
@@ -754,7 +756,7 @@ class AggregationBuilder():
                         metrics_str = vis['metric']
                         manage_datalink = True
                     elif vis_type == "box-plot":
-                        the_id_postfix += '+'.join(vis['available_metrics'])
+                        the_id_postfix += idx_agg.challenge_label_and_sep.metrics_label_sep.join(vis['available_metrics'])
                         metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
                     else:

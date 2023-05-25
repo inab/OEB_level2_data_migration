@@ -89,22 +89,28 @@ ORIG_ID_SEPARATOR_KEY = "level_2:orig_id_separator"
 
 AGGREGATION_SEPARATOR_KEY = "level_2:aggregation_separator"
 
+METRICS_LABEL_SEPARATOR_KEY = "level_2:metric_separator"
+
 COMMUNITY_LABEL_KEY = "level_2:community_label"
 
 DEFAULT_ORIG_ID_SEPARATOR = "_"
 
 DEFAULT_AGGREGATION_SEPARATOR = "agg"
 
+DEFAULT_METRICS_LABEL_SEPARATOR = "+"
+
 class ChallengeLabelAndSep(NamedTuple):
     ch_id: "str"
     label: "str"
     sep: "str" = DEFAULT_ORIG_ID_SEPARATOR
     aggregation_sep: "str" = DEFAULT_AGGREGATION_SEPARATOR
+    metrics_label_sep: "str" = DEFAULT_METRICS_LABEL_SEPARATOR
 
 class BenchmarkingEventPrefixEtAl(NamedTuple):
     prefix: "str" = ""
     sep: "str" = DEFAULT_ORIG_ID_SEPARATOR
     aggregation_sep: "str" = DEFAULT_AGGREGATION_SEPARATOR
+    metrics_label_sep: "str" = DEFAULT_METRICS_LABEL_SEPARATOR
 
 class MetricsTrio(NamedTuple):
     metrics_id: "str"
@@ -225,6 +231,10 @@ class OpenEBenchUtils():
         if bench_event_aggregation_separator is None:
             bench_event_aggregation_separator = DEFAULT_AGGREGATION_SEPARATOR
         
+        bench_event_metrics_label_separator = bench_meta.get(METRICS_LABEL_SEPARATOR_KEY)
+        if bench_event_metrics_label_separator is None:
+            bench_event_metrics_label_separator = DEFAULT_METRICS_LABEL_SEPARATOR
+        
         # Prefixes about benchmarking events
         benchmarking_event_prefix = bench_event.get("orig_id")
         if benchmarking_event_prefix is not None:
@@ -236,6 +246,7 @@ class OpenEBenchUtils():
             prefix=benchmarking_event_prefix,
             sep=bench_event_orig_id_separator,
             aggregation_sep=bench_event_aggregation_separator,
+            metrics_label_sep=bench_event_metrics_label_separator,
         )
     
     @staticmethod
@@ -418,6 +429,7 @@ class OpenEBenchUtils():
         _metadata = the_challenge.get("_metadata")
         challenge_orig_id_separator = bench_event_prefix_et_al.sep
         challenge_aggregation_separator = bench_event_prefix_et_al.aggregation_sep
+        challenge_metrics_label_separator = bench_event_prefix_et_al.metrics_label_sep
         if isinstance(_metadata, dict):
             the_label = _metadata.get("level_2:challenge_id")
             if the_label is not None:
@@ -430,6 +442,10 @@ class OpenEBenchUtils():
             the_challenge_aggregation_separator = _metadata.get(AGGREGATION_SEPARATOR_KEY)
             if the_challenge_aggregation_separator is not None:
                 challenge_aggregation_separator = the_challenge_aggregation_separator
+            
+            the_metrics_label_separator = _metadata.get(METRICS_LABEL_SEPARATOR_KEY)
+            if the_metrics_label_separator is not None:
+                challenge_metrics_label_separator = the_metrics_label_separator
         
         if challenge_label is None:
             # Very old school label
@@ -447,6 +463,7 @@ class OpenEBenchUtils():
             label=cast("str", challenge_label),
             sep=challenge_orig_id_separator,
             aggregation_sep=challenge_aggregation_separator,
+            metrics_label_sep=challenge_metrics_label_separator,
         )
 
     @staticmethod

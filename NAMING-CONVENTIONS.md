@@ -53,6 +53,18 @@ and then should be followed by the challenge label.
   }
   ```
 
+* The metrics label separator is by default `+`. It can be customized both at the
+  benchmarking event and the challenge levels, including the key
+  `level_2:metric_separator`. Example: 
+
+  ```json
+  {
+    "_metadata": {
+      "level_2:metric_separator": "_vs_"
+    }
+  }
+  ```
+
 * The challenge label is derived using next rules, by their precedence:
 
   - If the challenge has a `_metadata` section with the key `level_2:challenge_id`, then that value is the challenge label. Example:
@@ -149,7 +161,8 @@ and then should be followed by the challenge label.
   plus challenge original id separator, plus the participant label, plus '_A'.
 
 * [W] An aggregation dataset's original id must end with the orig_id separator,
-  plus the aggregation separator plus the orig_id separator, plus labels of the involved metrics, joined by '+'.
+  plus the aggregation separator plus the orig_id separator, plus labels of the involved metrics, joined by
+  the challenge metric label separator (by default '+').
 
 ## TestActions
 

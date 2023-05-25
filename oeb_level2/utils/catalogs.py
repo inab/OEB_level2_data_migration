@@ -483,8 +483,8 @@ class IndexedDatasets:
                         self.metrics_by_d[index_id] = matched_trios
                         
                         # Check the suffix
-                        suffix = self.challenge_label_and_sep.sep + '+'.join(available_metrics)
-                        proposed_suffix = self.challenge_label_and_sep.sep + '+'.join(proposed_labels)
+                        suffix = self.challenge_label_and_sep.sep + self.challenge_label_and_sep.metrics_label_sep.join(available_metrics)
+                        proposed_suffix = self.challenge_label_and_sep.sep + self.challenge_label_and_sep.metrics_label_sep.join(proposed_labels)
                 
                 if suffix is not None:
                     if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
