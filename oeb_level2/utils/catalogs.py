@@ -6,7 +6,11 @@ import logging
 import re
 import sys
 
-from oebtools.fetch import OEB_CONCEPT_PREFIXES
+from oebtools.fetch import (
+    FetchedInlineData,
+    OEB_CONCEPT_PREFIXES,
+    OEBFetcher,
+)
 
 from ..schemas import (
     ASSESSMENT_INLINE_SCHEMAS,
@@ -48,6 +52,10 @@ if TYPE_CHECKING:
     class InlineDataLabel(TypedDict):
         label: "str"
         dataset_orig_id: "str"
+    
+    from extended_json_schema_validator.extensible_validator import (
+        ExtensibleValidator
+    )
 
 class DatasetValidationSchema(NamedTuple):
     dataset_id: "str"
@@ -201,9 +209,10 @@ class IndexedDatasets:
     # The dataset type of all the datasets
     type: "str"
     # Which logger to use
-    logger: "Any"
+    logger: "Union[logging.Logger, ModuleType]"
     # Validator for inline data
-    level2_min_validator: "Any"
+    level2_min_validator: "ExtensibleValidator"
+    admin_tools: "OEBFetcher"
     metrics_graphql: "Sequence[Mapping[str, Any]]"
     community_prefix: "str"
     challenge_prefix: "str"
@@ -222,6 +231,9 @@ class IndexedDatasets:
     # Maps the dataset ids and orig_ids to their
     # place in the previous list
     d_dict: "MutableMapping[str, int]" = dataclasses.field(default_factory=dict)
+    # Maps the dataset ids and orig_ids to their
+    # inline data contents
+    d_inline_dict: "MutableMapping[str, FetchedInlineData]" = dataclasses.field(default_factory=dict)
     # (assessment and aggregation)
     # Groups the assessment datasets by metrics
     d_m_dict: "MutableMapping[str, MutableSequence[int]]" = dataclasses.field(default_factory=dict)
@@ -309,40 +321,51 @@ class IndexedDatasets:
         
         # Some additional validations for inline data
         o_datalink = raw_dataset.get("datalink")
-        inline_data = None
-        found_schema_url: "Optional[str]" = None
+        the_data = None
+        fetchable_uri: "str" = "(unknown source)"
+        schema_uri: "Optional[str]" = None
+        validable_schemas: "Optional[Sequence[str]]" = None
+        fetched_inline_data: "Optional[FetchedInlineData]" = None
         if isinstance(o_datalink, dict):
-            inline_data = o_datalink.get("inline_data")
+            the_error, fetched_payload = self.admin_tools.fetchInlineDataFromDatalink(index_id, o_datalink, discard_unvalidable=not is_assessment and not is_aggregation)
+            
             # Is this dataset an inline one?
-            if inline_data is not None:
+            if the_error is None and isinstance(fetched_payload, FetchedInlineData):
+                fetched_inline_data = fetched_payload
+                the_data = fetched_inline_data.data
                 # Learning / guessing the schema_url
-                schema_url = o_datalink.get("schema_url")
-                inline_schemas = None
-                if schema_url is None:
+                schema_uri = fetched_inline_data.schema_uri
+                if schema_uri is None:
                     if is_assessment:
-                        inline_schemas = ASSESSMENT_INLINE_SCHEMAS
+                        validable_schemas = ASSESSMENT_INLINE_SCHEMAS
                     elif is_aggregation:
-                        inline_schemas = AGGREGATION_INLINE_SCHEMAS
+                        validable_schemas = AGGREGATION_INLINE_SCHEMAS
                 else:
-                    inline_schemas = [
-                        schema_url
+                    validable_schemas = [
+                        schema_uri
                     ]
                 
-                if inline_schemas is not None:
-                    # Now, time to validate the dataset
-                    config_val_list = self.level2_min_validator.jsonValidate({
-                        "json": inline_data,
-                        "file": "inline " + index_id,
-                        "errors": [],
-                    }, guess_unmatched=inline_schemas)
-                    assert len(config_val_list) > 0
-                    config_val_block = config_val_list[0]
-                    found_schema_url = config_val_block.get("schema_id")
-                    config_val_block_errors = list(filter(lambda ve: (schema_url is None) or (ve.get("schema_id") == schema_url), config_val_block.get("errors", [])))
-                    
-                    if len(config_val_block_errors) > 0:
-                        self.logger.error(f"Validation errors in inline data from {self.type} dataset {index_id} ({index_id_orig}) using {inline_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
-                        return None
+                if fetched_inline_data.remote is not None:
+                    fetchable_uri = fetched_inline_data.remote.fetchable_uri
+                else:
+                    fetchable_uri = "inline " + index_id
+        
+        found_schema_url: "Optional[str]" = None
+        if the_data is not None and validable_schemas is not None:
+            # Now, time to validate the dataset
+            config_val_list = self.level2_min_validator.jsonValidate({
+                "json": the_data,
+                "file": fetchable_uri,
+                "errors": [],
+            }, guess_unmatched=validable_schemas)
+            assert len(config_val_list) > 0
+            config_val_block = config_val_list[0]
+            found_schema_url = config_val_block.get("schema_id")
+            config_val_block_errors = list(filter(lambda ve: (schema_uri is None) or (ve.get("schema_id") == schema_uri), config_val_block.get("errors", [])))
+            
+            if len(config_val_block_errors) > 0:
+                self.logger.error(f"Validation errors in {fetchable_uri} from {self.type} dataset {index_id} ({index_id_orig}) using {validable_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
+                return None
         
         if is_aggregation:
             if not isinstance(o_datalink, dict):
@@ -351,12 +374,12 @@ class IndexedDatasets:
                 return None
                 
             # Is this dataset an inline one?
-            if inline_data is None:
+            if the_data is None:
                 # Skip it, we cannot work with it
-                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not contain inline data")
+                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not contain (inline) data")
                 return None
         
-            vis_hints = inline_data.get("visualization", {})
+            vis_hints = the_data.get("visualization", {})
             vis_type = vis_hints.get("type")
             if len(vis_hints) == 0:
                 self.logger.warning(f"No visualization type for {self.type} dataset {index_id}. Is it missing or intentional??")
@@ -500,6 +523,11 @@ class IndexedDatasets:
                 self.d_dict[index_id_orig] = d_pos
             self.d_dict[index_id] = d_pos
             
+            if isinstance(fetched_inline_data, FetchedInlineData):
+                if index_id_orig is not None:
+                    self.d_inline_dict[index_id_orig] = fetched_inline_data
+                self.d_inline_dict[index_id] = fetched_inline_data
+            
             # Only happens to assessment datasets
             if d_on_metrics_id is not None:
                 self.d_m_dict.setdefault(d_on_metrics_id, []).append(d_pos)
@@ -509,6 +537,15 @@ class IndexedDatasets:
         else:
             # Overwrite tracked dataset with future version
             self.d_list[d_pos] = raw_dataset
+            if isinstance(fetched_inline_data, FetchedInlineData):
+                if index_id_orig is not None:
+                    self.d_inline_dict[index_id_orig] = fetched_inline_data
+                self.d_inline_dict[index_id] = fetched_inline_data
+            else:
+                if index_id_orig is not None and index_id_orig in self.d_inline_dict:
+                    del self.d_inline_dict[index_id_orig]
+                if index_id in self.d_inline_dict:
+                    del self.d_inline_dict[index_id]
         
         return DatasetValidationSchema(
             dataset_id=index_id,
@@ -519,6 +556,9 @@ class IndexedDatasets:
         the_id = self.d_dict.get(dataset_id)
         
         return self.d_list[the_id] if the_id is not None else None
+
+    def get_payload(self, dataset_id: "str") -> "Optional[FetchedInlineData]":
+        return self.d_inline_dict.get(dataset_id)
 
     def get_metrics_trio(self, dataset_id: "str") -> "Optional[Sequence[Optional[MetricsTrio]]]":
         return self.metrics_by_d.get(dataset_id)
@@ -534,10 +574,11 @@ class IndexedDatasets:
 
 @dataclasses.dataclass
 class DatasetsCatalog:
-    # Which logger to use
-    logger: "Any" = logging
     # Level2 min validator
-    level2_min_validator: "Any" = None
+    level2_min_validator: "ExtensibleValidator"
+    admin_tools: "OEBFetcher"
+    # Which logger to use
+    logger: "Union[logging.Logger, ModuleType]" = logging
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
     community_prefix: "str" = ""
     bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl" = dataclasses.field(default_factory=BenchmarkingEventPrefixEtAl)
@@ -561,6 +602,7 @@ class DatasetsCatalog:
                 idat = IndexedDatasets(
                     type=d_type,
                     logger=self.logger,
+                    admin_tools=self.admin_tools,
                     metrics_graphql=self.metrics_graphql,
                     level2_min_validator=self.level2_min_validator,
                     community_prefix=self.community_prefix,
@@ -642,6 +684,15 @@ class DatasetsCatalog:
                 retvals.append(retval)
         
         return retvals
+    
+    def get_dataset_payload(self, dataset_id: "str") -> "Sequence[FetchedInlineData]":
+        retvals = []
+        for idat in self.catalogs.values():
+            retval = idat.get_payload(dataset_id)
+            if retval is not None:
+                retvals.append(retval)
+        
+        return retvals
 
 @dataclasses.dataclass
 class TestActionRel:
@@ -659,7 +710,7 @@ class IndexedTestActions:
     community_prefix: "str"
     challenge: "Mapping[str, Any]"
     # Which logger to use
-    logger: "Any" = logging
+    logger: "Union[logging.Logger, ModuleType]" = logging
     
     # Let's index the test actions
     # by _id and orig_id
@@ -830,10 +881,10 @@ ActionType2InOutDatasetTypes = {
 
 @dataclasses.dataclass
 class TestActionsCatalog:
-    d_catalog: "DatasetsCatalog" = dataclasses.field(default_factory=DatasetsCatalog)
+    d_catalog: "DatasetsCatalog"
     catalogs: "MutableMapping[str, IndexedTestActions]" = dataclasses.field(default_factory=dict)
     # Which logger to use
-    logger: "Any" = logging
+    logger: "Union[logging.Logger, ModuleType]" = logging
     
     def merge_test_actions(self, raw_test_actions: "Iterator[Mapping[str, Any]]") -> "int":
         num_indexed = 0

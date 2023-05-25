@@ -51,8 +51,13 @@ if TYPE_CHECKING:
     )
 
 import coloredlogs  # type: ignore[import]
+from oebtools.fetch import OEBFetcher
 import requests
 from rfc3339_validator import validate_rfc3339  # type: ignore[import]
+
+from oebtools.uploader import(
+    PayloadMode,
+)
 
 # Just to get the directory through __file__
 from .. import schemas as level2_schemas
@@ -96,12 +101,13 @@ def validate_transform_and_push(
     config_json_filename: "str",
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
-    val_result_filename: "Optional[str]" = None,
+    val_result_filename: "str" = "/dev/null",
     output_filename: "Optional[str]" = None,
     dry_run: "bool" = False,
     use_server_schemas: "bool" = False,
     log_filename: "Optional[str]" = None,
     log_level: "int" = logging.INFO,
+    payload_mode: "PayloadMode" = PayloadMode.THRESHOLD,
 ) -> "None":
     loggingConfig: "BasicLoggingConfigDict" = {
         "level": log_level,
@@ -357,10 +363,10 @@ def validate_transform_and_push(
 
     # Early check over the tools
     logging.info("-> Fetching the list of recorded tools")
-    allTools = list(migration_utils.fetchStagedData('Tool'))
+    allTools = list(migration_utils.fetchStagedAndSandboxData('Tool'))
     logging.info("-> Early checking in the participant tools")
     unique_participant_tool_ids = set(map(lambda pc: pc.tool_id, tool_mapping.values()))
-    participant_tools = list(migration_utils.filter_by(allTools, {"_id": unique_participant_tool_ids}))
+    participant_tools = list(OEBFetcher.filter_by(allTools, {"_id": unique_participant_tool_ids}))
     participant_tool_ids = set(map(lambda pt: cast("str", pt["_id"]), participant_tools))
     if participant_tool_ids < unique_participant_tool_ids:
         logging.fatal(
@@ -385,8 +391,9 @@ def validate_transform_and_push(
             pass
 
     # Early checks over the minimal input datasets
-    logging.info("-> Fetching the list of datasets")
-    allDatasets = list(migration_utils.fetchStagedData('Dataset'))
+    logging.info("-> Prefetching the list of datasets")
+    for _ in migration_utils.fetchStagedAndSandboxData('Dataset'):
+        break
     
     # Prefixes about communities
     stagedCommunity = migration_utils.fetchStagedEntry("Community", community_id)
@@ -409,11 +416,11 @@ def validate_transform_and_push(
     )
     
     logging.info("-> Early minimal participant datasets check")
-    m_p_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_participant_dataset, ch_id_to_label_and_sep)
+    m_p_collisions = migration_utils.check_min_dataset_collisions(min_participant_dataset, ch_id_to_label_and_sep)
     if len(m_p_collisions) > 0:
         sys.exit(5)
     logging.info("-> Early minimal assessment datasets check")
-    m_a_collisions = migration_utils.check_min_dataset_collisions(allDatasets, min_assessment_datasets, ch_id_to_label_and_sep)
+    m_a_collisions = migration_utils.check_min_dataset_collisions(min_assessment_datasets, ch_id_to_label_and_sep)
     if len(m_a_collisions) > 0:
         sys.exit(5)
     
@@ -462,7 +469,7 @@ def validate_transform_and_push(
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
     process_participant = ParticipantBuilder(schemaMappings, migration_utils)
     community_id = bench_event["community_id"]
-    stagedParticipantDatasets = list(migration_utils.filter_by(allDatasets, {"community_ids": [ community_id ], "type": [ "participant" ]}))
+    stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
     valid_participant_tuples = process_participant.build_participant_dataset(
         input_query_response["data"]["getChallenges"],
         stagedParticipantDatasets,
@@ -479,7 +486,6 @@ def validate_transform_and_push(
     # Now it is time to check anomalous collisions
     logging.info(f"-> Check collisions on {len(valid_participant_tuples)} generated participant datasets")
     p_d_collisions = migration_utils.check_dataset_collisions(
-        allDatasets,
         list(map(lambda pvc: pvc.participant_dataset, valid_participant_tuples)),
         default_schema_url=False,
     )
@@ -508,8 +514,8 @@ def validate_transform_and_push(
         community_ids_set.update(pvc.participant_dataset["community_ids"])
         challenge_ids_set.update(map(lambda chp: cast("str", chp.entry["_id"]), pvc.challenge_pairs))
         
-    stagedEvents = list(migration_utils.fetchStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
-    stagedDatasets = list(migration_utils.filter_by(allDatasets, {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
+    stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
+    stagedDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
 
     # Needed to better consolidate
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
@@ -530,7 +536,6 @@ def validate_transform_and_push(
     
     logging.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
     a_d_collisions = migration_utils.check_dataset_collisions(
-        allDatasets,
         list(map(lambda at: at.assessment_dataset, valid_assessment_tuples)),
         default_schema_url=[
             level2_schemas.SINGLE_METRIC_SCHEMA_ID
@@ -564,7 +569,6 @@ def validate_transform_and_push(
     
     logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
     agg_d_collisions = migration_utils.check_dataset_collisions(
-        allDatasets,
         list(map(lambda agt: agt.aggregation_dataset, valid_aggregation_tuples)),
         default_schema_url=[
             level2_schemas.AGGREGATION_2D_PLOT_SCHEMA_ID,
@@ -606,13 +610,12 @@ def validate_transform_and_push(
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
-    migration_utils.schemas_validation(final_data, val_result_filename)
-    
     if dry_run:
+        migration_utils.schemas_validation(final_data, val_result_filename)
         logging.info("Data was stored at {} (submission was skipped)".format(output_filename))
     else:
-        logging.info("Submitting...")
-        migration_utils.submit_oeb_buffer(final_data, community_id)
+        logging.info("Validating and submitting...")
+        migration_utils.validate_and_submit_oeb_buffer(community_id, final_data, val_result_filename, payload_mode=payload_mode)
 
 def main() -> "None":
     parser = argparse.ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -625,7 +628,7 @@ def main() -> "None":
                         help="Token used for submission to oeb buffer DB. If it is not set, the \
                         credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
-                        help="Save the JSON Schema validation output to a file")
+                        help="Save the JSON Schema validation output to a file", default="/dev/null")
     parser.add_argument("-o",
                         dest="submit_output_file",
                         help="Save what it was going to be submitted in this file")
@@ -666,6 +669,14 @@ def main() -> "None":
         const=logging.DEBUG,
         help="Show debug messages (use with care, as it could potentially disclose sensitive contents)",
     )
+    parser.add_argument(
+        '--payload-mode',
+        dest='payload_mode',
+        help="On Dataset entries, how to deal with inline and external payloads",
+        choices=PayloadMode,
+        type=PayloadMode,
+        default=PayloadMode.AS_IS,
+    )
 
     args = parser.parse_args()
 
@@ -680,7 +691,8 @@ def main() -> "None":
         args.dry_run,
         args.trustREST,
         args.logFilename,
-        args.logLevel
+        args.logLevel,
+        payload_mode=args.payload_mode,
     )
 
 if __name__ == '__main__':

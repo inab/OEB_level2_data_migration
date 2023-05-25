@@ -9,7 +9,6 @@ import os
 import datetime
 import json
 
-from .benchmarking_dataset import BenchmarkingDataset
 from ..schemas import TYPE2SCHEMA_ID
 from ..utils.catalogs import (
     DatasetsCatalog,
@@ -78,6 +77,8 @@ if TYPE_CHECKING:
         label: "Required[str]"
         dataset_orig_id: "Required[str]"
 
+from oebtools.fetch import FetchedInlineData
+
 from ..utils.migration_utils import OpenEBenchUtils
 
 class AggregationTuple(NamedTuple):
@@ -97,6 +98,7 @@ class AggregationValidator():
         )
         self.schemaMappings = schemaMappings
         self.level2_min_validator = migration_utils.level2_min_validator
+        self.admin_tools = migration_utils.admin_tools
     
     def check_and_index_challenges(
         self,
@@ -158,6 +160,7 @@ class AggregationValidator():
             
             d_catalog = DatasetsCatalog(
                 logger=self.logger,
+                admin_tools=self.admin_tools,
                 level2_min_validator=self.level2_min_validator,
                 metrics_graphql=metrics_agg_graphql,
                 community_prefix=community_prefix,
@@ -262,14 +265,19 @@ class AggregationValidator():
                         # datalink contents are going to be rebuilt, also
                         d_link = copy.deepcopy(raw_dataset["datalink"])
                         r_dataset["datalink"] = d_link
-                        inline_data = d_link.get("inline_data")
+                        
+                        # Fetch inline (or not so inline) content
+                        fetched_inline_data = idat_agg.get_payload(agg_dataset_id)
                         
                         if ("_metadata" in r_dataset) and r_dataset["_metadata"] is None:
                             del r_dataset["_metadata"]
                         
                         # Challenge ids of this dataset (to check other dataset validness)
                         ch_ids_set = set(r_dataset["challenge_ids"])
-                        if isinstance(inline_data, dict):
+                        if isinstance(fetched_inline_data, FetchedInlineData):
+                            inline_data = copy.copy(fetched_inline_data.data)
+                            r_dataset["inline_data"] = inline_data
+                            
                             # Entry of each challenge participant, by participant label
                             # The right type should be "Union[MutableMapping[str, BarData], MutableMapping[str, ScatterData], MutableMapping[str, SeriesData]]"
                             # but the validation gets more complicated
@@ -423,8 +431,9 @@ class AggregationValidator():
                                         self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
                                         do_processing = False
                                         
-                                    if do_processing:
-                                        ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                    fetched_ass_inline_data = idat_ass.get_payload(met_dataset["_id"])
+                                    if do_processing and isinstance(fetched_ass_inline_data, FetchedInlineData):
+                                        ass_inline_data = fetched_ass_inline_data.data
                                         if mini_entry_2d is not None:
                                             mini_entry_values: "ScatterData"
                                             if i_trio == 0:
@@ -450,7 +459,7 @@ class AggregationValidator():
                                             })
                             
                             if not rebuild_agg:
-                                raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", raw_dataset["datalink"]["inline_data"]["challenge_participants"])
+                                raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", fetched_inline_data.data["challenge_participants"])
                                 if len(challenge_participants) != len(raw_challenge_participants):
                                     self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
                                     rebuild_agg = True
@@ -698,7 +707,7 @@ class AggregationBuilder():
                         # Now time to milk the structures
                         for metric_decl in metrics_category.get("metrics", []):
                             met_datasets = list(idat_ass.datasets_from_metric(metric_decl["metrics_id"]))
-                            met_dataset_groups.append(met_datasets)
+                            met_dataset_groups.append((met_datasets, idat_ass))
                             the_rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
                         
                     
@@ -774,7 +783,8 @@ class AggregationBuilder():
                         assert ita_m_events is not None
                         
                         # Now to rebuild the metrics
-                        for i_met, met_datasets in enumerate(met_dataset_groups):
+                        for i_met, met_datasets_tuple in enumerate(met_dataset_groups):
+                            met_datasets, idat_ass = met_datasets_tuple
                             for met_dataset in met_datasets:
                                 tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
                                 if tar is None:
@@ -848,8 +858,15 @@ class AggregationBuilder():
                                     self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
                                     failed_min_agg = True
                                 
-                                if not failed_min_agg:
-                                    ass_inline_data = met_dataset["datalink"]["inline_data"]
+                                fetched_ass_inline_data = idat_ass.get_payload(met_dataset["_id"])
+
+                                if fetched_ass_inline_data is None:
+                                    self.logger.critical(f"Assessment dataset {met_dataset['_id']} data contents could not be obtained")
+                                    failed_min_agg = True
+                                
+                                elif not failed_min_agg:
+                                    ass_inline_data = fetched_ass_inline_data.data
+                                    
                                     if mini_entry_2d is not None:
                                         mini_entry_values: "ScatterData"
                                         if i_met == 0:
@@ -920,7 +937,12 @@ class AggregationBuilder():
                         
                         # Is there an inherited visualization optimization?
                         if the_vis_optim is None:
-                            the_vis_optim = orig_dataset.get("datalink", {}).get("inline_data", {}).get("visualization", {}).get("optimization")
+                            orig_payloads = idx_challenge.d_catalog.get_dataset_payload(the_id)
+                            if len(orig_payloads) > 0:
+                                if len(orig_payloads) > 1:
+                                    self.logger.warning(f"Found more than one dataset payload with id {the_id}. Problems in the horizon???")
+                                inline_data = orig_payloads[0].data
+                                the_vis_optim = inline_data.get("visualization", {}).get("optimization")
                         
                         # Widening the list (maybe it is wrong?????)
                         orig_ch_set = set(orig_dataset["challenge_ids"])

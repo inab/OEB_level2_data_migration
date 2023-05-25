@@ -9,7 +9,6 @@ from datetime import datetime, timezone
 import json
 import re
 
-from .benchmarking_dataset import BenchmarkingDataset
 from ..utils.catalogs import (
     gen_challenge_assessment_metrics_dict,
     match_metric_from_label,

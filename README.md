@@ -16,7 +16,7 @@ In order to use the migration tool, some requirements need to be fulfilled:
 ```
 usage: push_data_to_oeb.py [-h] -i DATASET_CONFIG_JSON -cr OEB_SUBMIT_API_CREDS [-tk OEB_SUBMIT_API_TOKEN]
                            [--val_output VAL_OUTPUT] [-o SUBMIT_OUTPUT_FILE] [--dry-run] [--trust-rest-bdm]
-                           [--log-file LOGFILENAME] [-q] [-v] [-d]
+                           [--log-file LOGFILENAME] [-q] [-v] [-d] [--payload-mode {as-is,threshold,force-inline,force-payload}]
 
 OEB Level 2 push_data_to_oeb
 
@@ -30,7 +30,7 @@ optional arguments:
                         Token used for submission to oeb buffer DB. If it is not set, the credentials file provided with -cr
                         must have defined 'clientId', 'grantType', 'user' and 'pass' (default: None)
   --val_output VAL_OUTPUT
-                        Save the JSON Schema validation output to a file (default: None)
+                        Save the JSON Schema validation output to a file (default: /dev/null)
   -o SUBMIT_OUTPUT_FILE
                         Save what it was going to be submitted in this file (default: None)
   --dry-run             Only validate, do not submit (dry-run) (default: False)
@@ -41,23 +41,14 @@ optional arguments:
   -q, --quiet           Only show engine warnings and errors (default: None)
   -v, --verbose         Show verbose (informational) messages (default: None)
   -d, --debug           Show debug messages (use with care, as it could potentially disclose sensitive contents) (default: None)
-```
-
-## Usage
-
-First, install the Python runtime dependencies in a virtual environment:
-
-```bash
-python3 -m venv .py3env
-source .py3env/bin/activate
-pip install --upgrade pip wheel
-pip install -r requirements.txt
+  --payload-mode {as-is,threshold,force-inline,force-payload}
+                        On Dataset entries, how to deal with inline and external payloads (default: as-is)
 ```
 
 The minimal/partial dataset to be uplifted to the [OpenEBench benchmarking data model](https://github.com/inab/benchmarking_data_model) should validate against the schema [minimal_bdm_oeb_level2.yaml available here](oeb_level2/schemas/minimal_bdm_oeb_level2.yaml) using [ext-json-validate](https://pypi.org/project/extended-json-schema-validator/), with a command-line similar to:
 
 ```bash
-ext-json-validate --guess-schema oeb_level2/schemas/minimal_bdm_oeb_level2.yaml minimal_dataset_examples/results_example.json
+ext-json-validate --iter-arrays --guess-schema oeb_level2/schemas/minimal_bdm_oeb_level2.yaml minimal_dataset_examples/results_example.json
 ```
 
 An example of the dataset is [available here](minimal_dataset_examples/results_example.json).That dataset should be declared through a `config.json` file declaring the URL or relative path where it is (it should follow JSON Schema [submission_form_schema.json available here](oeb_level2/schemas/submission_form_schema.json), you have an [example here](minimal_dataset_examples/config_example.json)), and set up an `auth_config.json` with the different credentials ([template here](oebdev_api_auth.json.template) and JSON Schema [auth_config_schema.json available here](oeb_level2/schemas/auth_config_schema.json)).
@@ -66,7 +57,14 @@ An example of the dataset is [available here](minimal_dataset_examples/results_e
 # The command must be run with the virtual environment enabled
 
 # This one uplifts the dataset, but it does not load the data in the database
-python push_data_to_oeb.py -i config.json -cr auth_config.json --trust-rest-bdm --dry-run -o uplifted.json
+python push_data_to_oeb.py -i config.json -cr your_auth_config.json --trust-rest-bdm --dry-run -o uplifted.json
+```
+
+You can also validate in depth the uplifted dataset just with next command
+
+```bash
+ln -s uplifted.json uplifted.json.array
+oeb-uploader.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json --trust-rest-bdm --deep-bdm-dir . --dry-run uplifted.json.array
 ```
 
 ## Development

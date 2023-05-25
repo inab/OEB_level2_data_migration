@@ -40,36 +40,35 @@ if TYPE_CHECKING:
         ParsedContentEntry,
     )
     from extended_json_schema_validator.extensions.abstract_check import SchemaHashEntry
+    
+    from oebtools.auth import OEBCredentials
+    
+    from oebtools.fetch import IdAndOrigId
 
 import requests
 
-import yaml
-# We have preference for the C based loader and dumper, but the code
-# should fallback to default implementations when C ones are not present
-YAMLLoader: "Type[Union[yaml.Loader, yaml.CLoader]]"
-YAMLDumper: "Type[Union[yaml.Dumper, yaml.CDumper]]"
-try:
-    from yaml import CLoader as YAMLLoader, CDumper as YAMLDumper
-except ImportError:
-    from yaml import Loader as YAMLLoader, Dumper as YAMLDumper
-
-from oebtools.fetch import (
-    checkoutSchemas,
-    fetchEntriesFromIds,
-    fetchIdsAndOrigIds,
-    query_graphql,
-    DEFAULT_BDM_TAG,
-    FLAVOR_SANDBOX,
-    FLAVOR_STAGED,
+from oebtools.common import(
+    YieldedInput,
 )
 
-from oebtools.uploader import _setupValidator as oeb_setup_validator
-from oebtools.auth import getAccessToken
+from oebtools.fetch import (
+    DEFAULT_BDM_TAG,
+    FetchedInlineData,
+    FLAVOR_SANDBOX,
+    FLAVOR_STAGED,
+    OEBFetcher,
+)
+
+from oebtools.uploader import (
+    OEBUploader,
+    PayloadMode,
+)
 
 from .memoized_method import memoized_method
 
 from ..schemas import (
     LEVEL2_SCHEMA_IDS,
+    get_oeb_level2_schemas_path,
     create_validator_for_oeb_level2,
 )
 
@@ -136,6 +135,7 @@ class OpenEBenchUtils():
             
             self.oeb_api += GRAPHQL_POSTFIX
             
+        self.admin_tools = OEBUploader(self.oeb_api_base, cast("OEBCredentials", oeb_credentials) if oeb_token is None  else  oeb_token)
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
         oebIdProviders = oeb_credentials['accessURI']
@@ -149,7 +149,7 @@ class OpenEBenchUtils():
         self.storage_server_community = storage_server_block.get("community")
         self.storage_server_token = storage_server_block.get("token")
 
-        logging.basicConfig(level=logging.INFO)
+        #logging.basicConfig(level=logging.INFO)
         
         # TODO: to be removed, as it is not needed any more
         local_config = {
@@ -176,11 +176,10 @@ class OpenEBenchUtils():
         
         self.level2_min_validator = level2_min_validator
         
-        self.oeb_token = getAccessToken(oeb_credentials, logger=self.logger)  if oeb_token is None  else  oeb_token
-        
         self.schema_validators_local_config = local_config
 
         self.schema_validators: "Optional[ExtensibleValidator]" = None
+        self.schema_prefix: "Optional[str]" = None
         self.num_schemas = 0
         
         self.schemaMappings: "Optional[Mapping[str, str]]" = None
@@ -482,11 +481,10 @@ class OpenEBenchUtils():
                 raise Exception(errstr)
 
         repo_tag_destdir = os.path.join(repo_destdir, repo_hashed_tag_id)
-        return cast("str",checkoutSchemas(
+        return cast("str", self.admin_tools.schemas_manager.checkoutSchemas(
             checkoutDir=repo_tag_destdir,
             git_repo=git_uri,
             tag=git_tag,
-            logger=self.logger
         ))
 
     # function that retrieves all the required metadata from OEB database
@@ -635,6 +633,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -663,6 +664,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -691,6 +695,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -719,6 +726,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -747,6 +757,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -775,6 +788,9 @@ class OpenEBenchUtils():
                 type
                 datalink {
                     inline_data
+                    schema_url
+                    uri
+                    schema_uri
                 }
                 dataset_contact_ids
                 depends_on {
@@ -802,13 +818,10 @@ class OpenEBenchUtils():
         
         
         try:
-            response = query_graphql(
-                self.oeb_api_base,
+            response = self.admin_tools.query_graphql(
                 query,
                 variables=variables,
-                oeb_credentials=self.oeb_token,
                 query_name=query_name,
-                logger=self.logger,
             )
             
             # get challenges and input datasets for provided benchmarking event
@@ -973,25 +986,19 @@ class OpenEBenchUtils():
 
     def _setup_oeb_validator(self, data_model_source: "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]") -> "None":
         # create the cached json schemas for validation
-        self.concept_ids_map = fetchIdsAndOrigIds(
-            self.oeb_api_base,
-            oeb_credentials=self.oeb_token,
-            logger=self.logger,
-        )
-        self.schema_validators, schema_prefix = oeb_setup_validator(
-            self.oeb_api_base,
+        self.concept_ids_map = self.admin_tools.fetchIdsAndOrigIds()
+        self.schema_validators, self.schema_prefix = self.admin_tools.schemas_manager._setupValidator(
             data_model_source,
             concept_ids_map=self.concept_ids_map,
             flavor=FLAVOR_SANDBOX,
-            logger=self.logger,
         )
 
         num_schemas = 0
         schemaMappings: "MutableMapping[str, str]" = {}
         for key in self.schema_validators.getValidSchemas().keys():
             num_schemas += 1
-            if key.startswith(schema_prefix):
-                concept = key[len(schema_prefix):]
+            if key.startswith(self.schema_prefix):
+                concept = key[len(self.schema_prefix):]
             else:
                 # This "else" should be discarded in the future
                 concept = key[key.rindex('/')+1:]
@@ -1016,13 +1023,13 @@ class OpenEBenchUtils():
     def load_schemas_from_server(self) -> "Mapping[str, str]":
         if self.schema_validators is None:
             # fetch in memory the cached json schemas for validation
-            data_model_in_memory = checkoutSchemas(fetchFromREST=self.oeb_api_base, logger=self.logger)
+            data_model_in_memory = self.admin_tools.schemas_manager.checkoutSchemas(fetchFromREST=True)
             self._setup_oeb_validator(data_model_in_memory)
         
         assert self.schemaMappings is not None
         return self.schemaMappings
 
-    def schemas_validation(self, json_data_array: "Sequence[Any]", val_result_filename: "Optional[str]") -> "None":
+    def schemas_validation(self, json_data_array: "Sequence[Any]", val_result_filename: "str") -> "None":
         # validate the newly annotated dataset against https://github.com/inab/benchmarking-data-model
 
         assert self.schema_validators is not None
@@ -1033,7 +1040,7 @@ class OpenEBenchUtils():
         for element in json_data_array:
 
             cached_jsons.append(
-                {'json': element, 'file': "inline" + element["_id"], 'errors': []})
+                {'json': element, 'file': "inline " + element["_id"], 'errors': []})
 
         self.schema_validators.warmUpCaches()
         val_res = self.schema_validators.jsonValidate(
@@ -1079,42 +1086,28 @@ class OpenEBenchUtils():
         
         self.logger.info("Report: {} duplicated keys in {} of {} documents".format(to_warning, to_obj_warning, len(val_res)))
 
-    def fetchStagedData(self, dataType: "str", filtering_keys: "Optional[Mapping[str, Union[Sequence[str], Set[str]]]]" = None) -> "Iterator[Mapping[str, Any]]":
-        headers = {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer {}'.format(self.oeb_token)
-        }
-        
-        seen: "Set[str]" = set()
+    def fetchStagedAndSandboxData(self, dataType: "str", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]" = {}) -> "Iterator[Mapping[str, Any]]":
         # sandbox entries take precedence over other ones
-        for api_endpoint in (self.oeb_submission_api, *self.oeb_access_api_points):
-            if not api_endpoint.endswith('/'):
-                api_endpoint += '/'
-            data_endpoint = api_endpoint + urllib.parse.quote(dataType)
-            req = urllib.request.Request(data_endpoint, headers=headers, method='GET')
-            with urllib.request.urlopen(req) as t:
-                try:
-                    datares_raw = json.load(t)
-                    
-                    assert isinstance(datares_raw, list), "The answer is expected to be a list"
-                    filtered_datares_raw = cast("Sequence[Mapping[str,Any]]", list(filter(lambda d: d["_id"] not in seen, datares_raw)))
-                    seen.update(map(lambda d: cast("str", d["_id"]), filtered_datares_raw))
-                    if isinstance(filtering_keys, dict) and len(filtering_keys) > 0:
-                        yield from self.filter_by(filtered_datares_raw, filtering_keys)
-                    else:
-                        yield from filtered_datares_raw
-                    
-                except:
-                    self.logger.exception(f"Failed to fetch {dataType} data from {data_endpoint}")
+        seen: "Set[str]" = set()
+        for flavor in (FLAVOR_SANDBOX, FLAVOR_STAGED):
+            this_seen: "Set[str]" = set()
+            for d in self.admin_tools.iterateConceptEntries(
+                dataType,
+                flavor=flavor,
+                filtering_keys=filtering_keys,
+                negative_filtering_keys={
+                    "_id": seen
+                }
+            ):
+                this_seen.add(d["_id"])
+                yield d
+            seen.update(this_seen)
     
     @memoized_method(maxsize=None)
     def fetchStagedEntry(self, dataType: "str", the_id: "str") -> "Mapping[str, Any]":
-        for fetched_data_type, datares_raw in fetchEntriesFromIds(
+        for fetched_data_type, datares_raw in self.admin_tools.fetchEntriesFromIds(
             [the_id],
-            self.oeb_api_base,
-            oeb_credentials=self.oeb_token,
             flavor=FLAVOR_STAGED,
-            logger=self.logger,
         ):
             if dataType != fetched_data_type:
                 raise ValueError(f"Expected {the_id} to be {dataType} instead of {fetched_data_type}")
@@ -1122,88 +1115,62 @@ class OpenEBenchUtils():
         
         raise LookupError(f"Unable to fetch {the_id} ({dataType})")
         
-    @staticmethod
-    def filter_by(datares_raw: "Union[Sequence[Mapping[str, Any]],Iterator[Mapping[str, Any]]]", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]") -> "Iterator[Mapping[str, Any]]":
-            if len(filtering_keys) > 0:
-                fk_set = {
-                    fk_key: fk_values if isinstance(fk_values, set) else set(fk_values) 
-                    for fk_key, fk_values in filtering_keys.items()
-                }
-                for dr in datares_raw:
-                    for filt_key, filt_values in fk_set.items():
-                        if filt_key in dr:
-                            if isinstance(dr[filt_key], list):
-                                if all(map(lambda dv: dv not in filt_values, dr[filt_key])):
-                                    # Skip this entry
-                                    continue
-                            elif dr[filt_key] not in filt_values:
-                                # Skip this entry
-                                continue
-                            
-                            # Passed all tests
-                            yield dr
-            else:
-                yield from datares_raw
-
-    def check_min_dataset_collisions(self, db_datasets: "Sequence[Mapping[str, Any]]", input_min_datasets: "Sequence[Mapping[str, Any]]", ch_id_to_label_and_sep: "Mapping[str, ChallengeLabelAndSep]") -> "Sequence[Tuple[str, Optional[str], str]]":
+    def check_min_dataset_collisions(self, input_min_datasets: "Sequence[Mapping[str, Any]]", ch_id_to_label_and_sep: "Mapping[str, ChallengeLabelAndSep]") -> "Sequence[Tuple[str, Optional[str], str]]":
         # This method is only valid for minimal dataset of type participant and assessment
         # Those ones with original ids
         input_d_dict = dict(map(lambda i_d: (i_d["_id"],i_d), input_min_datasets))
         collisions = []
         i_keys = list(input_d_dict.keys())
-        for db_dataset in itertools.chain(
-            self.filter_by(db_datasets, {"orig_id": i_keys})
-            ,
-            self.filter_by(db_datasets, {"_id": i_keys})
-        ):
-            orig_id = cast("Optional[str]", db_dataset.get("orig_id"))
-            if orig_id is not None:
-                input_min_dataset = input_d_dict.get(orig_id)
-            else:
-                input_min_dataset = None
+        
+        known_datasets_map: "MutableMapping[str, MutableSequence[IdAndOrigId]]" = {}
+        for tp_id in self.admin_tools.getFetchedConceptIdsMap()["Dataset"]:
+            known_datasets_map.setdefault(tp_id[0], []).append(tp_id)
+            if tp_id[1] is not None:
+                known_datasets_map.setdefault(tp_id[1], []).append(tp_id)
             
-            if input_min_dataset is None:
-                input_min_dataset = input_d_dict.get(db_dataset["_id"])
-            
-            if input_min_dataset is None:
-                self.logger.info(f"Nothing matched db dataset {db_dataset['_id']}")
+        for input_min_dataset in input_min_datasets:
+            possible_collisions = known_datasets_map.get(input_min_dataset["_id"])
+            if possible_collisions is None:
+                self.logger.debug(f"No collision {input_min_dataset['_id']}")
                 continue
             
-            has_coll = False
-            # The dataset must be of the same type
-            if db_dataset["type"] != input_min_dataset["type"]:
-                self.logger.error(f"Dataset type mismatch: orig id {input_min_dataset['_id']} has type {input_min_dataset['type']}, database entry ({db_dataset['_id']}) has {db_dataset['type']}")
-                has_coll = True
+            for possible_collision in possible_collisions:
+                db_dataset = self.fetchStagedEntry(dataType="Dataset", the_id=possible_collision[0])
+                
+                has_coll = False
+                # The dataset must be of the same type
+                if db_dataset["type"] != input_min_dataset["type"]:
+                    self.logger.error(f"Dataset type mismatch: orig id {input_min_dataset['_id']} has type {input_min_dataset['type']}, database entry ({db_dataset['_id']}) has {db_dataset['type']}")
+                    has_coll = True
+                
+                # The new challenge ids must be equal or a superset
+                # of the dataset in the database
+                if isinstance(input_min_dataset["challenge_id"], list):
+                    i_ch_set = set(input_min_dataset["challenge_id"])
+                else:
+                    i_ch_set = set()
+                    i_ch_set.add(input_min_dataset["challenge_id"])
+                
+                # Translation from challenge id to challenge label
+                
+                db_ch_set: "Set[str]" = set()
+                for d_id in db_dataset["challenge_ids"]:
+                    c_l = ch_id_to_label_and_sep.get(d_id)
+                    if c_l is not None:
+                        db_ch_set.add(c_l.label)
+                if not db_ch_set.issubset(i_ch_set):
+                    self.logger.error(f"Challenges where new dataset {input_min_dataset['_id']} appears is not a superset of the new dataset challenges: {db_ch_set - i_ch_set} ({i_ch_set} vs {db_ch_set})")
+                    has_coll = True
             
-            # The new challenge ids must be equal or a superset
-            # of the dataset in the database
-            if isinstance(input_min_dataset["challenge_id"], list):
-                i_ch_set = set(input_min_dataset["challenge_id"])
-            else:
-                i_ch_set = set()
-                i_ch_set.add(input_min_dataset["challenge_id"])
-            
-            # Translation from challenge id to challenge label
-            
-            db_ch_set: "Set[str]" = set()
-            for d_id in db_dataset["challenge_ids"]:
-                c_l = ch_id_to_label_and_sep.get(d_id)
-                if c_l is not None:
-                    db_ch_set.add(c_l.label)
-            if not db_ch_set.issubset(i_ch_set):
-                self.logger.error(f"Challenges where new dataset {input_min_dataset['_id']} appears is not a superset of the new dataset challenges: {db_ch_set - i_ch_set} ({i_ch_set} vs {db_ch_set})")
-                has_coll = True
-            
-            # 
-            
-            if has_coll:
-                collisions.append((cast("str", db_dataset['_id']), orig_id, cast("str", input_min_dataset['_id'])))
+                # 
+                
+                if has_coll:
+                    collisions.append((cast("str", db_dataset['_id']), cast("Optional[str]", db_dataset.get('orig_id')), cast("str", input_min_dataset['_id'])))
         
         return collisions
     
     def check_dataset_collisions(
         self,
-        db_datasets: "Sequence[Mapping[str, Any]]",
         output_datasets: "Sequence[Mapping[str, Any]]",
 #        community_prefix: "str",
 #        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
@@ -1217,8 +1184,13 @@ class OpenEBenchUtils():
         
         collisions = []
         
-        db_d_dict = dict(map(lambda db_d: (db_d["_id"],db_d), db_datasets))
-        db_orig_d_dict = dict(filter(lambda db_t: db_t[0] is not None, map(lambda db_d: (db_d.get("orig_id"),db_d), db_datasets)))
+        db_d_map: "MutableMapping[str, IdAndOrigId]" = {}
+        db_orig_d_map: "MutableMapping[str, MutableSequence[IdAndOrigId]]" = {}
+        for tp_id in self.admin_tools.getFetchedConceptIdsMap()["Dataset"]:
+            db_d_map[tp_id[0]] = tp_id
+            if tp_id[1] is not None:
+                db_orig_d_map.setdefault(tp_id[1], []).append(tp_id)
+
         
         o_keys = list(output_d_dict.keys())
         for o_dataset in output_datasets:
@@ -1235,81 +1207,98 @@ class OpenEBenchUtils():
             o_id = cast("str", o_dataset["_id"])
             o_orig_id = o_dataset.get("orig_id")
             if (not isinstance(default_schema_url, bool) or default_schema_url) and isinstance(o_datalink, dict):
-                inline_data = o_datalink.get("inline_data")
-                # Is this dataset an inline one?
-                if inline_data is not None:
-                    schema_url = o_datalink.get("schema_url", default_schema_url)
-                    
-                    if schema_url is None:
-                        guess_unmatched = True
+                the_error, fetched_inline_data = self.admin_tools.fetchInlineDataFromDatalink(
+                    o_id,
+                    o_dataset["datalink"],
+                    discard_unvalidable=o_type == "participant"
+                )
+                
+                if the_error is not None:
+                    self.logger.error(f"Fetchable inline data errors from dataset {o_id} ({o_orig_id})\n{the_error}")
+                    should_exit = True
+                elif fetched_inline_data is not None:
+                    if isinstance(fetched_inline_data, FetchedInlineData):
+                        inline_data = fetched_inline_data.data
+                        # Is this dataset an inline one?
+                        schema_uri = fetched_inline_data.schema_uri
+                        
+                        guess_unmatched: "Union[bool, Sequence[str]]"
+                        if schema_uri is None:
+                            guess_unmatched = True
+                        else:
+                            guess_unmatched = [
+                                schema_uri
+                            ]
+                        
+                        # Now, time to validate the dataset
+                        config_val_list = self.level2_min_validator.jsonValidate({
+                            "json": inline_data,
+                            "file": "inline " + o_id,
+                            "errors": [],
+                        }, guess_unmatched=guess_unmatched)
+                        assert len(config_val_list) > 0
+                        config_val_block = config_val_list[0]
+                        config_val_block_errors = list(filter(lambda ve: (schema_uri is None) or (ve.get("schema_id") == schema_uri), config_val_block.get("errors", [])))
+                        if len(config_val_block_errors) > 0:
+                            self.logger.error(f"Validation errors in inline data from dataset {o_id} ({o_orig_id}) using {schema_uri}\n{config_val_block_errors}")
+                            should_exit = True
                     else:
-                        guess_unmatched = schema_url
-                    
-                    # Now, time to validate the dataset
-                    config_val_list = self.level2_min_validator.jsonValidate({
-                        "json": inline_data,
-                        "file": "inline " + o_id,
-                        "errors": [],
-                    }, guess_unmatched=guess_unmatched)
-                    assert len(config_val_list) > 0
-                    config_val_block = config_val_list[0]
-                    config_val_block_errors = list(filter(lambda ve: (schema_url is None) or (ve.get("schema_id") == schema_url), config_val_block.get("errors", [])))
-                    if len(config_val_block_errors) > 0:
-                        self.logger.error(f"Validation errors in inline data from dataset {o_id} ({o_orig_id}) using {schema_url}\n{config_val_block_errors}")
+                        self.logger.error(f"Fetched data from dataset {o_id} ({o_orig_id}) cannot be validated, as it does not have schema_uri")
                         should_exit = True
             
             
-            db_dataset = db_d_dict.get(o_id)
-            db_o_dataset = db_orig_d_dict.get(o_id)
+            db_match = db_d_map.get(o_id)
+            db_o_matches = db_orig_d_map.get(o_id)
             
             # The different ambiguity corner cases (take 1)
-            if db_dataset is not None and db_o_dataset is not None:
-                self.logger.error(f"Database could be poisoned, as {o_id} output matched two entries, {o_id} and {db_o_dataset['_id']}")
+            if db_match is not None and db_o_matches is not None:
+                self.logger.error(f"Database could be poisoned, as {o_id} output matched more than one entry, {o_id} and {', '.join(map(lambda aa: aa[0], db_o_matches))}")
                 self.logger.error(json.dumps(o_dataset, sort_keys=True, indent=4))
-                collisions.append((o_id, o_orig_id, db_o_dataset['_id']))
+                for db_o_match in db_o_matches:
+                    collisions.append((o_id, o_orig_id, db_o_match[0]))
                 continue
-                
-            d_dataset = db_dataset if db_dataset is not None else db_o_dataset
             
-            # The different ambiguity corner cases (take 2)
             if o_orig_id is not None:
-                db_i_orig_dataset = db_d_dict.get(o_orig_id)
-                db_orig_dataset = db_orig_d_dict.get(o_orig_id)
-                
-                if db_i_orig_dataset is not None:
-                    if db_orig_dataset is not None:
-                        self.logger.error(f"Database could be poisoned, as {o_orig_id} orig output matched two entries, {o_orig_id} and {db_orig_dataset['_id']}")
-                        self.logger.error(json.dumps(db_orig_dataset, sort_keys=True, indent=4))
+                db_i_orig_match = db_d_map.get(o_orig_id)
+                db_orig_matches = db_orig_d_map.get(o_orig_id)
+            
+                if db_i_orig_match is not None:
+                    if db_orig_matches is not None:
+                        self.logger.error(f"Database could be poisoned, as {o_orig_id} orig output matched two entries, {o_orig_id} and {', '.join(map(lambda aa: aa[0], db_orig_matches))}")
+                        #self.logger.error(json.dumps(db_orig_dataset, sort_keys=True, indent=4))
                     else:
                         self.logger.error(f"Database could be poisoned, as {o_orig_id} orig output matched entry with {o_orig_id} id")
                     
-                    self.logger.error(json.dumps(db_i_orig_dataset, sort_keys=True, indent=4))
+                    #self.logger.error(json.dumps(db_i_orig_dataset, sort_keys=True, indent=4))
                     self.logger.error(json.dumps(o_dataset, sort_keys=True, indent=4))
-                    if isinstance(db_orig_dataset, dict):
-                        collisions.append((o_id, o_orig_id, db_orig_dataset['_id']))
+                    if isinstance(db_orig_matches, list):
+                        for db_orig_match in db_orig_matches:
+                            collisions.append((o_id, o_orig_id, db_orig_match[0]))
                     else:
                         collisions.append((o_id, o_orig_id, "MISSING_DB_ORIG_DATASET"))
                     continue
-                elif db_orig_dataset is not None:
-                    if d_dataset is None:
-                        d_dataset = db_orig_dataset
-                    elif db_orig_dataset != d_dataset:
+                elif db_orig_matches is not None:
+                    if db_match is None:
+                        db_match = db_orig_matches[0]
+                    elif db_orig_matches[0][0] != db_match[0]:
                         self.logger.error(f"Output dataset {o_id} (orig {o_orig_id}) matches two different database datasets:")
-                        self.logger.error(json.dumps(d_dataset, sort_keys=True, indent=4))
-                        self.logger.error(json.dumps(db_orig_dataset, sort_keys=True, indent=4))
-                        collisions.append((o_id, o_orig_id, db_orig_dataset['_id']))
+                        #self.logger.error(json.dumps(d_dataset, sort_keys=True, indent=4))
+                        #self.logger.error(json.dumps(db_orig_dataset, sort_keys=True, indent=4))
+                        for db_orig_match in db_orig_matches:
+                            collisions.append((o_id, o_orig_id, db_orig_match[0]))
                         continue
+
+            if db_match is not None:
+                d_id = db_match[0]
+                d_orig_id = db_match[1]
+            elif db_o_matches is not None:
+                d_id = db_o_matches[0][0]
+                d_orig_id = db_o_matches[0][1]
             else:
-                db_i_orig_dataset = None
-                db_orig_dataset = None
-            
-            # No dataset, no fun!
-            if d_dataset is None:
                 self.logger.info(f"Nothing matched output dataset {o_id} (orig {o_orig_id})")
                 continue
             
-            d_orig_id = cast("Optional[str]", d_dataset.get("orig_id"))
-            d_id = cast("str", d_dataset["_id"])
+            d_dataset = self.fetchStagedEntry('Dataset', d_id)
             
             # Now, corner cases
             # Case 1 o_id matches d_orig_id => good
@@ -1405,28 +1394,35 @@ class OpenEBenchUtils():
         
         return umbrella
     
-    def submit_oeb_buffer(self, json_data: "Sequence[Any]", community_id: "str") -> "None":
-        # TODO: remove this method when oeb_sci_admin_tools provides
-        # a method to upload without having to validate twice.
+    def validate_and_submit_oeb_buffer(
+        self,
+        community_id: "str",
+        json_data: "Sequence[Mapping[str, Any]]",
+        val_result_filename: "str",
+        payload_mode: "PayloadMode" = PayloadMode.THRESHOLD,
+    ) -> "None":
         self.logger.info(f"\n\t==================================\n\t8. Uploading workflow results to {self.oeb_submission_api}\n\t==================================\n")
-
-        header = {"Content-Type": "application/json"}
-        params = {
-                    'access_token': self.oeb_token,
-                    'community_id': community_id
-                    
-                }
-        r = requests.post(self.oeb_submission_api, params=params,
-                          data=json.dumps(json_data), headers=header)
-
-        if r.status_code != 200:
-            self.logger.fatal("Error in uploading data to OpenEBench. Bad request: " +
-                          str(r.status_code) + str(r.text))
+        
+        assert self.schema_prefix is not None
+        assert self.schema_validators is not None
+        
+        sendable_entries = list(map(lambda e: YieldedInput(content=e, path="inline " + e["_id"]), json_data))
+        
+        try:
+            self.admin_tools.data_upload(
+                community_id,
+                sendable_entries,
+                val_result_filename,
+                data_model_dir=(self.schema_prefix, list(self.schema_validators.getValidSchemas().values())),
+                deep_schemas_dir=get_oeb_level2_schemas_path(),
+                payload_mode=payload_mode,
+            )
+        except urllib.error.HTTPError as he:
+            self.logger.fatal(f"Error in uploading data to OpenEBench. Bad request: {he.code} {he.reason}\n{he.read()!r}")
             sys.exit()
         else:
             self.logger.info(
                 "\n\tData uploaded correctly...finalizing migration\n\n")
-            self.logger.debug(r.text)
 
 
 def rchop(s: "str", sub: "str") -> "str":
