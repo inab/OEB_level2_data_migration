@@ -696,7 +696,7 @@ def main() -> "None":
         args.dry_run,
         args.trustREST,
         args.logFilename,
-        args.logLevel,
+        logging.INFO if args.logLevel is None else args.logLevel,
         payload_mode=args.payload_mode,
     )
 
