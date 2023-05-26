@@ -522,7 +522,9 @@ def validate_transform_and_push(
         
     #stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     #stagedDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
+    logging.info("-> Querying related TestActions")
     stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
+    logging.info("-> Querying related Datasets")
     stagedDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
 
     # Needed to better consolidate
