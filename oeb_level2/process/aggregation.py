@@ -667,7 +667,10 @@ class AggregationBuilder():
                 continue
             
             the_vis_type = min_datalink.get("inline_data", {}).get("visualization", {}).get("type")
-            assert the_vis_type is not None
+            if the_vis_type is None:
+                self.logger.critical(f"Minimal aggregation dataset {the_id} does not contain a visualization type!!!! Talk to the data providers")
+                failed_min_agg = True
+                continue
             
             community_ids = [ community_id ]
             # Mapping challenges
