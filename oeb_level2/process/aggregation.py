@@ -677,20 +677,18 @@ class AggregationBuilder():
             challenge_ids = []
             idx_challenges = []
             failed_ch_mapping = False
+            
+            # This is needed to be initialized here
             the_challenge_contacts = []
             workflow_tool_id = putative_workflow_tool_id
             workflow_metrics_id = None
             # This is used in the returned dataset
             the_rel_dataset_ids: "MutableSequence[RelDataset]" = []
-            # This is used to later compute the contents
-            met_dataset_groups: "MutableSequence[Tuple[Sequence[Mapping[str, Any]], IndexedDatasets]]" = []
             
             if len(min_dataset["challenge_ids"]) > 1:
                 self.logger.warning(f"Minimal aggregation dataset {the_id} is associated to more than one challenge! Using only the first one due limitations of this software")
             idx_agg = None
             idat_ass = None
-            ita_m_events = None
-            met_datasets: "Sequence[Mapping[str, Any]]"
             for challenge_label in min_dataset["challenge_ids"]:
                 idx_agg = agg_challenges.get(challenge_label)
                 if idx_agg is None:
@@ -758,12 +756,6 @@ class AggregationBuilder():
                                 wmi_was_set = True
                                         
                             
-                    elif m_cat == "assessment":
-                        # Now time to milk the structures
-                        for metric_decl in metrics_category.get("metrics", []):
-                            met_datasets = list(idat_ass.datasets_from_metric(metric_decl["metrics_id"]))
-                            met_dataset_groups.append((met_datasets, idat_ass))
-                            the_rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
                         
                     
                 if not wmi_was_set:
@@ -782,6 +774,8 @@ class AggregationBuilder():
                 failed_min_agg = True
                 continue
             
+            assert idat_ass is not None
+            
             # Dealing with the inline data, where 
             min_inline_data = min_datalink.get("inline_data")
             datalink = None
@@ -793,17 +787,23 @@ class AggregationBuilder():
                 if isinstance(vis, dict):
                     vis_type = vis.get("type")
                     
+                    involved_metrics = []
+                    
                     agg_postfix = idx_agg.challenge_label_and_sep.sep + idx_agg.challenge_label_and_sep.aggregation_sep
                     the_id_postfix = idx_agg.challenge_label_and_sep.sep
                     if vis_type == "2D-plot":
+                        involved_metrics.append(vis['x_axis'])
+                        involved_metrics.append(vis['y_axis'])
                         the_id_postfix += f"{vis['x_axis']}{idx_agg.challenge_label_and_sep.metrics_label_sep}{vis['y_axis']}"
                         metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
                         manage_datalink = True
                     elif vis_type == "bar-plot":
+                        involved_metrics.append(vis['metric'])
                         the_id_postfix += vis['metric']
                         metrics_str = vis['metric']
                         manage_datalink = True
                     elif vis_type == "box-plot":
+                        involved_metrics.extend(vis['available_metrics'])
                         the_id_postfix += idx_agg.challenge_label_and_sep.metrics_label_sep.join(vis['available_metrics'])
                         metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
@@ -838,14 +838,19 @@ class AggregationBuilder():
                         assert ita_m_events is not None
                         
                         # Now to rebuild the metrics
-                        for i_met, met_datasets_tuple in enumerate(met_dataset_groups):
-                            met_datasets, idat_ass = met_datasets_tuple
+                        for i_met, involved_metric in enumerate(involved_metrics):
+                            # Select the metrics just "guessing"
+                            mm_trio = idx_agg.match_metric_from_metrics_label(involved_metric, the_id)
+                            assert mm_trio is not None
+                            
+                            met_datasets = list(idat_ass.datasets_from_metric(mm_trio.metrics_id))
                             for met_dataset in met_datasets:
                                 tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
                                 if tar is None:
                                     self.logger.error(f"Unindexed MetricsEvent TestAction for minimal dataset {the_id}")
                                     continue
-
+                                
+                                the_rel_dataset_ids.append({"dataset_id": cast("str", met_dataset["_id"])})
                                 # Now, the participant datasets can be rescued
                                 # to get or guess its label
                                 inline_data_label = None

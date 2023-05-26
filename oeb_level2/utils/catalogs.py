@@ -913,7 +913,8 @@ class TestActionsCatalog:
     def get(self, action_type: "str") -> "Optional[IndexedTestActions]":
         return self.catalogs.get(action_type)
 
-class IndexedChallenge(NamedTuple):
+@dataclasses.dataclass
+class IndexedChallenge:
     challenge: "Mapping[str, Any]"
     challenge_id: "str"
     challenge_label_and_sep: "ChallengeLabelAndSep"
@@ -921,3 +922,17 @@ class IndexedChallenge(NamedTuple):
     ta_catalog: "TestActionsCatalog"
     # Assessment metrics categories catalog
     ass_cat: "Sequence[Mapping[str, Any]]"
+    # Which logger to use
+    logger: "Union[logging.Logger, ModuleType]" = logging
+    
+    def match_metric_from_metrics_label(self, metrics_label: "str", dataset_id: "str" = "(unknown)") -> "Optional[MetricsTrio]":
+        return match_metric_from_label(
+            logger=self.logger,
+            metrics_graphql=self.d_catalog.metrics_graphql,
+            community_prefix=self.d_catalog.community_prefix,
+            metrics_label=metrics_label,
+            challenge_id=self.challenge_id,
+            challenge_acronym=self.challenge['acronym'],
+            challenge_assessment_metrics_d=gen_challenge_assessment_metrics_dict(self.challenge),
+            dataset_id=dataset_id,
+        )
