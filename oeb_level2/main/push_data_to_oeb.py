@@ -396,9 +396,9 @@ def validate_transform_and_push(
             pass
 
     # Early checks over the minimal input datasets
-    logging.info("-> Prefetching the list of datasets")
-    for _ in migration_utils.fetchStagedAndSandboxData('Dataset'):
-        break
+    #logging.info("-> Prefetching the list of datasets")
+    #for _ in migration_utils.fetchStagedAndSandboxData('Dataset'):
+    #    break
     
     # Prefixes about communities
     stagedCommunity = migration_utils.fetchStagedEntry("Community", community_id)
@@ -474,7 +474,8 @@ def validate_transform_and_push(
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
     process_participant = ParticipantBuilder(schemaMappings, migration_utils)
     community_id = bench_event["community_id"]
-    stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
+    #stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
+    stagedParticipantDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
     valid_participant_tuples = process_participant.build_participant_dataset(
         input_query_response["data"]["getChallenges"],
         stagedParticipantDatasets,
@@ -519,8 +520,10 @@ def validate_transform_and_push(
         community_ids_set.update(pvc.participant_dataset["community_ids"])
         challenge_ids_set.update(map(lambda chp: cast("str", chp.entry["_id"]), pvc.challenge_pairs))
         
-    stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
-    stagedDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
+    #stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
+    #stagedDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
+    stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
+    stagedDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
 
     # Needed to better consolidate
     stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
