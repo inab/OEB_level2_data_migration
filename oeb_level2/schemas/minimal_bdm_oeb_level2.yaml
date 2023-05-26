@@ -352,6 +352,14 @@ $defs:
 #        - members:
 #          - .
 #          schema_id: https://www.elixir-europe.org/excelerate/WP2/json-schemas/1.0/Community
+      aggregation_metric_id:
+        title: The OEB official id or label of the aggregation metrics to be associated to this aggregation dataset
+        type: string
+        minLength: 1
+        description: >-
+          The label of one of the metrics registered under the challenge declaration.
+          This is needed to disambiguate the metrics to associate to the aggregation
+          dataset when the challenge defines more than one.
       datalink:
         title: The aggregation data itself
         type: object
