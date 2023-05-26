@@ -620,7 +620,7 @@ class AggregationBuilder():
         valid_assessment_tuples: "Sequence[AssessmentTuple]",
         valid_test_events: "Sequence[Mapping[str, Any]]",
         valid_metrics_events: "Sequence[Mapping[str, Any]]",
-        workflow_tool_id: "str",
+        putative_workflow_tool_id: "str",
     ) -> "Sequence[AggregationTuple]":
         
         self.logger.info(
@@ -659,11 +659,15 @@ class AggregationBuilder():
         for min_dataset in min_aggregation_datasets:
             the_id = min_dataset['_id']
             the_orig_id = None
+            the_agg_metric_label = min_dataset.get("aggregation_metric_id")
             min_datalink = min_dataset.get("datalink")
             if not isinstance(min_datalink, dict):
                 self.logger.critical(f"Minimal aggregation dataset {the_id} does not contain datalink!!!! Talk to the data providers")
                 failed_min_agg = True
                 continue
+            
+            the_vis_type = min_datalink.get("inline_data", {}).get("visualization", {}).get("type")
+            assert the_vis_type is not None
             
             community_ids = [ community_id ]
             # Mapping challenges
@@ -671,12 +675,15 @@ class AggregationBuilder():
             idx_challenges = []
             failed_ch_mapping = False
             the_challenge_contacts = []
+            workflow_tool_id = putative_workflow_tool_id
             workflow_metrics_id = None
             # This is used in the returned dataset
             the_rel_dataset_ids: "MutableSequence[RelDataset]" = []
             # This is used to later compute the contents
             met_dataset_groups: "MutableSequence[Tuple[Sequence[Mapping[str, Any]], IndexedDatasets]]" = []
             
+            if len(min_dataset["challenge_ids"]) > 1:
+                self.logger.warning(f"Minimal aggregation dataset {the_id} is associated to more than one challenge! Using only the first one due limitations of this software")
             idx_agg = None
             idat_ass = None
             ita_m_events = None
@@ -701,15 +708,53 @@ class AggregationBuilder():
                 
                 for metrics_category in idx_agg.challenge.get("metrics_categories",[]):
                     m_cat = metrics_category.get("category")
-                    # TODO: how to deal with cases where more
+                    # This is how we deal with cases where more
                     #  than one aggregation metrics happens
                     if m_cat == "aggregation":
                         if not wmi_was_set:
+                            workflow_metrics = []
                             for metric_decl in metrics_category.get("metrics", []):
-                                if metric_decl["tool_id"] == workflow_tool_id:
-                                    workflow_metrics_id = metric_decl.get("metrics_id")
-                                    wmi_was_set = True
+                                metric_tool_id = metric_decl.get("tool_id")
+                                mmi = self.migration_utils.fetchStagedEntry('Metrics', metric_decl["metrics_id"])
+                                metrics_trio = self.migration_utils.getMetricsTrioFromMetric(mmi, idx_agg.d_catalog.community_prefix, metric_tool_id)
+                                if the_agg_metric_label is not None:
+                                    if metrics_trio.proposed_label != the_agg_metric_label:
+                                        # Do not match
+                                        continue
+                                    workflow_metrics_ids = [ (metrics_trio, mmi) ]
                                     break
+                                elif metric_tool_id is None or metric_tool_id == putative_workflow_tool_id:
+                                    workflow_metrics.append((metrics_trio, mmi))
+
+                            if len(workflow_metrics) > 1:
+                                # Now looking for a best match
+                                possible_trios = []
+                                matched_trios = []
+                                for metrics_trio, mmi in workflow_metrics:
+                                    m_vis_type = mmi.get("representation_hints", {}).get("visualization")
+                                    if m_vis_type is None:
+                                        possible_trios.append(metrics_trio)
+                                    elif m_vis_type == the_vis_type:
+                                        matched_trios.append(metrics_trio)
+                                if len(matched_trios) >= 1:
+                                    if len(matched_trios) > 1:
+                                        self.logger.warning(f"Guessed metrics {matched_trios[0].metrics_id} for {the_id}")
+                                    workflow_metrics = [ (matched_trios[0], {}) ]
+                                elif len(matched_trios) == 0:
+                                    if len(possible_trios) >= 1:
+                                        if len(possible_trios) > 1:
+                                            self.logger.warning(f"Guessed metrics {possible_trios[0].metrics_id} for {the_id}")
+                                        workflow_metrics = [ (possible_trios[0], {}) ]
+
+                            if len(workflow_metrics) > 0:
+                                metrics_trio = workflow_metrics[0][0]
+                                workflow_metrics_id = metrics_trio.metrics_id
+                                if metrics_trio.tool_id is not None and metrics_trio.tool_id != putative_workflow_tool_id:
+                                    self.logger.warning(f"Proposed tool {putative_workflow_tool_id} does not match in the metrics declaration at the challenge. Using instead {metrics_trio.tool_id}")
+                                    workflow_tool_id = metrics_trio.tool_id
+                                wmi_was_set = True
+                                        
+                            
                     elif m_cat == "assessment":
                         # Now time to milk the structures
                         for metric_decl in metrics_category.get("metrics", []):
@@ -719,7 +764,7 @@ class AggregationBuilder():
                         
                     
                 if not wmi_was_set:
-                    self.logger.critical(f"In challenge {idx_agg.challenge['_id']}, unable to set the metrics id from workflow tool id {workflow_tool_id}")
+                    self.logger.critical(f"In challenge {idx_agg.challenge['_id']}, unable to set/guess the metrics id from workflow tool id {workflow_tool_id}")
                 
                 # Only the first challenge please
                 break

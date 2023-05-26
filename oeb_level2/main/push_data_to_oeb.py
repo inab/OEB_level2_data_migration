@@ -569,7 +569,7 @@ def validate_transform_and_push(
         valid_assessment_tuples,
         valid_test_events,
         valid_metrics_events,
-        workflow_id,
+        putative_workflow_tool_id=workflow_id,
     )
     
     logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
