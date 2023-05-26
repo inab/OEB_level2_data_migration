@@ -62,10 +62,11 @@ def validate_challenges(
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
     log_filename: "Optional[str]" = None,
+    log_level: "int" = logging.INFO,
 ) -> "None":
     loggingConfig: "BasicLoggingConfigDict" = {
         "level": logging.INFO,
-#        "format": LOGFORMAT,
+        "format": VERBOSE_LOGFORMAT if log_level < logging.INFO else LOGFORMAT,
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
@@ -175,6 +176,30 @@ def main() -> "None":
         help="Store logging messages in a file instead of using standard error and standard output",
     )
     parser.add_argument(
+        "-q",
+        "--quiet",
+        dest="logLevel",
+        action="store_const",
+        const=logging.WARNING,
+        help="Only show engine warnings and errors",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="logLevel",
+        action="store_const",
+        const=logging.INFO,
+        help="Show verbose (informational) messages",
+    )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        dest="logLevel",
+        action="store_const",
+        const=logging.DEBUG,
+        help="Show debug messages (use with care, as it could potentially disclose sensitive contents)",
+    )
+    parser.add_argument(
         "bench_event_id",
         help="Benchmarking event id whose challenges are going to be validated",
     )
@@ -186,7 +211,14 @@ def main() -> "None":
 
     args = parser.parse_args()
 
-    validate_challenges(args.bench_event_id, args.challenge_id, args.oeb_submit_api_creds, args.oeb_submit_api_token, args.logFilename)
+    validate_challenges(
+        args.bench_event_id,
+        args.challenge_id,
+        args.oeb_submit_api_creds,
+        args.oeb_submit_api_token,
+        args.logFilename,
+        log_level=logging.INFO if args.logLevel is None else args.logLevel,
+    )
     
 if __name__ == '__main__':
     main()
