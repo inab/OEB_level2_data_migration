@@ -53,6 +53,7 @@ from oebtools.common import(
 
 from oebtools.fetch import (
     DEFAULT_BDM_TAG,
+    DEFAULT_CONCEPT_DESC,
     FetchedInlineData,
     FLAVOR_SANDBOX,
     FLAVOR_STAGED,
@@ -1124,6 +1125,67 @@ class OpenEBenchUtils():
                 this_seen.add(d["_id"])
                 yield d
             seen.update(this_seen)
+    
+    def fetchSandboxAndGraphQLStagedData(self, data_type: "str", filtering_keys: "Mapping[str, Union[Sequence[str], Set[str]]]" = {}) -> "Iterator[Mapping[str, Any]]":
+        # sandbox entries take precedence over other ones
+        seen: "Set[str]" = set()
+        # First, sandbox data
+        for d in self.admin_tools.iterateConceptEntries(
+            data_type,
+            flavor=FLAVOR_SANDBOX,
+            filtering_keys=filtering_keys,
+        ):
+            seen.add(d["_id"])
+            yield d
+        
+        # Then, query through graphql to fetch the ids
+        # and getting the staged entries one by one
+        concept_desc = DEFAULT_CONCEPT_DESC.get(data_type)
+        if concept_desc is not None and concept_desc[0] is not None:
+            result_key = concept_desc[0]
+            
+            varkeys = []
+            varvals = []
+            # Guessing from the 
+            q_filter = data_type[0].lower() + data_type[1:] + "Filters"
+            query = f"{q_filter}: {{"
+            for key, vals in filtering_keys.items():
+                # Plurals are translated to singular
+                if key.endswith("s"):
+                    t_key = key[:-1]
+                else:
+                    t_key = key
+                if query[-1] != "{":
+                    query += ", "
+                query += f"{t_key}: ${t_key}"
+                varkeys.append(t_key)
+                varvals.append(vals)
+            query += "}"
+            graphql_query = f"""	{result_key}({query}) {{
+		_id
+	}}
+"""
+            self.logger.debug(f"graphql query {graphql_query}")
+            for comb in itertools.product(*varvals):
+                variables = {
+                    k: v
+                    for k, v in zip(varkeys, comb)
+                }
+                response = self.admin_tools.query_graphql(
+                    graphql_query,
+                    variables=variables,
+                )
+                # get challenges and input datasets for provided benchmarking event
+                data = response.get('data')
+                if not isinstance(data, dict):
+                    self.logger.fatal(f"graphqL query:\n{query}\nreturned errors:\n{response}")
+                    sys.exit(2)
+                for res in data[result_key]:
+                    the_id = res["_id"]
+                    if the_id in seen:
+                        continue
+                    seen.add(the_id)
+                    yield self.fetchStagedEntry(data_type, the_id)
     
     @memoized_method(maxsize=None)
     def fetchStagedEntry(self, dataType: "str", the_id: "str") -> "Mapping[str, Any]":
