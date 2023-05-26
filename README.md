@@ -67,6 +67,19 @@ ln -s uplifted.json uplifted.json.array
 oeb-uploader.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json --trust-rest-bdm --deep-bdm-dir . --dry-run uplifted.json.array
 ```
 
+In order to upload the data to the sandbox, you can either use `oeb-uploader.py` telling the community:
+
+```bash
+ln -s uplifted.json uplifted.json.array
+oeb-uploader.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json --trust-rest-bdm --deep-bdm-dir . --community-id OEBC999 uplifted.json.array
+```
+
+or run the command again without the dry-run (and keeping a copy of the uploaded content)
+
+```bash
+python push_data_to_oeb.py -i config.json -cr your_auth_config.json --trust-rest-bdm -o uplifted.json
+```
+
 ## Development
 
 First, install the Python development dependencies in the very same virtual environment as the runtime ones:
