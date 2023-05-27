@@ -420,8 +420,8 @@ class IndexedDatasets:
                         ]
                         
                         # Check the suffix
-                        suffix = self.challenge_label_and_sep.sep + f"{x_axis_metric_label}+{y_axis_metric_label}"
-                        proposed_suffix = self.challenge_label_and_sep.sep + f"{x_trio_proposed_label}+{y_trio_proposed_label}"
+                        suffix = self.challenge_label_and_sep.sep + f"{x_axis_metric_label}{self.challenge_label_and_sep.metrics_label_sep}{y_axis_metric_label}"
+                        proposed_suffix = self.challenge_label_and_sep.sep + f"{x_trio_proposed_label}{self.challenge_label_and_sep.metrics_label_sep}{y_trio_proposed_label}"
                 elif vis_type == "bar-plot":
                     metrics_label = vis_hints.get("metric")
                     if metrics_label is None:
