@@ -520,15 +520,13 @@ def validate_transform_and_push(
         community_ids_set.update(pvc.participant_dataset["community_ids"])
         challenge_ids_set.update(map(lambda chp: cast("str", chp.entry["_id"]), pvc.challenge_pairs))
         
+    #logging.info("-> Querying related TestActions")
     #stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
-    #stagedDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
-    logging.info("-> Querying related TestActions")
-    stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
-    logging.info("-> Querying related Datasets")
-    stagedDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment", "aggregation"]}))
-
+    #stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
+    logging.info("-> Querying related assessment Datasets")
     # Needed to better consolidate
-    stagedAssessmentDatasets = list(filter(lambda d: d.get('type') == "assessment", stagedDatasets))
+    stagedAssessmentDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment"]}))
+    #stagedAssessmentDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment"]}))
     
     logging.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
     process_assessments = AssessmentBuilder(schemaMappings, migration_utils)
@@ -626,6 +624,8 @@ def validate_transform_and_push(
     else:
         logging.info("Validating and submitting...")
         migration_utils.validate_and_submit_oeb_buffer(community_id, final_data, val_result_filename, payload_mode=payload_mode)
+        logging.info("If the validation and submission worked, uplifted data is in the sandbox. So, you have to run next command to finish the submission")
+        logging.info(f"oeb-sandbox.py --base_url {migration_utils.oeb_api_base} -cr {oeb_credentials_filename} stage")
 
 def main() -> "None":
     parser = argparse.ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
