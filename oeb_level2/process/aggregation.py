@@ -348,7 +348,7 @@ class AggregationValidator():
                                 met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
                                 
                                 met_set = set(map(lambda m: cast("str", m["_id"]), met_datasets))
-                                if not(rel_ids_set > met_set):
+                                if not(rel_ids_set >= met_set):
                                     new_set = met_set - rel_ids_set
                                     self.logger.error(f"Aggregation dataset {agg_dataset_id} should also depend on {len(new_set)} datasets: {', '.join(new_set)}")
                                     rebuild_agg = True
