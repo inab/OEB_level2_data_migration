@@ -545,6 +545,7 @@ class OpenEBenchUtils():
         _id
         orig_id
         community_id
+        _metadata
     }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
@@ -581,6 +582,7 @@ class OpenEBenchUtils():
         _id
         orig_id
         community_id
+        _metadata
     }
     getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
         _id
