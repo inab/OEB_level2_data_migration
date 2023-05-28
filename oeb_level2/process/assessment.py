@@ -99,6 +99,32 @@ class AssessmentBuilder():
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
                 continue
             
+            # replace dataset related challenges with oeb challenge ids
+            execution_challenges = []
+            execution_challenge_ids = []
+            try:
+                the_challenge = oeb_challenges[min_dataset["challenge_id"]]
+                execution_challenges.append(the_challenge)
+                execution_challenge_ids.append(the_challenge["_id"])
+                cam_d = gen_challenge_assessment_metrics_dict(the_challenge)
+            except:
+                self.logger.warning("No challenges associated to " +
+                             min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                self.logger.warning(
+                    min_dataset["_id"] + " not processed, skipping to next assessment element...")
+                continue
+                # sys.exit()
+
+            if do_fix_orig_ids:
+                min_id = self.migration_utils.gen_assessment_original_id_from_min_dataset(
+                    min_dataset,
+                    community_prefix,
+                    bench_event_prefix_et_al,
+                    challenge_ids=execution_challenge_ids,
+                )
+            else:
+                min_id = min_dataset["_id"]
+            
             # Matching the correct challenge pair
             min_challenge_id = min_dataset["challenge_id"]
             for pvc in pvcs:
@@ -110,7 +136,7 @@ class AssessmentBuilder():
                 if got_challenge:
                     break
             else:
-                self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} with challenge {min_challenge_id} was not matched, skipping to next assessment element...")
+                self.logger.warning(f"Assessment dataset {min_id} was not processed because participant {assessment_participant_label} with challenge {min_challenge_id} was not matched, skipping to next assessment element...")
                 continue
             
             min_d_metrics = min_dataset["metrics"]
@@ -123,20 +149,20 @@ class AssessmentBuilder():
             community_ids = valid_participant_data["community_ids"]
             
             self.logger.info('Building object "' +
-                             str(min_dataset["_id"]) + '"...')
+                             str(min_id) + '"...')
             # initialize new dataset object
-            stagedEntry = stagedMap.get(min_dataset["_id"])
+            stagedEntry = stagedMap.get(min_id)
             valid_data: "MutableMapping[str, Any]"
             if stagedEntry is None:
                 valid_data = {
-                    "_id": min_dataset["_id"],
+                    "_id": min_id,
                     "type": "assessment"
                 }
             else:
                 valid_data = {
                     "_id": stagedEntry["_id"],
                     "type": "assessment",
-                    "orig_id": min_dataset["_id"],
+                    "orig_id": min_id,
                     "dates": stagedEntry["dates"]
                 }
             
@@ -163,24 +189,10 @@ class AssessmentBuilder():
                 self.logger.warning("No challenges associated to " +
                              min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 self.logger.warning(
-                    min_dataset["_id"] + " not processed, skipping to next assessment element...")
+                    min_id + " not processed, skipping to next assessment element...")
                 continue
             
-            # replace dataset related challenges with oeb challenge ids
-            execution_challenges = []
-            try:
-                the_challenge = oeb_challenges[min_dataset["challenge_id"]]
-                execution_challenges.append(the_challenge)
-                cam_d = gen_challenge_assessment_metrics_dict(the_challenge)
-            except:
-                self.logger.warning("No challenges associated to " +
-                             min_dataset["challenge_id"] + " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                self.logger.warning(
-                    min_dataset["_id"] + " not processed, skipping to next assessment element...")
-                continue
-                # sys.exit()
-
-            valid_data["challenge_ids"] = list(map(lambda ex: cast("str", ex["_id"]) , execution_challenges))
+            valid_data["challenge_ids"] = execution_challenge_ids
 
             # select metrics_reference datasets used in the challenges
             rel_oeb_datasets = set()
@@ -254,7 +266,7 @@ class AssessmentBuilder():
                 challenge_id=the_challenge['_id'],
                 challenge_acronym=the_challenge['acronym'],
                 challenge_assessment_metrics_d=cam_d,
-                dataset_id=min_dataset['_id'],
+                dataset_id=min_id,
             )
             if matched_metric is None:
                 should_end.append((the_challenge['_id'], the_challenge['acronym']))
@@ -276,7 +288,7 @@ class AssessmentBuilder():
             # add dataset contacts ids, based on already processed data
             valid_data["dataset_contact_ids"] = valid_participant_data["dataset_contact_ids"]
 
-            self.logger.info('Processed "' + str(min_dataset["_id"]) + '"...')
+            self.logger.info(f'Processed "{str(min_id)}" (was {min_dataset["_id"]}) ...')
 
             # It is really a check through comparison of what was generated
             fixed_entry = self.migration_utils.fix_assessment_original_id(

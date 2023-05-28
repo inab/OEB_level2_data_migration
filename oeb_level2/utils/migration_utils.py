@@ -411,6 +411,29 @@ class OpenEBenchUtils():
         expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
         
         return expected_orig_id
+    
+    def gen_assessment_original_id_from_min_dataset(
+        self,
+        min_dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        challenge_ids: "Sequence[str]",
+    ) -> "str":
+        # First, obtain the prefix
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(
+            min_dataset,
+            community_prefix,
+            bench_event_prefix_et_al,
+            challenge_ids=challenge_ids,
+        )
+        
+        # Then, dig in to get the participant label and metrics label
+        participant_label = cast("str", min_dataset["participant_id"])
+        metrics_label = cast("str", min_dataset["metrics"]["metric_id"])
+        
+        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(min_dataset["type"], "")
+        
+        return expected_orig_id
         
     def fix_assessment_original_id(
         self,
