@@ -269,12 +269,19 @@ class OpenEBenchUtils():
         dataset: "Mapping[str, Any]",
         community_prefix: "str",
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        challenge_ids: "Optional[Sequence[str]]" = None,
     ) ->  "Tuple[str, str]":
+        # This method is assuming the received challenge ids are OEB ones,
+        # not challenge labels
+        
+        if challenge_ids is None:
+            challenge_ids = dataset["challenge_ids"]
         # First, decide the prefix
         the_prefix = None
-        if len(dataset["challenge_ids"]) == 1:
+        
+        if len(challenge_ids) == 1:
             # Fetching the challenge prefix
-            challenge_elem = dataset["challenge_ids"][0]
+            challenge_elem = challenge_ids[0]
             challenge_id = challenge_elem["_id"] if isinstance(challenge_elem, dict)  else challenge_elem
             challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
             
@@ -295,7 +302,7 @@ class OpenEBenchUtils():
         else:
             benchmarking_event_id = None
             challenge_orig_id_separator = None
-            for challenge_elem in dataset["challenge_ids"]:
+            for challenge_elem in challenge_ids:
                 challenge_id = challenge_elem["_id"] if isinstance(challenge_elem, dict)  else challenge_elem
                     
                 challenge = self.fetchStagedEntry(dataType="Challenge", the_id=challenge_id)
@@ -329,6 +336,28 @@ class OpenEBenchUtils():
             participant_label = the_metadata.get("level_2:participant_id", participant_label)
         
         expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        
+        return expected_orig_id
+        
+    def gen_participant_original_id_from_min_dataset(
+        self,
+        min_dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        challenge_ids: "Sequence[str]",
+    ) -> "str":
+        # First, obtain the prefix
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(
+            min_dataset,
+            community_prefix,
+            bench_event_prefix_et_al,
+            challenge_ids=challenge_ids,
+        )
+        
+        # Then, dig in to get the participant label
+        participant_label = cast("str", min_dataset["participant_id"])
+        
+        expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(min_dataset["type"], "")
         
         return expected_orig_id
         

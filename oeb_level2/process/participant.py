@@ -148,8 +148,42 @@ class ParticipantBuilder():
             #    bench_event_prefix_et_al,
             #    p_config.participant_label,
             #)
+            
+            # replace dataset related challenges with oeb challenge ids
+            execution_challenges = []
+            min_challenge_labels = min_participant_data["challenge_id"]
+            if not isinstance(min_challenge_labels, list):
+                min_challenge_labels = [ min_challenge_labels ]
+            
+            challenge_pairs = []
+            should_exit = False
+            for challenge_label in min_challenge_labels:
+                try:
+                    execution_challenges.append(oeb_challenges[challenge_label]["_id"])
+                    challenge_pairs.append(
+                        ChallengePair(
+                            label=challenge_label,
+                            entry=oeb_challenges[challenge_label]
+                        )
+                    )
+                except:
+                    self.logger.critical("No challenges associated to " + challenge_label +
+                                  " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
+                    should_exit = True
+                    # Process next one
+            if should_exit:
+                should_exit_challenge = True
+                continue
 
-            the_id = min_participant_data["_id"]
+            if do_fix_orig_ids:
+                the_id = self.migration_utils.gen_participant_original_id_from_min_dataset(
+                    min_participant_data,
+                    community_prefix,
+                    bench_event_prefix_et_al,
+                    challenge_ids=execution_challenges,
+                )
+            else:
+                the_id = min_participant_data["_id"]
             
             stagedEntry = stagedMap.get(the_id)
             # initialize new dataset object
@@ -191,32 +225,6 @@ class ParticipantBuilder():
                 min_participant_data_description = "Predictions made by " + \
                     min_participant_data["participant_id"] + " participant"
             valid_participant_data["description"] = min_participant_data_description
-
-            # replace dataset related challenges with oeb challenge ids
-            execution_challenges = []
-            min_challenge_labels = min_participant_data["challenge_id"]
-            if not isinstance(min_challenge_labels, list):
-                min_challenge_labels = [ min_challenge_labels ]
-            
-            challenge_pairs = []
-            should_exit = False
-            for challenge_label in min_challenge_labels:
-                try:
-                    execution_challenges.append(oeb_challenges[challenge_label]["_id"])
-                    challenge_pairs.append(
-                        ChallengePair(
-                            label=challenge_label,
-                            entry=oeb_challenges[challenge_label]
-                        )
-                    )
-                except:
-                    self.logger.critical("No challenges associated to " + challenge_label +
-                                  " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
-                    should_exit = True
-                    # Process next one
-            if should_exit:
-                should_exit_challenge = True
-                continue
             
             if stagedEntry is not None:
                 cis = set(stagedEntry["challenge_ids"])
