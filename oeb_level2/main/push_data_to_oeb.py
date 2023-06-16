@@ -103,6 +103,7 @@ def validate_transform_and_push(
     oeb_token: "Optional[str]" = None,
     val_result_filename: "str" = "/dev/null",
     output_filename: "Optional[str]" = None,
+    skip_min_validation: "bool" = False,
     dry_run: "bool" = False,
     use_server_schemas: "bool" = False,
     log_filename: "Optional[str]" = None,
@@ -286,18 +287,21 @@ def validate_transform_and_push(
     
     # Now, it is time to validate the fetched data
     # in inline mode
-    validable_data: "ParsedContentEntry" = {
-        "file": input_file if input_url is None else input_url,
-        "json": data,
-        "errors": []
-    }
-    validated_data = level2_min_validator.jsonValidate(validable_data, guess_unmatched=[level2_schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID])
-    assert len(validated_data) > 0
-    validated_data_block = validated_data[0]
-    validated_data_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID, validated_data_block.get("errors", [])))
-    if len(validated_data_block_errors) > 0:
-        logging.error(f"Errors in data file {validated_data_block['file']}\n{json.dumps(validated_data_block_errors, indent=4)}")
-        sys.exit(2)
+    if skip_min_validation:
+        logging.info("-> Skipped minimal dataset JSON validation (you are sure it's 100% correct, right?)")
+    else:
+        validable_data: "ParsedContentEntry" = {
+            "file": input_file if input_url is None else input_url,
+            "json": data,
+            "errors": []
+        }
+        validated_data = level2_min_validator.jsonValidate(validable_data, guess_unmatched=[level2_schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID])
+        assert len(validated_data) > 0
+        validated_data_block = validated_data[0]
+        validated_data_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID, validated_data_block.get("errors", [])))
+        if len(validated_data_block_errors) > 0:
+            logging.error(f"Errors in data file {validated_data_block['file']}\n{json.dumps(validated_data_block_errors, indent=4)}")
+            sys.exit(2)
     
     # sort out dataset depending on 'type' property
     logging.info("-> Sorting out minimal datasets to be processed based on their type")
@@ -639,6 +643,9 @@ def main() -> "None":
                         credentials file provided with -cr must have defined 'clientId', 'grantType', 'user' and 'pass'")
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file", default="/dev/null")
+    parser.add_argument("--skip-min-validation",
+                        help="If you are 100% sure the minimal dataset is valid, skip the early validation (useful for huge datasets)",
+                        action="store_true")
     parser.add_argument("-o",
                         dest="submit_output_file",
                         help="Save what it was going to be submitted in this file")
@@ -699,6 +706,7 @@ def main() -> "None":
         val_result_filename=args.val_output,
         output_filename=args.submit_output_file,
         dry_run=args.dry_run,
+        skip_min_validation=args.skip_min_validation,
         use_server_schemas=args.trustREST,
         log_filename=args.logFilename,
         log_level=logging.INFO if args.logLevel is None else args.logLevel,
