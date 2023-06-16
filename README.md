@@ -15,8 +15,9 @@ In order to use the migration tool, some requirements need to be fulfilled:
 
 ```
 usage: push_data_to_oeb.py [-h] -i DATASET_CONFIG_JSON -cr OEB_SUBMIT_API_CREDS [-tk OEB_SUBMIT_API_TOKEN]
-                           [--val_output VAL_OUTPUT] [-o SUBMIT_OUTPUT_FILE] [--dry-run] [--trust-rest-bdm]
-                           [--log-file LOGFILENAME] [-q] [-v] [-d] [--payload-mode {as-is,threshold,force-inline,force-payload}]
+                           [--val_output VAL_OUTPUT] [--skip-min-validation] [-o SUBMIT_OUTPUT_FILE] [--dry-run]
+                           [--trust-rest-bdm] [--log-file LOGFILENAME] [-q] [-v] [-d]
+                           [--payload-mode {as-is,threshold,force-inline,force-payload}]
 
 OEB Level 2 push_data_to_oeb
 
@@ -31,6 +32,13 @@ optional arguments:
                         must have defined 'clientId', 'grantType', 'user' and 'pass' (default: None)
   --val_output VAL_OUTPUT
                         Save the JSON Schema validation output to a file (default: /dev/null)
+  --skip-min-validation
+                        If you are 100{'option_strings': ['--skip-min-validation'], 'dest': 'skip_min_validation', 'nargs': 0,
+                        'const': True, 'default': False, 'type': None, 'choices': None, 'required': False, 'help': 'If you are
+                        100% sure the minimal dataset is valid, skip the early validation (useful for huge datasets)',
+                        'metavar': None, 'container': <argparse._ArgumentGroup object at 0x7f3596047a90>, 'prog':
+                        'push_data_to_oeb.py'}ure the minimal dataset is valid, skip the early validation (useful for huge
+                        datasets) (default: False)
   -o SUBMIT_OUTPUT_FILE
                         Save what it was going to be submitted in this file (default: None)
   --dry-run             Only validate, do not submit (dry-run) (default: False)
