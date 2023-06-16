@@ -134,6 +134,7 @@ class ParticipantBuilder():
         
         valid_participant_tuples = []
         should_exit_challenge = False
+        should_exit_input_dataset = set()
         for min_participant_data in min_participant_dataset:
             # Get the participant_config
             p_config = tool_mapping.get(min_participant_data["participant_id"])
@@ -239,6 +240,11 @@ class ParticipantBuilder():
             for challenge_graphql in map(lambda cp: cp.entry, challenge_pairs):
                 for input_data in challenge_graphql["datasets"]:
                     rel_oeb_datasets.add(input_data["_id"])
+                
+            if len(rel_oeb_datasets) == 0:
+                self.logger.critical(f"No input dataset is associated to any of these challenges: {', '.join(min_challenge_labels)}. This is needed for correct building of participant dataset {valid_participant_data['_id']}. Skipped.")
+                should_exit_input_dataset.update(execution_challenge_ids)
+                continue
 
             # add data registration dates
             modtime = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
@@ -307,9 +313,12 @@ class ParticipantBuilder():
                 )
             )
 
-        if should_exit_challenge:
-            self.logger.critical("Some challenges where not located. Please either fix their labels or register them in OpenEBench")
-            sys.exit()
+        if should_exit_challenge or len(should_exit_input_dataset) > 0:
+            if should_exit_challenge:
+                self.logger.critical("Some challenges where not located. Please either fix their labels or register them in OpenEBench")
+            else:
+                self.logger.critical(f"No input dataset is associated to any of these challenges: {', '.join(should_exit_input_dataset)}. This is needed for correct building of several participant datasets. Fix it.")
+            sys.exit(5)
         
         return valid_participant_tuples
 
