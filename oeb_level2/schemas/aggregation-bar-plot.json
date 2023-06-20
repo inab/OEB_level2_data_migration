@@ -41,6 +41,14 @@
 					"title": "Metric label or description",
 					"type": "string",
 					"minLength": 1
+				},
+				"optimization": {
+					"title": "Chart representation optimization",
+					"type": "string",
+					"enum": [
+						"left",
+						"right"
+					]
 				}
                         },
                         "required": [
