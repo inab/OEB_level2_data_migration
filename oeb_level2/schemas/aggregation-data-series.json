@@ -52,6 +52,15 @@
 						]
 					}
 				},
+				"join_keys": [
+					{
+						"members": [
+							"metric_id"
+						],
+						"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
+						"refers_to": "available_metrics_index"
+					}
+				],
 				"required": [
 					"label",
 					"metric_id",
@@ -84,9 +93,11 @@
 					"minItems": 1
 				},
 				"optimization": {
-					"title": "Chart representation optimization (valid for 2D-plot)",
+					"title": "Chart representation optimization (valid for bar-plot and 2D-plot)",
 					"type": "string",
 					"enum": [
+						"left",
+						"right",
 						"top-left",
 						"top-right",
 						"bottom-left",
@@ -131,5 +142,12 @@
                 "challenge_participants",
                 "visualization"
         ],
+	"index": {
+		"name": "available_metrics_index",
+		"limit_scope": true,
+		"members": [
+			"visualization.available_metrics"
+		]
+	},
         "unevaluatedProperties": false
 }

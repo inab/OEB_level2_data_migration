@@ -449,6 +449,12 @@ $defs:
                     metric:
                       type: string
                       minLength: 1
+                    optimization:
+                      title: "Chart representation optimization"
+                      type: string
+                      enum:
+                      - "left"
+                      - "right"
                   required:
                   - type
                   - metric
@@ -489,6 +495,11 @@ $defs:
                             - v
                         - items:
                             type: number
+                    join_keys:
+                    - members:
+                      - metric_id
+                      schema_id: https://github.com/inab/benchmarking/minimal-json-schemas
+                      refers_to: available_metrics_index
                     required:
                     - label
                     - metric_id
@@ -508,9 +519,11 @@ $defs:
                       uniqueItems: true
                       minItems: 1
                     optimization:
-                      title: Chart representation optimization (valid for 2D-plot)
+                      title: Chart representation optimization (valid for bar-plot and 2D-plot)
                       type: string
                       enum:
+                      - left
+                      - right
                       - top-left
                       - top-right
                       - bottom-left
@@ -538,6 +551,11 @@ $defs:
                     - dataset_orig_id
                     unevaluatedProperties: false
                   minItems: 1
+              index:
+                name: available_metrics_index
+                members:
+                - visualization.available_metrics
+                limit_scope: true
               required:
               - series_type
               - challenge_participants
