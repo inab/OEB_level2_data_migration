@@ -347,7 +347,8 @@ class IndexedDatasets:
             
             if len(config_val_block_errors) > 0:
                 self.logger.error(f"Validation errors in {fetchable_uri} from {self.type} dataset {index_id} ({index_id_orig}) using {validable_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
-                return None
+                # This commented out in order to give a try to propose a fixed version
+                #return None
         
         if is_aggregation:
             if not isinstance(o_datalink, dict):
