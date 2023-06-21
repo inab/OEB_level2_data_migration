@@ -117,6 +117,7 @@ class MetricsTrio(NamedTuple):
     metrics_id: "str"
     tool_id: "Optional[str]"
     proposed_label: "str"
+    all_labels: "Sequence[str]"
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
@@ -1594,19 +1595,29 @@ class OpenEBenchUtils():
     def getMetricsTrioFromMetric(mmi: "Mapping[str, Any]", community_prefix: "str", tool_id: "Optional[str]") -> "MetricsTrio":
         # Getting a proposed label
         proposed_label: "str"
+        all_labels: "MutableSequence[str]" = []
         mmi_metadata = mmi.get("_metadata")
+        
         if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
             proposed_label = cast("str", mmi_metadata['level_2:metric_id'])
-        elif mmi["orig_id"].startswith(community_prefix):
-            proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])
-        else:
-            proposed_label = cast("str", mmi["orig_id"])
+            if proposed_label is not None:
+                all_labels.append(proposed_label)
         
-        assert proposed_label is not None
+        if mmi["orig_id"].startswith(community_prefix):
+            proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])
+            if proposed_label is not None:
+                all_labels.append(proposed_label)
+        
+        proposed_label = cast("str", mmi["orig_id"])
+        if proposed_label is not None:
+            all_labels.append(proposed_label)
+        
+        assert len(all_labels) > 0
         return MetricsTrio(
             metrics_id=mmi["_id"],
             tool_id=tool_id,
-            proposed_label=proposed_label,
+            proposed_label=all_labels[0],
+            all_labels=all_labels,
         )
     
     def getMetricsTrioFromMetricsId(self, metrics_id: "str", community_prefix: "str", tool_id: "Optional[str]") -> "MetricsTrio":
