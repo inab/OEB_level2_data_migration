@@ -295,8 +295,12 @@ class AggregationValidator():
                             # Visualization type determines later the labels
                             # to use in each entry of challenge_participants
                             vis_type = inline_data.get("visualization",{}).get("type")
-                            if vis_type == "box-plot":
+                            series_type = inline_data.get("series_type")
+                            if series_type == "aggregation-data-series":
                                 inline_data["series_type"] = "aggregation-data-series"
+                            raw_available_metrics_labels = inline_data.get("visualization",{}).get("available_metrics", [])
+                            changed_metrics_labels = False
+                            found_metrics = []
                             
                             # This set is used to detect mismatches between
                             # registered and gathered assessment datasets
@@ -354,6 +358,9 @@ class AggregationValidator():
                                     rebuild_agg = True
                                 regen_rel_ids_set.update(met_set)
                                 rel_dataset_ids.extend(map(lambda m: {"dataset_id": m["_id"]}, met_datasets))
+                                
+                                if len(met_datasets) > 0:
+                                    found_metrics.append(metrics_trio)
                                 
                                 for met_dataset in met_datasets:
                                     # Fetch the TestActionRel MetricsEvent entry
@@ -428,8 +435,12 @@ class AggregationValidator():
                                         mini_entry_2d = cast("ScatterData", mini_entry)
                                     elif vis_type == "bar-plot":
                                         mini_entry_b = cast("BarData", mini_entry)
-                                    elif vis_type == "box-plot":
-                                        mini_entry_s = cast("SeriesData", mini_entry)
+                                    elif series_type == "aggregation-data-series":
+                                        if vis_type == "box-plot":
+                                            mini_entry_s = cast("SeriesData", mini_entry)
+                                        else:
+                                            self.logger.critical(f"Unimplemented aggregation for {series_type} visualization type {vis_type} in dataset {agg_dataset_id}")
+                                            do_processing = False
                                     else:
                                         self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in dataset {agg_dataset_id}")
                                         do_processing = False
@@ -462,6 +473,30 @@ class AggregationValidator():
                                             })
                             
                             if not rebuild_agg:
+                                if series_type == "aggregation-data-series":
+                                    found_metrics_labels = list(map(lambda mt: mt.proposed_label, found_metrics))
+                                    if len(found_metrics) != len(raw_available_metrics_labels):
+                                        self.logger.error(f"Mismatch in {agg_dataset_id} length of available_metrics\n\n{json.dumps(found_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
+                                        inline_data["visualization"]["available_metrics"] = found_metrics_labels
+                                        changed_metrics_labels = True
+                                    else:
+                                        # Now it is time to validate each metrics label, to check it is the canonical one
+                                        proposed_metrics_labels = []
+                                        for r_av_label in raw_available_metrics_labels:
+                                            for found_metric in found_metrics:
+                                                if r_av_label in found_metric.all_labels:
+                                                    proposed_metrics_labels.append(found_metric.proposed_label)
+                                                    break
+                                            else:
+                                                self.logger.error(f"Ill-formed available_metrics in {agg_dataset_id}, as {r_av_label} label cannot be mapped to a metric")
+                                                changed_metrics_labels = True
+                                        
+                                        if len(proposed_metrics_labels) != len(raw_available_metrics_labels) or proposed_metrics_labels != raw_available_metrics_labels:
+                                            self.logger.error(f"Mismatch in {agg_dataset_id} available_metrics\n\n{json.dumps(proposed_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
+                                            inline_data["visualization"]["available_metrics"] = proposed_metrics_labels
+                                            changed_metrics_labels = True
+                                                
+                                
                                 raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", fetched_inline_data.data["challenge_participants"])
                                 if len(challenge_participants) != len(raw_challenge_participants):
                                     self.logger.error(f"Mismatch in {agg_dataset_id} length of challenge_participants\n\n{json.dumps(challenge_participants, indent=4, sort_keys=True)}\n\n{json.dumps(raw_challenge_participants, indent=4, sort_keys=True)}")
@@ -558,7 +593,7 @@ class AggregationValidator():
                                             self.logger.info(f"False positive label mismatch in aggregation dataset {agg_dataset_id}.")
                             
                             # Time to compare
-                            if rebuild_agg or changed_labels:
+                            if rebuild_agg or changed_labels or changed_metrics_labels:
                                 if rebuild_agg:
                                     self.logger.error(f"Aggregation dataset {agg_dataset_id} from challenges {', '.join(raw_dataset['challenge_ids'])} has to be rebuilt: elegible assessments {len(regen_rel_ids_set)} vs {len(rel_ids_set)} used in the aggregation dataset")
                                     set_diff = rel_ids_set - regen_rel_ids_set
@@ -783,6 +818,7 @@ class AggregationBuilder():
             the_vis_optim = None
             if isinstance(min_inline_data, dict):
                 vis = min_inline_data.get("visualization")
+                series_type =  min_inline_data.get("series_type")
                 manage_datalink = False
                 if isinstance(vis, dict):
                     vis_type = vis.get("type")
@@ -802,13 +838,15 @@ class AggregationBuilder():
                         the_id_postfix += vis['metric']
                         metrics_str = vis['metric']
                         manage_datalink = True
-                    elif vis_type == "box-plot":
+                    elif series_type == "aggregation-data-series":
                         involved_metrics.extend(vis['available_metrics'])
                         the_id_postfix += idx_agg.challenge_label_and_sep.metrics_label_sep.join(vis['available_metrics'])
                         metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
+                        if vis_type != "box-plot":
+                            self.logger.critical(f"Unimplemented aggregation for series type {series_type} and visualization type {vis_type} in minimal dataset {the_id}")
                     else:
-                        self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")
+                        self.logger.critical(f"Unimplemented aggregation for series type {series_type} and visualization type {vis_type} in minimal dataset {the_id}")
                     
                     if the_id.endswith(agg_postfix):
                         the_id += the_id_postfix
@@ -823,8 +861,10 @@ class AggregationBuilder():
                         datalink = copy.copy(min_datalink)
                         inline_data = copy.deepcopy(min_inline_data)
                         datalink["inline_data"] = inline_data
-                        if vis_type == "box-plot":
+                        available_metrics: "MutableSequence[str]" = []
+                        if series_type == "aggregation-data-series":
                             inline_data["series_type"] = "aggregation-data-series"
+                            inline_data.setdefault("visualization", {})["available_metrics"] = available_metrics
                         inline_data_labels: "MutableSequence[DataLabel]" = []
                         inline_data["labels"] = inline_data_labels
                         # Inline data labels by participant dataset id
@@ -844,6 +884,8 @@ class AggregationBuilder():
                             assert mm_trio is not None
                             
                             met_datasets = list(idat_ass.datasets_from_metric(mm_trio.metrics_id))
+                            if len(met_datasets) > 0:
+                                available_metrics.append(mm_trio.proposed_label)
                             for met_dataset in met_datasets:
                                 tar = ita_m_events.get_by_outgoing_dataset(met_dataset["_id"])
                                 if tar is None:
