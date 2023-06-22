@@ -476,25 +476,27 @@ class AggregationValidator():
                                 if series_type == "aggregation-data-series":
                                     found_metrics_labels = list(map(lambda mt: mt.proposed_label, found_metrics))
                                     if len(found_metrics) != len(raw_available_metrics_labels):
-                                        self.logger.error(f"Mismatch in {agg_dataset_id} length of available_metrics\n\n{json.dumps(found_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
-                                        inline_data["visualization"]["available_metrics"] = found_metrics_labels
+                                        self.logger.warning(f"Mismatch in {agg_dataset_id} length between derived and used available_metrics\n\n{json.dumps(found_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
                                         changed_metrics_labels = True
-                                    else:
-                                        # Now it is time to validate each metrics label, to check it is the canonical one
-                                        proposed_metrics_labels = []
-                                        for r_av_label in raw_available_metrics_labels:
-                                            for found_metric in found_metrics:
-                                                if r_av_label in found_metric.all_labels:
-                                                    proposed_metrics_labels.append(found_metric.proposed_label)
-                                                    break
-                                            else:
-                                                self.logger.error(f"Ill-formed available_metrics in {agg_dataset_id}, as {r_av_label} label cannot be mapped to a metric")
-                                                changed_metrics_labels = True
-                                        
-                                        if len(proposed_metrics_labels) != len(raw_available_metrics_labels) or proposed_metrics_labels != raw_available_metrics_labels:
-                                            self.logger.error(f"Mismatch in {agg_dataset_id} available_metrics\n\n{json.dumps(proposed_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
-                                            inline_data["visualization"]["available_metrics"] = proposed_metrics_labels
+                                    
+                                    # Now it is time to validate each metrics label, to check it is the canonical one
+                                    proposed_metrics_labels = []
+                                    for r_av_label in raw_available_metrics_labels:
+                                        for found_metric in metrics_trios:
+                                            # Skip unknown definitions
+                                            if found_metric is None:
+                                                continue
+                                            if r_av_label in found_metric.all_labels:
+                                                proposed_metrics_labels.append(found_metric.proposed_label)
+                                                break
+                                        else:
+                                            self.logger.error(f"Ill-formed available_metrics in {agg_dataset_id}, as label {r_av_label} cannot be mapped to a metric")
                                             changed_metrics_labels = True
+                                    
+                                    if len(proposed_metrics_labels) != len(raw_available_metrics_labels) or proposed_metrics_labels != raw_available_metrics_labels:
+                                        self.logger.error(f"Mismatch in {agg_dataset_id} available_metrics\n\n{json.dumps(proposed_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
+                                        inline_data["visualization"]["available_metrics"] = proposed_metrics_labels
+                                        changed_metrics_labels = True
                                                 
                                 
                                 raw_challenge_participants = cast("Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]", fetched_inline_data.data["challenge_participants"])
