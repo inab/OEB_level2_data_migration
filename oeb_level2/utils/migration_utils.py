@@ -468,6 +468,50 @@ class OpenEBenchUtils():
                 self.logger.warning(f"For {dataset['type']} dataset {dataset['_id']}, expected original id was {expected_orig_id}, but got {orig_id}. Fix it in order to avoid problems")
         
         return fixable_dataset
+    
+    def gen_aggregation_original_id_from_min_dataset(
+        self,
+        min_dataset: "Mapping[str, Any]",
+        community_prefix: "str",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        ch_to: "Sequence[ChallengeLabelAndSep]",
+    ) -> "str":
+        # First, obtain the prefix
+        challenge_ids = list(map(lambda ct: ct.ch_id, ch_to))
+        the_prefix, challenge_orig_id_separator = self.gen_expected_dataset_prefix(
+            min_dataset,
+            community_prefix,
+            bench_event_prefix_et_al,
+            challenge_ids=challenge_ids,
+        )
+        
+        inline_data = min_dataset["datalink"]["inline_data"]
+        vis = inline_data["visualization"]
+        vis_type = vis["type"]
+        # Then, dig in to get the metrics labels
+        metrics_labels: "Sequence[str]"
+        if inline_data.get("series_type") == "aggregation-data-series":
+            metrics_labels = vis.get("available_metrics", [])
+        elif vis_type == "2D-plot":
+            metrics_labels = [ vis.get("x_axis"), vis.get("y_axis") ]
+        elif vis_type == "bar-plot":
+            metrics_labels = [ vis.get("metric") ]
+        else:
+            self.logger.fatal(f"Please implement aggregation {vis_type} minimal id generation")
+            raise NotImplementedError(f"Please implement aggregation {vis_type} minimal id generation")
+        
+        if len(ch_to) == 1:
+            challenge_orig_id_separator = ch_to[0].sep
+            aggregation_sep = ch_to[0].aggregation_sep
+            metrics_label_sep = ch_to[0].metrics_label_sep
+        else:
+            aggregation_sep = bench_event_prefix_et_al.aggregation_sep
+            metrics_label_sep = bench_event_prefix_et_al.metrics_label_sep
+        
+        expected_orig_id = the_prefix + aggregation_sep + \
+            challenge_orig_id_separator + metrics_label_sep.join(metrics_labels)
+        
+        return expected_orig_id
 
     @staticmethod
     def get_challenge_label_from_challenge(
