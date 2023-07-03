@@ -88,6 +88,19 @@ or run the command again without the dry-run (and keeping a copy of the uploaded
 python push_data_to_oeb.py -i config.json -cr your_auth_config.json --trust-rest-bdm -o uplifted.json
 ```
 
+Last, remember to pass the uploaded entries from the sandbox to the staged database:
+
+```bash
+oeb-sandbox.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json dry-run
+oeb-sandbox.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json stage
+```
+
+or to remove sandbox contents:
+
+```bash
+oeb-sandbox.py --base_url https://openebench.bsc.es/api/scientific -cr your_auth_config.json discard
+```
+
 ## Development
 
 First, install the Python development dependencies in the very same virtual environment as the runtime ones:
