@@ -1,7 +1,7 @@
 # Automatically generated file from a JSON schema
 
 
-from typing import Union, List, Literal, TypedDict
+from typing import Literal, Union, TypedDict, List
 from typing_extensions import Required
 
 
@@ -79,15 +79,13 @@ class ConfigParams(TypedDict, total=False):
     The unique identifier of the dataset which will hold the identifiers of all the loaded/updated datasets. Beware, this id should be unique! If it is not set, a UUIDv1 is used
     """
 
-    workflow_oeb_id: Required[str]
+    workflow_oeb_id: str
     """
     OEB Workflow.
 
     The id of the workflow (as a tool) used to compute the assessment metrics. Should be associated to VRE tool
 
     pattern: ^OEBT[0-9]{3}[A-Z0-9]{7}$
-
-    Required property
     """
 
     data_model_repo: str

@@ -223,8 +223,7 @@
 		"consolidated_oeb_data",
 		"data_visibility",
 		"benchmarking_event_id",
-		"participant_file",
-		"workflow_oeb_id"
+		"participant_file"
 	]
 }
 
