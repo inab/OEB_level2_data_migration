@@ -297,7 +297,7 @@ class OpenEBenchUtils():
             the_prefix = challenge.get("orig_id", "")
             if len(the_prefix) > 0:
                 the_prefix += challenge_orig_id_separator
-        elif len(dataset["community_ids"]) > 1:
+        elif ("community_ids" in dataset) and len(dataset["community_ids"]) > 1:
             the_prefix = ""
             challenge_orig_id_separator = DEFAULT_ORIG_ID_SEPARATOR
         else:
