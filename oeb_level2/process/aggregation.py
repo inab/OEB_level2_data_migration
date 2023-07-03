@@ -657,7 +657,10 @@ class AggregationBuilder():
         valid_assessment_tuples: "Sequence[AssessmentTuple]",
         valid_test_events: "Sequence[Mapping[str, Any]]",
         valid_metrics_events: "Sequence[Mapping[str, Any]]",
-        putative_workflow_tool_id: "str",
+        putative_workflow_tool_id: "Optional[str]",
+        bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
+        community_prefix: "str",
+        do_fix_orig_ids: "bool",
     ) -> "Sequence[AggregationTuple]":
         
         self.logger.info(
@@ -671,7 +674,9 @@ class AggregationBuilder():
                 ass_c_dict.setdefault(challenge_id, []).append(ass_t)
         
         # For each indexed challenge
+        ch_label_to = {}
         for idx_agg_v in agg_challenges.values():
+            ch_label_to[idx_agg_v.challenge_label_and_sep.label] = idx_agg_v.challenge_label_and_sep
             # index the future participant datasets involved in this challenge
             idx_agg_v.d_catalog.merge_datasets(
                 raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg_v.challenge_id, [])),
@@ -708,6 +713,37 @@ class AggregationBuilder():
                 self.logger.critical(f"Minimal aggregation dataset {the_id} does not contain a visualization type!!!! Talk to the data providers")
                 failed_min_agg = True
                 continue
+
+            # replace dataset related challenges with oeb challenge ids
+            execution_ch_to = []
+            try:
+                for challenge_label in min_dataset["challenge_ids"]:
+                    ch_label_and_sep = ch_label_to.get(challenge_label)
+                    if ch_label_and_sep is None:
+                        raise KeyError(f"Unmatched challenge {challenge_label}")
+                    
+                    execution_ch_to.append(ch_label_and_sep)
+            except:
+                self.logger.error(
+                    "Some of these challenges labels (" + ', '.join(min_dataset["challenge_ids"]) +
+                    ") from dataset " + min_dataset["_id"] + 
+                    "are not associated to OEB. Please contact OpenEBench support for information about how to open a new challenge"
+                )
+                self.logger.warning(
+                    min_dataset["_id"] + " not processed, skipping to next aggregation element...")
+                continue
+                # sys.exit()
+            
+            if do_fix_orig_ids:
+                the_gen_id = self.migration_utils.gen_aggregation_original_id_from_min_dataset(
+                    min_dataset,
+                    community_prefix,
+                    bench_event_prefix_et_al,
+                    ch_to=execution_ch_to,
+                )
+                if the_gen_id != the_id:
+                    self.logger.info(f"Minimal aggregation dataset {the_id} renamed to {the_gen_id}") 
+                    the_id = the_gen_id
             
             community_ids = [ community_id ]
             # Mapping challenges
@@ -761,7 +797,7 @@ class AggregationBuilder():
                                         continue
                                     workflow_metrics_ids = [ (metrics_trio, mmi) ]
                                     break
-                                elif metric_tool_id is None or metric_tool_id == putative_workflow_tool_id:
+                                elif metric_tool_id is None or putative_workflow_tool_id is None or metric_tool_id == putative_workflow_tool_id:
                                     workflow_metrics.append((metrics_trio, mmi))
 
                             if len(workflow_metrics) > 1:
@@ -1122,7 +1158,6 @@ class AggregationBuilder():
         self,
         valid_aggregation_tuples: "Sequence[AggregationTuple]",
         challenges_graphql: "Sequence[Mapping[str, Any]]",
-        workflow_tool_id: "str"
     ) -> "Sequence[Mapping[str, Any]]":
 
         self.logger.info(
@@ -1172,7 +1207,7 @@ class AggregationBuilder():
                 'Building Event object for aggregation "' + str(dataset["_id"]) + '"...')
 
             # add id of tool for the test event
-            event["tool_id"] = workflow_tool_id
+            event["tool_id"] = dataset["depends_on"]["tool_id"]
 
             # add the oeb official id for the challenge (which is already in the dataset)
             event["challenge_id"] = dataset["challenge_ids"][0]

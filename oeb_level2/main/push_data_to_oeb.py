@@ -228,7 +228,7 @@ def validate_transform_and_push(
         else:
             raise Exception('Unknown server type "{}"'.format(storageServer['type']))
         '''
-        workflow_id = config_params["workflow_oeb_id"]
+        workflow_id = config_params.get("workflow_oeb_id")
         
         dataset_submission_id = config_params.get("dataset_submission_id")
         if not dataset_submission_id:
@@ -577,6 +577,9 @@ def validate_transform_and_push(
         valid_test_events,
         valid_metrics_events,
         putative_workflow_tool_id=workflow_id,
+        bench_event_prefix_et_al=bench_event_prefix_et_al,
+        community_prefix=community_prefix,
+        do_fix_orig_ids=do_fix_orig_ids,
     )
     
     logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
@@ -593,8 +596,6 @@ def validate_transform_and_push(
     valid_aggregation_events = aggregations_builder.build_aggregation_events(
         valid_aggregation_tuples,
         aggregation_query_response["data"]["getChallenges"],
-#        stagedEvents + aggregation_query_response["data"]["getTestActions"],
-        workflow_id
     )
 
     # join all elements in a single list, validate, and push them to OEB tmp database
