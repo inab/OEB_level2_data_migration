@@ -1,4 +1,23 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# SPDX-License-Identifier: GPL-3.0-only
+# Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
+# Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
+# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import json
 import argparse
@@ -36,6 +55,7 @@ import requests
 from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 from .. import schemas as level2_schemas
+from .. import version as oeb_level2_version
 
 from ..process.participant import (
     ParticipantConfig,
@@ -207,6 +227,12 @@ def main() -> "None":
         "challenge_id",
         nargs="*",
         help="Restrict the validation to these challenges (they must belong to the benchmarking event)",
+    )
+    parser.add_argument(
+        '-V',
+        '--version',
+        action="version",
+        version="%(prog)s version " + oeb_level2_version,
     )
 
     args = parser.parse_args()
