@@ -23,4 +23,4 @@ __author__ = "Javier Garrayo Ventas <https://orcid.org/0000-0003-0015-1573>, Mer
 __copyright__ = "© 2020-2023 Barcelona Supercomputing Center (BSC), ES"
 __license__ = "GPLv3"
 
-__version__ = version = "2.0.4"
+__version__ = version = "2.0.5"
