@@ -204,7 +204,7 @@ class OpenEBenchUtils():
                 sys.exit(1)
             
             # This is to avoid too much verbosity
-            logging.getLogger(level2_min_validator.__class__.__name__).setLevel(logging.CRITICAL)
+            # level2_min_validator.logger.setLevel(logging.CRITICAL)
         
         self.level2_min_validator = level2_min_validator
         

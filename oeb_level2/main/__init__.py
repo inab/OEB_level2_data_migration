@@ -20,6 +20,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s[%(process)d]\n[%(levelname)s] %(message)s'
+COLORED_LOGS_FMT_DEBUG='%(asctime)s %(hostname)s %(name)s %(funcName)s %(lineno)d\n[%(levelname)s] %(message)s'
 COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s\n[%(levelname)s] %(message)s'
 COLORED_LOGS_FMT_BRIEF='%(asctime)s [%(levelname)s] %(message)s'
 

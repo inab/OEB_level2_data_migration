@@ -98,6 +98,7 @@ from ..utils.migration_utils import (
 from . import (
     COLORED_LOGS_FMT,
     COLORED_LOGS_FMT_BRIEF,
+    COLORED_LOGS_FMT_DEBUG,
     COLORED_LOGS_LEVEL_STYLES,
     LOGFORMAT,
     VERBOSE_LOGFORMAT,
@@ -140,9 +141,11 @@ def validate_transform_and_push(
     
     logging.basicConfig(**loggingConfig)
     coloredlogs.install(
-        fmt=COLORED_LOGS_FMT,
+        level=log_level,
+        fmt=COLORED_LOGS_FMT_DEBUG if log_level < logging.INFO else COLORED_LOGS_FMT,
         level_styles=COLORED_LOGS_LEVEL_STYLES,
     )
+    logging.debug(f"Logging level set to {log_level}")
     
     level2_min_validator, num_level2_schemas = level2_schemas.create_validator_for_oeb_level2()
     if num_level2_schemas < 6:
@@ -150,7 +153,8 @@ def validate_transform_and_push(
         sys.exit(1)
     
     # This is to avoid too much verbosity
-    logging.getLogger(level2_min_validator.__class__.__name__).setLevel(logging.CRITICAL)
+    if log_level >= logging.INFO:
+        logging.getLogger(level2_min_validator.__class__.__name__).setLevel(logging.CRITICAL)
     
     try:
         config_json_dir = os.path.dirname(os.path.abspath(config_json_filename))
