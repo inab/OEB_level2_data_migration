@@ -16,8 +16,7 @@
                 }
         },
         "required": [
-                "value",
-                "error"
+                "value"
         ],
         "unevaluatedProperties": false
 }

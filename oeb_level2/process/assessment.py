@@ -230,14 +230,19 @@ class AssessmentBuilder():
             # add assessment metrics values, as inline data
             if "value" in min_d_metrics:
                 metric_value = min_d_metrics["value"]
-                error_value = min_d_metrics["stderr"]
+                error_value = min_d_metrics.get("stderr")
+                
+                inline_data = {
+                    "value": metric_value,
+                }
+                if error_value is not None:
+                    inline_data["error"] = error_value
+                
                 datalink_payload = {
                     "schema_url": SINGLE_METRIC_SCHEMA_ID,
-                    "inline_data": {
-                        "value": metric_value,
-                        "error": error_value,
-                    }
+                    "inline_data": inline_data,
                 }
+                        
             elif "values" in min_d_metrics:
                 datalink_payload = {
                     "schema_url": SERIES_METRIC_SCHEMA_ID,
