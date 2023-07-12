@@ -298,7 +298,7 @@ class AggregationValidator():
                         ch_ids_set = set(r_dataset["challenge_ids"])
                         if isinstance(fetched_inline_data, FetchedInlineData):
                             inline_data = copy.copy(fetched_inline_data.data)
-                            r_dataset["inline_data"] = inline_data
+                            d_link["inline_data"] = inline_data
                             
                             # Entry of each challenge participant, by participant label
                             # The right type should be "Union[MutableMapping[str, BarData], MutableMapping[str, ScatterData], MutableMapping[str, SeriesData]]"
