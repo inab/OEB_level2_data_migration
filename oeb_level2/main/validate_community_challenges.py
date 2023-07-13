@@ -84,6 +84,7 @@ def validate_challenges(
     oeb_token: "Optional[str]" = None,
     log_filename: "Optional[str]" = None,
     log_level: "int" = logging.INFO,
+    proposed_entries_dir: "Optional[str]" = None,
 ) -> "None":
     loggingConfig: "BasicLoggingConfigDict" = {
         "level": log_level,
@@ -174,11 +175,14 @@ def validate_challenges(
             sys.exit(1)
     
     # Check and index challenges and their main components
+    if proposed_entries_dir is not None:
+        os.makedirs(proposed_entries_dir, exist_ok=True)
     agg_challenges = process_aggregations.check_and_index_challenges(
         community_prefix,
         bench_event_prefix_et_al,
         challenges_graphql,
         aggregation_query_response["data"]["getMetrics"],
+        fix_dir=proposed_entries_dir,
     )    
 
 def main() -> "None":
@@ -224,6 +228,11 @@ def main() -> "None":
         help="Show debug messages (use with care, as it could potentially disclose sensitive contents)",
     )
     parser.add_argument(
+        "-p",
+        "--proposed-entries-dir",
+        help="Directory where proposed entries are going to be saved, easing the work",
+    )
+    parser.add_argument(
         "bench_event_id",
         help="Benchmarking event id whose challenges are going to be validated",
     )
@@ -248,6 +257,7 @@ def main() -> "None":
         args.oeb_submit_api_token,
         args.logFilename,
         log_level=logging.INFO if args.logLevel is None else args.logLevel,
+        proposed_entries_dir=args.proposed_entries_dir,
     )
     
 if __name__ == '__main__':

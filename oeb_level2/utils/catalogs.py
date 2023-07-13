@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     
     from typing import (
         Any,
+        Iterable,
         Iterator,
         KeysView,
         Mapping,
@@ -588,7 +589,7 @@ class DatasetsCatalog:
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
-    def merge_datasets(self, raw_datasets: "Iterator[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None) -> "Sequence[DatasetValidationSchema]":
+    def merge_datasets(self, raw_datasets: "Iterable[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None) -> "Sequence[DatasetValidationSchema]":
         d_indexed = []
         for raw_dataset in raw_datasets:
             d_type = raw_dataset["type"]
@@ -888,7 +889,7 @@ class TestActionsCatalog:
     # Which logger to use
     logger: "Union[logging.Logger, ModuleType]" = logging
     
-    def merge_test_actions(self, raw_test_actions: "Iterator[Mapping[str, Any]]") -> "int":
+    def merge_test_actions(self, raw_test_actions: "Iterable[Mapping[str, Any]]") -> "int":
         num_indexed = 0
         for raw_test_action in raw_test_actions:
             a_type = raw_test_action["action_type"]

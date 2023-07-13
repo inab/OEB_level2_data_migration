@@ -128,6 +128,7 @@ class AggregationValidator():
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         challenges_agg_graphql: "Sequence[Mapping[str, Any]]",
         metrics_agg_graphql: "Sequence[Mapping[str, Any]]",
+        fix_dir: "Optional[str]" = None,
     ) -> "Mapping[str, IndexedChallenge]":
     
         self.logger.info(
@@ -244,9 +245,22 @@ class AggregationValidator():
             # Now, let's index the existing aggregation datasets, and
             # their relationship. And check them, BTW
             
-            # Then the assessment datasets
+            # Then the aggregation datasets
+            # which require taking care of graphql implementation artifacts
+            aggregation_datasets_fixed: "MutableSequence[Mapping[str, Any]]" = []
+            for agg_dat in agg_ch.get("aggregation_datasets", []):
+                datalink = agg_dat.get("datalink")
+                if isinstance(datalink, dict):
+                    rem_keys = []
+                    for rem_key, rem_val in datalink.items():
+                        if rem_val is None:
+                            rem_keys.append(rem_key)
+                    for rem_key in rem_keys:
+                        del datalink[rem_key]
+                aggregation_datasets_fixed.append(agg_dat)
+            
             agg_d_schema_pairs = d_catalog.merge_datasets(
-                raw_datasets=agg_ch.get("aggregation_datasets", []),
+                raw_datasets=aggregation_datasets_fixed,
                 d_categories=agg_cat,
             )
             
@@ -269,6 +283,7 @@ class AggregationValidator():
                 assert ita_m_events is not None
                 
                 failed_agg_dataset = False
+                proposed_agg_dataset = False
                 for raw_dataset in idat_agg.datasets():
                     agg_dataset_id = raw_dataset["_id"]
                     found_schema_url = agg_d_schema_dict.get(agg_dataset_id)
@@ -631,12 +646,22 @@ class AggregationValidator():
                                 elif guessed_schema_id is not None:
                                     d_link["schema_url"] = guessed_schema_id
                                 
-                                self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
+                                if fix_dir is not None:
+                                    proposed_file = os.path.join(fix_dir, agg_dataset_id + "_fixed.json")
+                                    self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} saved at {proposed_file} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
+                                    with open(proposed_file, mode="w", encoding="utf-8") as fH:
+                                        json.dump(r_dataset, fH, indent=4)
+                                    proposed_agg_dataset = True
+                                else:
+                                    self.logger.error(f"Proposed rebuilt entry {agg_dataset_id} (keep an eye in previous errors, it could be incomplete):\n" + json.dumps(r_dataset, indent=4))
                                 failed_agg_dataset = True
                 
                 if failed_agg_dataset:
-                    self.logger.critical("As some aggregation datasets seem corrupted, fix them to continue")
-                    sys.exit(5)
+                    if proposed_agg_dataset:
+                        should_exit_ch = True
+                    else:
+                        self.logger.critical("As some aggregation datasets seem corrupted, fix them to continue")
+                        sys.exit(5)
             
             # Last, but not the least important
             agg_challenges[challenge_id] = agg_challenges[challenge_label_and_sep.label] = IndexedChallenge(
@@ -649,7 +674,7 @@ class AggregationValidator():
             )
         
         if should_exit_ch:
-            self.logger.critical("Some challenges have collisions at their label level. Please ask the team to fix the mess")
+            self.logger.critical("Some challenges have collisions at their label level or other kind of problem. Please ask the team to fix the mess")
             sys.exit(4)
         
         return agg_challenges
