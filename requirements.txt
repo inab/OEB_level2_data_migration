@@ -3,4 +3,4 @@ requests
 extended-json-schema-validator >= 0.15.0
 rfc3339-validator
 dataclasses;python_version == '3.6'
-oeb_scientific_admin_tools @ git+https://gitlab.bsc.es/inb/elixir/openebench/oeb-sci-admin-tools.git@v0.8.0
+oeb_scientific_admin_tools @ git+https://gitlab.bsc.es/inb/elixir/openebench/oeb-sci-admin-tools.git@v0.8.1
