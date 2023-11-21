@@ -158,7 +158,14 @@ class OpenEBenchUtils():
 
     TEST_EVENT_INFIX = '_testEvent_'
 
-    def __init__(self, oeb_credentials: "Mapping[str, Any]", workdir: "str", oeb_token: "Optional[str]" = None, level2_min_validator: "Optional[Any]" = None):
+    def __init__(
+        self,
+        oeb_credentials: "Mapping[str, Any]",
+        workdir: "str",
+        oeb_token: "Optional[str]" = None,
+        cache_entry_expire: "Optional[Union[int, float]]" = None,
+        level2_min_validator: "Optional[Any]" = None,
+    ):
         self.logger = logging.getLogger(
             dict(inspect.getmembers(self))["__module__"]
             + "::"
@@ -180,7 +187,11 @@ class OpenEBenchUtils():
             
             self.oeb_api += GRAPHQL_POSTFIX
             
-        self.admin_tools = OEBUploader(self.oeb_api_base, cast("OEBCredentials", oeb_credentials) if oeb_token is None  else  oeb_token)
+        self.admin_tools = OEBUploader(
+            self.oeb_api_base,
+            oeb_credentials=cast("OEBCredentials", oeb_credentials) if oeb_token is None  else  oeb_token,
+            cache_entry_expire=cache_entry_expire,
+        )
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
         oebIdProviders = oeb_credentials['accessURI']

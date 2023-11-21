@@ -50,6 +50,7 @@ if TYPE_CHECKING:
         MutableMapping,
         Optional,
         Set,
+        Union,
     )
     
     from typing_extensions import (
@@ -125,6 +126,7 @@ def validate_transform_and_push(
     config_json_filename: "str",
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
+    cache_entry_expire: "Optional[Union[int, float]]" = None,
     val_result_filename: "str" = "/dev/null",
     output_filename: "Optional[str]" = None,
     skip_min_validation: "bool" = False,
@@ -395,7 +397,13 @@ def validate_transform_and_push(
         
     
     # get data model to validate against
-    migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token, level2_min_validator=level2_min_validator)
+    migration_utils = OpenEBenchUtils(
+        oeb_credentials,
+        config_json_dir,
+        oeb_token=oeb_token,
+        cache_entry_expire=cache_entry_expire,
+        level2_min_validator=level2_min_validator,
+    )
 
     # Early check over the tools
     logging.info("-> Fetching the list of recorded tools")
@@ -723,6 +731,14 @@ def main() -> "None":
         type=PayloadMode,
         default=PayloadMode.AS_IS,
     )
+
+    parser.add_argument(
+        "--cache",
+        help="If this parameter is set to either an integer or a float, graphql and selected REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths",
+        dest="cache_entry_expire",
+        type=float,
+    )
+
     parser.add_argument(
         '-V',
         '--version',
@@ -738,6 +754,7 @@ def main() -> "None":
         config_json_filename,
         oeb_credentials_filename=args.oeb_submit_api_creds,
         oeb_token=args.oeb_submit_api_token,
+        cache_entry_expire=args.cache_entry_expire,
         val_result_filename=args.val_output,
         output_filename=args.submit_output_file,
         dry_run=args.dry_run,

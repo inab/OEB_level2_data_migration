@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from typing import (
         Optional,
         Sequence,
+        Union,
     )
     
     from typing_extensions import (
@@ -82,6 +83,7 @@ def validate_challenges(
     challenge_ids: "Sequence[str]",
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
+    cache_entry_expire: "Optional[Union[int, float]]" = None,
     log_filename: "Optional[str]" = None,
     log_level: "int" = logging.INFO,
     proposed_entries_dir: "Optional[str]" = None,
@@ -131,7 +133,13 @@ def validate_challenges(
     config_json_dir = os.path.dirname(oeb_credentials_filename)
     
     # get data model to validate against
-    migration_utils = OpenEBenchUtils(oeb_credentials, config_json_dir, oeb_token, level2_min_validator=level2_min_validator)
+    migration_utils = OpenEBenchUtils(
+        oeb_credentials,
+        config_json_dir,
+        oeb_token=oeb_token,
+        cache_entry_expire=cache_entry_expire,
+        level2_min_validator=level2_min_validator,
+    )
     
     logging.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
     schemaMappings = migration_utils.load_schemas_from_server()
@@ -233,6 +241,12 @@ def main() -> "None":
         help="Directory where proposed entries are going to be saved, easing the work",
     )
     parser.add_argument(
+        "--cache",
+        help="If this parameter is set to either an integer or a float, graphql and selected REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths",
+        dest="cache_entry_expire",
+        type=float,
+    )
+    parser.add_argument(
         "bench_event_id",
         help="Benchmarking event id whose challenges are going to be validated",
     )
@@ -254,10 +268,12 @@ def main() -> "None":
         args.bench_event_id,
         args.challenge_id,
         args.oeb_submit_api_creds,
-        args.oeb_submit_api_token,
-        args.logFilename,
+        oeb_token=args.oeb_submit_api_token,
+        cache_entry_expire=args.cache_entry_expire,
+        log_filename=args.logFilename,
         log_level=logging.INFO if args.logLevel is None else args.logLevel,
         proposed_entries_dir=args.proposed_entries_dir,
+        
     )
     
 if __name__ == '__main__':
