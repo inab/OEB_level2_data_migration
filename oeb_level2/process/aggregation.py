@@ -50,6 +50,7 @@ if TYPE_CHECKING:
         Sequence,
         MutableMapping,
         MutableSequence,
+        Set,
         Tuple,
         Union,
     )
@@ -101,7 +102,13 @@ if TYPE_CHECKING:
 
 from oebtools.fetch import FetchedInlineData
 
-from ..utils.migration_utils import OpenEBenchUtils
+from ..utils.migration_utils import (
+    AGGREGATION_DATASET_LABEL,
+    AGGREGATION_CATEGORY_LABEL,
+    ASSESSMENT_DATASET_LABEL,
+    OpenEBenchUtils,
+    PARTICIPANT_DATASET_LABEL,
+)
 
 class AggregationTuple(NamedTuple):
     aggregation_dataset: "Mapping[str, Any]"
@@ -176,9 +183,9 @@ class AggregationValidator():
             agg_cat = []
             for m_cat in agg_ch.get("metrics_categories", []):
                 d_category = m_cat.get("category")
-                if d_category == "assessment":
+                if d_category == ASSESSMENT_DATASET_LABEL:
                     ass_cat.append(m_cat)
-                elif d_category == "aggregation":
+                elif d_category == AGGREGATION_DATASET_LABEL:
                     agg_cat.append(m_cat)
             
             d_catalog = DatasetsCatalog(
@@ -242,6 +249,53 @@ class AggregationValidator():
             # Merging the MetricsEvent test actions
             ta_catalog.merge_test_actions(agg_ch.get("metrics_test_actions", []))
             
+            # Let's validate the participant labels
+            participant_label_pairs = d_catalog.get_participant_labels()
+            label2inline_data_labels: "MutableMapping[str, MutableSequence[str]]" = dict()
+            for p_inline_data_label, p_dataset_id in participant_label_pairs:
+                label2inline_data_labels.setdefault(p_inline_data_label["label"], []).append(p_dataset_id)
+            
+            # Now, analyze them
+            failed_part_dataset = False
+            for p_label, p_dataset_ids in label2inline_data_labels.items():
+                if len(p_dataset_ids) > 1:
+                    self.logger.warning(f"Participant label {p_label} maps to {len(p_dataset_ids)} datasets ({', '.join(p_dataset_ids)})")
+                    
+                    s_tool_id: "Set[str]" = set()
+                    ref_community_ids: "Optional[Set[str]]" = None
+                    ref_challenge_ids: "Optional[Set[str]]" = None
+                    ref_dataset_id: "Optional[str]" = None
+                    for p_dataset_id in p_dataset_ids:
+                        raw_p_datasets = d_catalog.get_dataset(p_dataset_id)
+                        if len(raw_p_datasets) > 0:
+                            # Gather all the tools
+                            p_tool_id: "Optional[str]" = raw_p_datasets[0].get("depends_on", {}).get("tool_id")
+                            if p_tool_id is not None:
+                                s_tool_id.add(p_tool_id)
+                            
+                            if ref_dataset_id is None:
+                                ref_dataset_id = p_dataset_id
+                                ref_community_ids = set(raw_p_datasets[0]["community_ids"])
+                                ref_challenge_ids = set(raw_p_datasets[0]["challenge_ids"])
+                            else:
+                                # More validations about communities and challenges
+                                if set(raw_p_datasets[0]["community_ids"]) != ref_community_ids:
+                                    self.logger.fatal(f"Participant datasets {p_dataset_id} and {ref_dataset_id} have different community ids")
+                                    failed_part_dataset = True
+                                if set(raw_p_datasets[0]["challenge_ids"]) != ref_challenge_ids:
+                                    self.logger.fatal(f"Participant datasets {p_dataset_id} and {ref_dataset_id} have different challenge ids")
+                                    failed_part_dataset = True
+                    
+                    if len(s_tool_id) > 1:
+                        self.logger.fatal(f"Participant label {p_label} datasets depend on more than one tool: {', '.join(s_tool_id)}")
+                        failed_part_dataset = True
+                    else:
+                        self.logger.warning(f"It you are going to use classical viewers, it is recommended to remove this ambiguity")
+
+            if failed_part_dataset:
+                self.logger.critical("As some participant datasets seem corrupted, fix or remove some of them to continue")
+                sys.exit(5)
+
             # Now, let's index the existing aggregation datasets, and
             # their relationship. And check them, BTW
             
@@ -270,13 +324,13 @@ class AggregationValidator():
             ta_catalog.merge_test_actions(agg_ch.get("aggregation_test_actions", []))
             
             # Let's rebuild the aggregation datasets, from the minimal information
-            idat_agg = d_catalog.get("aggregation")
+            idat_agg = d_catalog.get(AGGREGATION_DATASET_LABEL)
             # A new community has no aggregation dataset
             if idat_agg is not None:
                 
-                idat_ass = d_catalog.get("assessment")
+                idat_ass = d_catalog.get(ASSESSMENT_DATASET_LABEL)
                 assert idat_ass is not None
-                idat_part = d_catalog.get("participant")
+                idat_part = d_catalog.get(PARTICIPANT_DATASET_LABEL)
                 assert idat_part is not None
                 
                 ita_m_events = ta_catalog.get("MetricsEvent")
@@ -284,7 +338,7 @@ class AggregationValidator():
                 
                 failed_agg_dataset = False
                 proposed_agg_dataset = False
-                for raw_dataset in idat_agg.datasets():
+                for raw_dataset in idat_agg.datasets:
                     agg_dataset_id = raw_dataset["_id"]
                     found_schema_url = agg_d_schema_dict.get(agg_dataset_id)
                     metrics_trios = idat_agg.get_metrics_trio(agg_dataset_id)
@@ -821,14 +875,14 @@ class AggregationBuilder():
                 # Setting the appropriate workflow_metrics_id
                 # and the related dataset ids
                 wmi_was_set = False
-                idat_ass = idx_agg.d_catalog.get("assessment")
+                idat_ass = idx_agg.d_catalog.get(ASSESSMENT_DATASET_LABEL)
                 assert idat_ass is not None
                 
                 for metrics_category in idx_agg.challenge.get("metrics_categories",[]):
                     m_cat = metrics_category.get("category")
                     # This is how we deal with cases where more
                     #  than one aggregation metrics happens
-                    if m_cat == "aggregation":
+                    if m_cat == AGGREGATION_CATEGORY_LABEL:
                         if not wmi_was_set:
                             workflow_metrics = []
                             for metric_decl in metrics_category.get("metrics", []):
@@ -1105,7 +1159,7 @@ class AggregationBuilder():
                         self.logger.warning(f"Found more than one dataset with id {the_id}. Problems in the horizon???")
                     
                     for orig_dataset in orig_datasets:
-                        if orig_dataset["type"] != "aggregation":
+                        if orig_dataset["type"] != AGGREGATION_DATASET_LABEL:
                             # Discard incompatible entries
                             continue
                         
@@ -1160,7 +1214,7 @@ class AggregationBuilder():
             valid_data = {
                 "_id": the_id,
                 "_schema": self.schemaMappings["Dataset"],
-                "type": "aggregation",
+                "type": AGGREGATION_DATASET_LABEL,
                 "community_ids": community_ids,
                 "challenge_ids": challenge_ids,
                 "datalink": datalink,

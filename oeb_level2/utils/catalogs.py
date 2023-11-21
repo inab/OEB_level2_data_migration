@@ -82,16 +82,22 @@ class DatasetValidationSchema(NamedTuple):
     schema_id: "Optional[str]"
 
 from .migration_utils import (
+    AGGREGATION_DATASET_LABEL,
+    ASSESSMENT_DATASET_LABEL,
+    ASSESSMENT_CATEGORY_LABEL,
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
+    INPUT_DATASET_LABEL,
     MetricsTrio,
     OpenEBenchUtils,
+    PARTICIPANT_DATASET_LABEL,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
 
+
 def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") -> "Mapping[str, Mapping[str, str]]":
     for metrics_category in the_challenge.get("metrics_categories",[]):
-        if metrics_category.get("category") == "assessment":
+        if metrics_category.get("category") == ASSESSMENT_CATEGORY_LABEL:
             challenge_assessment_metrics = metrics_category.get("metrics", [])
             cam_d = {
                 cam["metrics_id"]: cam
@@ -102,42 +108,83 @@ def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") ->
     
     return {}
 
+def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, Any]", default_label: "Optional[str]" = None) -> "Tuple[InlineDataLabel, str]":
+    # First, look for the label in the participant dataset
+    par_metadata = par_dataset.get("_metadata",{})
+    par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
+    # Then, look for it in the assessment dataset
+    if par_label is None:
+        par_label = default_label
+    
+    # Now, trying pattern matching
+    # to extract the label
+    if par_label is None:
+        match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
+        if match_p:
+            par_label = match_p.group(1)
+    
+    # Last chance is guessing from the original id!!!!
+    if par_label is None:
+        par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
+        if ':' in par_orig_id:
+            par_label = par_orig_id[par_orig_id.index(':') + 1 :]
+        else:
+            par_label = par_orig_id
+        
+        # Removing suffix
+        if par_label.endswith("_P"):
+            par_label = par_label[:-2]
+    
+    par_dataset_id = cast("str", par_dataset["_id"])
+    inline_data_label: "InlineDataLabel" = {
+        "label": par_label,
+        "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
+    }
+    return inline_data_label , par_dataset_id
+
+
+def gen_inline_data_label_from_assessment_and_participant_dataset(ass_dataset: "Mapping[str, Any]", par_dataset: "Mapping[str, Any]") -> "Tuple[InlineDataLabel, str]":
+    # First, look for the label in the participant dataset
+    par_metadata = par_dataset.get("_metadata",{})
+    par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
+    # Then, look for it in the assessment dataset
+    if par_label is None:
+        ass_metadata = ass_dataset.get("_metadata",{})
+        ass_label = None if ass_metadata is None else ass_metadata.get("level_2:participant_id")
+        par_label = ass_label
+    
+    # Now, trying pattern matching
+    # to extract the label
+    if par_label is None:
+        match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
+        if match_p:
+            par_label = match_p.group(1)
+    
+    # Last chance is guessing from the original id!!!!
+    if par_label is None:
+        par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
+        if ':' in par_orig_id:
+            par_label = par_orig_id[par_orig_id.index(':') + 1 :]
+        else:
+            par_label = par_orig_id
+        
+        # Removing suffix
+        if par_label.endswith("_P"):
+            par_label = par_label[:-2]
+    
+    ass_dataset_id = cast("str", ass_dataset["_id"])
+    inline_data_label: "InlineDataLabel" = {
+        "label": par_label,
+        "dataset_orig_id": ass_dataset.get("orig_id", ass_dataset_id),
+    }
+    return inline_data_label , ass_dataset_id
+
+
 def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]") -> "Union[Tuple[Literal[None], Literal[None]], Tuple[InlineDataLabel, str]]":
     met_metadata = met_dataset.get("_metadata",{})
     met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
-    for par_dataset in par_datasets:
-        # First, look for the label in the participant dataset
-        par_metadata = par_dataset.get("_metadata",{})
-        par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
-        # Then, look for it in the assessment dataset
-        if par_label is None:
-            par_label = met_label
-        
-        # Now, trying pattern matching
-        # to extract the label
-        if par_label is None:
-            match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
-            if match_p:
-                par_label = match_p.group(1)
-        
-        # Last chance is guessing from the original id!!!!
-        if par_label is None:
-            par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
-            if ':' in par_orig_id:
-                par_label = par_orig_id[par_orig_id.index(':') + 1 :]
-            else:
-                par_label = par_orig_id
-            
-            # Removing suffix
-            if par_label.endswith("_P"):
-                par_label = par_label[:-2]
-        
-        par_dataset_id = cast("str", par_dataset["_id"])
-        inline_data_label: "InlineDataLabel" = {
-            "label": par_label,
-            "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
-        }
-        return inline_data_label , par_dataset_id
+    if len(par_datasets) > 0:
+        return gen_inline_data_label_from_participant_dataset(par_datasets[0], default_label=met_label)
     
     return None, None
 
@@ -249,9 +296,9 @@ class IndexedDatasets:
             self.logger.error(f"This instance is focused on datasets of type {self.type}, not of type {d_type}")
             return None
         
-        is_participant = self.type == "participant"
-        is_assessment = self.type == "assessment"
-        is_aggregation = self.type == "aggregation"
+        is_participant = self.type == PARTICIPANT_DATASET_LABEL
+        is_assessment = self.type == ASSESSMENT_DATASET_LABEL
+        is_aggregation = self.type == AGGREGATION_DATASET_LABEL
         
         # Now, time to record the position where the assessment
         # dataset is going to be in the list of assessment datasets
@@ -572,6 +619,7 @@ class IndexedDatasets:
     def keys(self) -> "KeysView[str]":
         return self.d_dict.keys()
     
+    @property
     def datasets(self) -> "Sequence[Mapping[str, Any]]":
         return self.d_list
 
@@ -597,7 +645,7 @@ class DatasetsCatalog:
             idat = self.catalogs.get(d_type)
             if idat is None:
                 # Only needed for aggregation dataset checks
-                if d_type == "aggregation":
+                if d_type == AGGREGATION_DATASET_LABEL:
                     cam_d = gen_challenge_assessment_metrics_dict(self.challenge)
                 else:
                     cam_d = {}
@@ -631,50 +679,99 @@ class DatasetsCatalog:
         return d_indexed
     
     def check_dataset_depends_on(self, raw_dataset: "Mapping[str, Any]") -> "bool":
-            d_type = raw_dataset["type"]
+        d_type = raw_dataset["type"]
+        
+        idat = self.catalogs.get(d_type)
+        # We are not going to validate uningested datasets
+        if idat is None:
+            self.logger.error(f"Revoked check of datasets of type {d_type}, as they have not been indexed yet")
+            return False
+        
+        if idat.get(raw_dataset["_id"]) is None:
+            self.logger.error(f"Revoked check of dataset {raw_dataset['_id']} of type {d_type}, as it either has not been indexed yet or some previous validation failed")
+            return False
             
-            idat = self.catalogs.get(d_type)
-            # We are not going to validate uningested datasets
-            if idat is None:
-                self.logger.error(f"Revoked check of datasets of type {d_type}, as they have not been indexed yet")
-                return False
+        failed = False
+        d_on = raw_dataset.get("depends_on")
+        if d_on is not None:
+            # Let's check datasets which are declared in depends_on
+            challenge_ids_set = set(raw_dataset.get("challenge_ids", []))
+            missing_dataset_ids = []
+            ambiguous_dataset_ids = []
+            unmatching_dataset_ids = []
+            for d_on_entry in d_on.get("rel_dataset_ids",[]):
+                d_on_id = d_on_entry.get("dataset_id")
+                d_on_role = d_on_entry.get("role", "dependency")
+                if (d_on_id is not None) and d_on_role == "dependency":
+                    d_on_datasets = self.get_dataset(d_on_id)
+                    if len(d_on_datasets) == 0:
+                        missing_dataset_ids.append(d_on_id)
+                    elif len(d_on_datasets) > 1:
+                        ambiguous_dataset_ids.append(d_on_id)
+                    elif len(challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", []))) == 0:
+                        unmatching_dataset_ids.append(d_on_id)
             
-            if idat.get(raw_dataset["_id"]) is None:
-                self.logger.error(f"Revoked check of dataset {raw_dataset['_id']} of type {d_type}, as it either has not been indexed yet or some previous validation failed")
-                return False
-                
-            failed = False
-            d_on = raw_dataset.get("depends_on")
-            if d_on is not None:
-                # Let's check datasets which are declared in depends_on
-                challenge_ids_set = set(raw_dataset.get("challenge_ids", []))
-                missing_dataset_ids = []
-                ambiguous_dataset_ids = []
-                unmatching_dataset_ids = []
-                for d_on_entry in d_on.get("rel_dataset_ids",[]):
-                    d_on_id = d_on_entry.get("dataset_id")
-                    d_on_role = d_on_entry.get("role", "dependency")
-                    if (d_on_id is not None) and d_on_role == "dependency":
-                        d_on_datasets = self.get_dataset(d_on_id)
-                        if len(d_on_datasets) == 0:
-                            missing_dataset_ids.append(d_on_id)
-                        elif len(d_on_datasets) > 1:
-                            ambiguous_dataset_ids.append(d_on_id)
-                        elif len(challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", []))) == 0:
-                            unmatching_dataset_ids.append(d_on_id)
-                
-                if len(ambiguous_dataset_ids) > 0:
-                    self.logger.error(f"{raw_dataset['_id']} depends on these ambiguous datasets: {', '.join(ambiguous_dataset_ids)}")
-                    failed = True
-                
-                if len(missing_dataset_ids) > 0:
-                    self.logger.warning(f"{raw_dataset['_id']} depends on these unindexed datasets: {', '.join(missing_dataset_ids)}")
-                
-                if len(unmatching_dataset_ids) > 0:
-                    self.logger.error(f"{raw_dataset['_id']} does not share challenges with these datasets: {', '.join(unmatching_dataset_ids)}")
-                    failed = True
+            if len(ambiguous_dataset_ids) > 0:
+                self.logger.error(f"{raw_dataset['_id']} depends on these ambiguous datasets: {', '.join(ambiguous_dataset_ids)}")
+                failed = True
             
-            return failed
+            if len(missing_dataset_ids) > 0:
+                self.logger.warning(f"{raw_dataset['_id']} depends on these unindexed datasets: {', '.join(missing_dataset_ids)}")
+            
+            if len(unmatching_dataset_ids) > 0:
+                self.logger.error(f"{raw_dataset['_id']} does not share challenges with these datasets: {', '.join(unmatching_dataset_ids)}")
+                failed = True
+        
+        return failed
+
+    def get_participant_labels(self) -> "Sequence[Tuple[InlineDataLabel, str]]":
+        """
+        This method gets all the inline data labels from participant datasets
+        """
+        
+        participant_labels: "MutableSequence[Tuple[InlineDataLabel, str]]" = []
+
+        # We need the participant datasets
+        idat_part = self.get(PARTICIPANT_DATASET_LABEL)
+        if idat_part is None:
+            self.logger.warning(f"No {PARTICIPANT_DATASET_LABEL} dataset in challenge {self.challenge['_id']}")
+            return participant_labels
+        
+        # And we are building the list
+        for raw_p_dataset in idat_part.datasets:
+            inline_data_label_pair = gen_inline_data_label_from_participant_dataset(raw_p_dataset)
+            if inline_data_label_pair[0] is not None:
+                participant_labels.append(inline_data_label_pair)
+        
+        return participant_labels
+    
+    def get_asssessment_labels(self) -> "Sequence[Tuple[InlineDataLabel, str]]":
+        """
+        This method gets all the inline data labels
+        """
+        
+        assessment_labels: "MutableSequence[Tuple[InlineDataLabel, str]]" = []
+
+        # We need the participant datasets
+        idat_ass = self.get(ASSESSMENT_DATASET_LABEL)
+        if idat_ass is None:
+            self.logger.warning(f"No {ASSESSMENT_DATASET_LABEL} dataset in challenge {self.challenge['_id']}")
+            return assessment_labels
+        
+        # And we are building the list
+        for raw_a_dataset in idat_ass.datasets:
+            l_raw_p_dataset_ids = raw_a_dataset.get("depends_on", {}).get("rel_dataset_ids", [])
+            for raw_p_dataset_id in l_raw_p_dataset_ids:
+                if raw_p_dataset_id.get("role") in (None, "dependency"):
+                    raw_p_datasets = self.get_dataset(raw_p_dataset_id["dataset_id"])
+                    if len(raw_p_datasets) > 0 and raw_p_datasets[0]["type"] != PARTICIPANT_DATASET_LABEL:
+                        continue
+                    
+                    inline_data_label_pair = gen_inline_data_label(raw_a_dataset, par_datasets=raw_p_datasets)
+                    if inline_data_label_pair[0] is not None:
+                        assessment_labels.append(inline_data_label_pair)
+        
+        return assessment_labels
     
     def get(self, dataset_type: "str") -> "Optional[IndexedDatasets]":
         return self.catalogs.get(dataset_type)
@@ -876,10 +973,10 @@ class IndexedTestActions:
             
 ActionType2InOutDatasetTypes = {
     # "SetupEvent": (None, ),
-    "TestEvent": ("input", ["public_reference"], "participant"),
-    "MetricsEvent": ("participant", ["metrics_reference"], "assessment"),
-    "AggregationEvent": ("assessment", ['public_reference', 'metrics_reference'], "aggregation"),
-    # "StatisticsEvent": ("aggregation", "aggregation"),
+    "TestEvent": (INPUT_DATASET_LABEL, ["public_reference"], PARTICIPANT_DATASET_LABEL),
+    "MetricsEvent": (PARTICIPANT_DATASET_LABEL, ["metrics_reference"], ASSESSMENT_DATASET_LABEL),
+    "AggregationEvent": (ASSESSMENT_DATASET_LABEL, ['public_reference', 'metrics_reference'], AGGREGATION_DATASET_LABEL),
+    # "StatisticsEvent": (AGGREGATION_DATASET_LABEL, ??? , AGGREGATION_DATASET_LABEL),
 }
 
 @dataclasses.dataclass
