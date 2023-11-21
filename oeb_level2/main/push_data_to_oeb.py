@@ -92,7 +92,10 @@ from ..process.aggregation import (
     AggregationValidator,
 )
 from ..utils.migration_utils import (
+    ASSESSMENT_DATASET_LABEL,
+    AGGREGATION_DATASET_LABEL,
     OpenEBenchUtils,
+    PARTICIPANT_DATASET_LABEL,
 )
 
 from . import (
@@ -298,7 +301,7 @@ def validate_transform_and_push(
     logging.info("-> Validating minimal dataset to be processed")
     # Some data have incomplete timestamps (hence, incorrect)
     for data_i, data_entry in enumerate(data):
-        if data_entry.get("type") == "participant":
+        if data_entry.get("type") == PARTICIPANT_DATASET_LABEL:
             val_date_b = data_entry.get("datalink", {})
             if val_date_b:
                 val_date = val_date_b.get("validation_date")
@@ -340,7 +343,7 @@ def validate_transform_and_push(
     discarded_datasets = 0
     for i_dataset, dataset in enumerate(data):
         dataset_type = dataset.get("type")
-        if dataset_type == "participant":
+        if dataset_type == PARTICIPANT_DATASET_LABEL:
             min_participant_dataset.append(dataset)
             
             # Detecting 'old school' inconsistencies
@@ -369,10 +372,10 @@ def validate_transform_and_push(
                 
                 if tool_id is not None and p_in_chall[participant_label] > 1:
                     logging.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
-        elif dataset_type == "assessment":
+        elif dataset_type == ASSESSMENT_DATASET_LABEL:
             min_assessment_datasets.append(dataset)
             
-        elif dataset_type == "aggregation":
+        elif dataset_type == AGGREGATION_DATASET_LABEL:
             min_aggregation_datasets.append(dataset)
         elif dataset_type is not None:
             logging.warning(f"Dataset {i_dataset} is of unknown type {dataset_type}. Skipping")
@@ -502,8 +505,8 @@ def validate_transform_and_push(
     logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
     process_participant = ParticipantBuilder(schemaMappings, migration_utils)
     community_id = bench_event["community_id"]
-    #stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
-    stagedParticipantDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": [ community_id ], "type": [ "participant" ]}))
+    #stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ PARTICIPANT_DATASET_LABEL ]}))
+    stagedParticipantDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": [ community_id ], "type": [ PARTICIPANT_DATASET_LABEL ]}))
     valid_participant_tuples = process_participant.build_participant_dataset(
         input_query_response["data"]["getChallenges"],
         stagedParticipantDatasets,
@@ -514,6 +517,7 @@ def validate_transform_and_push(
         bench_event_prefix_et_al,
         community_prefix,
         tool_mapping,
+        agg_challenges,
         do_fix_orig_ids,
     )
     
@@ -553,8 +557,8 @@ def validate_transform_and_push(
     #stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     logging.info("-> Querying related assessment Datasets")
     # Needed to better consolidate
-    stagedAssessmentDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment"]}))
-    #stagedAssessmentDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ "assessment"]}))
+    stagedAssessmentDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ ASSESSMENT_DATASET_LABEL ]}))
+    #stagedAssessmentDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ ASSESSMENT_DATASET_LABEL ]}))
     
     logging.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
     process_assessments = AssessmentBuilder(schemaMappings, migration_utils)

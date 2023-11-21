@@ -48,7 +48,10 @@ if TYPE_CHECKING:
     from ..utils.catalogs import IndexedChallenge
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
 
-from ..utils.migration_utils import OpenEBenchUtils
+from ..utils.migration_utils import (
+    OpenEBenchUtils,
+    PARTICIPANT_DATASET_LABEL,
+)
 
 class ChallengePair(NamedTuple):
     label: "str"
@@ -129,6 +132,7 @@ class ParticipantBuilder():
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str",
         tool_mapping: "Mapping[Optional[str], ParticipantConfig]",
+        agg_challenges: "Mapping[str, IndexedChallenge]",
         do_fix_orig_ids: "bool",
     ) -> "Sequence[ParticipantTuple]":
        
@@ -157,6 +161,13 @@ class ParticipantBuilder():
         for min_participant_data in min_participant_dataset:
             # Get the participant_config
             p_config = tool_mapping.get(min_participant_data["participant_id"])
+            # Default case
+            if p_config is None:
+                if len(tool_mapping) > 1 or (None not in tool_mapping):
+                    self.logger.critical(f"Trying to use old school default mapping to map {min_participant_data['participant_id']} in new school scenario. Fix it")
+                    sys.exit(4)
+                p_config = tool_mapping[None]
+                
             ## This dataset has the minimum data needed for the generation
             #mock_dataset = {
             #    "challenge_ids":,
@@ -177,9 +188,30 @@ class ParticipantBuilder():
             
             challenge_pairs = []
             should_exit = False
+            min_id: "Optional[str]" = None
             for challenge_label in min_challenge_labels:
                 try:
-                    execution_challenge_ids.append(oeb_challenges[challenge_label]["_id"])
+                    execution_challenge_id = oeb_challenges[challenge_label]["_id"]
+                    # Checking participant label on each challenge
+                    idx_cha_p = agg_challenges.get(execution_challenge_id)
+                    if idx_cha_p is None:
+                        self.logger.fatal(f"Unable to fetch indexed challenge {execution_challenge_id}")
+                        should_exit = True
+                        continue
+                    participant_data_labels_pairs = idx_cha_p.d_catalog.get_participant_labels()
+                    existing_min_id: "Optional[str]" = None
+                    for participant_data_label, p_dataset_id in participant_data_labels_pairs:
+                        if participant_data_label["label"] == p_config.participant_label:
+                            existing_min_id = participant_data_label["dataset_orig_id"]
+
+                    if existing_min_id is not None:
+                        if min_id is None:
+                            min_id = existing_min_id
+                        elif min_id != existing_min_id:
+                            self.logger.fatal(f"Different challenges for participant dataset label {p_config.participant_label} have different original dataset ids {min_id} and {existing_min_id}")
+                            should_exit = True
+
+                    execution_challenge_ids.append(execution_challenge_id)
                     challenge_pairs.append(
                         ChallengePair(
                             label=challenge_label,
@@ -187,7 +219,7 @@ class ParticipantBuilder():
                         )
                     )
                 except:
-                    self.logger.critical("No challenges associated to " + challenge_label +
+                    self.logger.exception("No challenges associated to " + challenge_label +
                                   " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                     should_exit = True
                     # Process next one
@@ -195,15 +227,17 @@ class ParticipantBuilder():
                 should_exit_challenge = True
                 continue
 
-            if do_fix_orig_ids:
-                min_id = self.migration_utils.gen_participant_original_id_from_min_dataset(
-                    min_participant_data,
-                    community_prefix,
-                    bench_event_prefix_et_al,
-                    challenge_ids=execution_challenge_ids,
-                )
-            else:
-                min_id = min_participant_data["_id"]
+            # No previous original id
+            if min_id is None:
+                if do_fix_orig_ids:
+                    min_id = self.migration_utils.gen_participant_original_id_from_min_dataset(
+                        min_participant_data,
+                        community_prefix,
+                        bench_event_prefix_et_al,
+                        challenge_ids=execution_challenge_ids,
+                    )
+                else:
+                    min_id = min_participant_data["_id"]
             
             stagedEntry = stagedMap.get(min_id)
             # initialize new dataset object
@@ -211,12 +245,12 @@ class ParticipantBuilder():
             if stagedEntry is None:
                 valid_participant_data = {
                     "_id": min_id,
-                    "type": "participant"
+                    "type": PARTICIPANT_DATASET_LABEL,
                 }
             else:
                 valid_participant_data = {
                     "_id": stagedEntry["_id"],
-                    "type": "participant",
+                    "type": PARTICIPANT_DATASET_LABEL,
                     "orig_id": min_id,
                 }
                 staged_dates = stagedEntry.get("dates")
@@ -233,13 +267,6 @@ class ParticipantBuilder():
                     min_participant_data["participant_id"] + " participant"
             valid_participant_data["name"] = min_participant_data_name
             
-            # Default case
-            if p_config is None:
-                if len(tool_mapping) > 1 or (None not in tool_mapping):
-                    self.logger.critical(f"Trying to use old school default mapping to map {min_participant_data['participant_id']} in new school scenario. Fix it")
-                    sys.exit(4)
-                p_config = tool_mapping[None]
-                
             min_participant_data_description = min_participant_data.get("description")
             if min_participant_data_description is None:
                 min_participant_data_description = "Predictions made by " + \
