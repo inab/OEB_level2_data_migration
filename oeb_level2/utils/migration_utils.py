@@ -52,6 +52,10 @@ if TYPE_CHECKING:
         Union,
     )
     
+    from typing_extensions import (
+        Final,
+    )
+    
     from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
 	
     from extended_json_schema_validator.extensible_validator import (
@@ -92,9 +96,18 @@ from ..schemas import (
     create_validator_for_oeb_level2,
 )
 
+
+INPUT_DATASET_LABEL: "Final[str]" = "input"
+PARTICIPANT_DATASET_LABEL: "Final[str]" = "participant"
+ASSESSMENT_DATASET_LABEL: "Final[str]" = "assessment"
+AGGREGATION_DATASET_LABEL: "Final[str]" = "aggregation"
+
+ASSESSMENT_CATEGORY_LABEL: "Final[str]" = "assessment"
+AGGREGATION_CATEGORY_LABEL: "Final[str]" = "aggregation"
+
 DATASET_ORIG_ID_SUFFIX = {
-    "participant": "_P",
-    "assessment": "_A",
+    PARTICIPANT_DATASET_LABEL: "_P",
+    ASSESSMENT_DATASET_LABEL: "_A",
 }
 
 TEST_ACTION_ORIG_ID_SUFFIX = {
@@ -277,7 +290,7 @@ class OpenEBenchUtils():
     @staticmethod
     def gen_metrics_event_original_id(assessment_dataset: "Mapping[str, Any]") -> "str":
         ass_d_id = assessment_dataset.get("orig_id", assessment_dataset["_id"])
-        return rchop(ass_d_id, DATASET_ORIG_ID_SUFFIX["assessment"]) + TEST_ACTION_ORIG_ID_SUFFIX["MetricsEvent"]
+        return rchop(ass_d_id, DATASET_ORIG_ID_SUFFIX[ASSESSMENT_DATASET_LABEL]) + TEST_ACTION_ORIG_ID_SUFFIX["MetricsEvent"]
     
     @staticmethod
     def gen_aggregation_event_original_id(aggregation_dataset: "Mapping[str, Any]") -> "str":
@@ -1425,9 +1438,9 @@ class OpenEBenchUtils():
         o_keys = list(output_d_dict.keys())
         for o_dataset in output_datasets:
 #            # Early check
-#            if o_dataset["type"] == "participant":
+#            if o_dataset["type"] == PARTICIPANT_DATASET_LABEL:
 #                self.gen_expected_participant_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "")
-#            elif o_dataset["type"] == "assessment":
+#            elif o_dataset["type"] == ASSESSMENT_DATASET_LABEL:
 #                self.gen_expected_assessment_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "", "")
             
             should_exit = False
@@ -1440,7 +1453,7 @@ class OpenEBenchUtils():
                 the_error, fetched_inline_data = self.admin_tools.fetchInlineDataFromDatalink(
                     o_id,
                     o_dataset["datalink"],
-                    discard_unvalidable=o_type == "participant"
+                    discard_unvalidable=o_type == PARTICIPANT_DATASET_LABEL
                 )
                 
                 if the_error is not None:
