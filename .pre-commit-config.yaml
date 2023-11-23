@@ -2,7 +2,7 @@ fail_fast: true
 
 repos:
   - repo: https://github.com/camptocamp/jsonschema-gentypes.git
-    rev: "2.2.3"
+    rev: "2.3.0"
     hooks:
       - id: jsonschema-gentypes
         stages: [manual]
