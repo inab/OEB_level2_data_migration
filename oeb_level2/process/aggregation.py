@@ -66,6 +66,7 @@ if TYPE_CHECKING:
     from ..utils.catalogs import (
         IndexedDatasets,
         InlineDataLabel,
+        InlineDataLabelPair,
     )
     
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
@@ -128,6 +129,54 @@ class AggregationValidator():
         self.schemaMappings = schemaMappings
         self.level2_min_validator = migration_utils.level2_min_validator
         self.admin_tools = migration_utils.admin_tools
+
+#    @staticmethod _participant_label_grouper
+#
+    @staticmethod
+    def _check_labels_consistency(d_catalog: "DatasetsCatalog", label_pairs: "Sequence[InlineDataLabelPair]", pairs_desc: "str", logger: "logging.Logger") -> "bool":
+        # Let's validate the participant or assessment labels
+        label2inline_data_labels: "MutableMapping[str, MutableSequence[str]]" = dict()
+        for x_inline_data_label, x_dataset_id in label_pairs:
+            label2inline_data_labels.setdefault(x_inline_data_label["label"], []).append(x_dataset_id)
+        
+        # Now, analyze them
+        failed_x_dataset = False
+        for x_label, x_dataset_ids in label2inline_data_labels.items():
+            if len(x_dataset_ids) > 1:
+                logger.warning(f"{pairs_desc.capitalize()} label {x_label} maps to {len(x_dataset_ids)} datasets ({', '.join(x_dataset_ids)})")
+                
+                s_tool_id: "Set[str]" = set()
+                ref_community_ids: "Optional[Set[str]]" = None
+                ref_challenge_ids: "Optional[Set[str]]" = None
+                ref_dataset_id: "Optional[str]" = None
+                for x_dataset_id in x_dataset_ids:
+                    raw_x_datasets = d_catalog.get_dataset(x_dataset_id)
+                    if len(raw_x_datasets) > 0:
+                        # Gather all the tools
+                        x_tool_id: "Optional[str]" = raw_x_datasets[0].get("depends_on", {}).get("tool_id")
+                        if x_tool_id is not None:
+                            s_tool_id.add(x_tool_id)
+                        
+                        if ref_dataset_id is None:
+                            ref_dataset_id = x_dataset_id
+                            ref_community_ids = set(raw_x_datasets[0]["community_ids"])
+                            ref_challenge_ids = set(raw_x_datasets[0]["challenge_ids"])
+                        else:
+                            # More validations about communities and challenges
+                            if set(raw_x_datasets[0]["community_ids"]) != ref_community_ids:
+                                logger.fatal(f"{pairs_desc.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different community ids")
+                                failed_x_dataset = True
+                            if set(raw_x_datasets[0]["challenge_ids"]) != ref_challenge_ids:
+                                logger.fatal(f"{pairs_desc.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different challenge ids")
+                                failed_x_dataset = True
+                
+                if len(s_tool_id) > 1:
+                    logger.fatal(f"{pairs_desc.capitalize()} label {x_label} datasets depend on more than one tool: {', '.join(s_tool_id)}")
+                    failed_x_dataset = True
+                else:
+                    logger.warning(f"It you are going to use classical viewers, it is recommended to remove this {pairs_desc} datasets ambiguity")
+
+        return failed_x_dataset
     
     def check_and_index_challenges(
         self,
@@ -251,49 +300,18 @@ class AggregationValidator():
             
             # Let's validate the participant labels
             participant_label_pairs = d_catalog.get_participant_labels()
-            label2inline_data_labels: "MutableMapping[str, MutableSequence[str]]" = dict()
-            for p_inline_data_label, p_dataset_id in participant_label_pairs:
-                label2inline_data_labels.setdefault(p_inline_data_label["label"], []).append(p_dataset_id)
-            
             # Now, analyze them
-            failed_part_dataset = False
-            for p_label, p_dataset_ids in label2inline_data_labels.items():
-                if len(p_dataset_ids) > 1:
-                    self.logger.warning(f"Participant label {p_label} maps to {len(p_dataset_ids)} datasets ({', '.join(p_dataset_ids)})")
-                    
-                    s_tool_id: "Set[str]" = set()
-                    ref_community_ids: "Optional[Set[str]]" = None
-                    ref_challenge_ids: "Optional[Set[str]]" = None
-                    ref_dataset_id: "Optional[str]" = None
-                    for p_dataset_id in p_dataset_ids:
-                        raw_p_datasets = d_catalog.get_dataset(p_dataset_id)
-                        if len(raw_p_datasets) > 0:
-                            # Gather all the tools
-                            p_tool_id: "Optional[str]" = raw_p_datasets[0].get("depends_on", {}).get("tool_id")
-                            if p_tool_id is not None:
-                                s_tool_id.add(p_tool_id)
-                            
-                            if ref_dataset_id is None:
-                                ref_dataset_id = p_dataset_id
-                                ref_community_ids = set(raw_p_datasets[0]["community_ids"])
-                                ref_challenge_ids = set(raw_p_datasets[0]["challenge_ids"])
-                            else:
-                                # More validations about communities and challenges
-                                if set(raw_p_datasets[0]["community_ids"]) != ref_community_ids:
-                                    self.logger.fatal(f"Participant datasets {p_dataset_id} and {ref_dataset_id} have different community ids")
-                                    failed_part_dataset = True
-                                if set(raw_p_datasets[0]["challenge_ids"]) != ref_challenge_ids:
-                                    self.logger.fatal(f"Participant datasets {p_dataset_id} and {ref_dataset_id} have different challenge ids")
-                                    failed_part_dataset = True
-                    
-                    if len(s_tool_id) > 1:
-                        self.logger.fatal(f"Participant label {p_label} datasets depend on more than one tool: {', '.join(s_tool_id)}")
-                        failed_part_dataset = True
-                    else:
-                        self.logger.warning(f"It you are going to use classical viewers, it is recommended to remove this ambiguity")
-
+            failed_part_dataset = self._check_labels_consistency(d_catalog, participant_label_pairs, PARTICIPANT_DATASET_LABEL, self.logger)
             if failed_part_dataset:
-                self.logger.critical("As some participant datasets seem corrupted, fix or remove some of them to continue")
+                self.logger.critical(f"As some {PARTICIPANT_DATASET_LABEL} datasets seem corrupted, fix or remove some of them to continue")
+                sys.exit(5)
+
+            # Let's validate the assessment labels
+            assessment_label_pairs = d_catalog.get_assessment_labels()
+            # Now, analyze them
+            failed_ass_dataset = self._check_labels_consistency(d_catalog, assessment_label_pairs, ASSESSMENT_DATASET_LABEL, self.logger)
+            if failed_ass_dataset:
+                self.logger.critical(f"As some {ASSESSMENT_DATASET_LABEL} datasets seem corrupted, fix or remove some of them to continue")
                 sys.exit(5)
 
             # Now, let's index the existing aggregation datasets, and
@@ -475,12 +493,14 @@ class AggregationValidator():
                                     
                                     # Bad luck, time to create a new entry
                                     if par_label is None:
-                                        inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
-                                        if inline_data_label is None:
+                                        inline_data_label_pair = gen_inline_data_label(met_dataset, tar.in_d)
+                                        if inline_data_label_pair is None:
                                             self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
-                                            
+                                        assert inline_data_label_pair is not None
+
+                                        inline_data_label = inline_data_label_pair.label
                                         # Now we should have the participant label
-                                        assert inline_data_label is not None
+                                        par_dataset_id = inline_data_label_pair.dataset_id
                                         
                                         # Last, store it
                                         inline_data_labels.append(inline_data_label)
@@ -1043,13 +1063,14 @@ class AggregationBuilder():
                                 
                                 # Bad luck, time to create a new entry
                                 if par_dataset_id is None:
-                                    inline_data_label , par_dataset_id = gen_inline_data_label(met_dataset, tar.in_d)
-                                    if inline_data_label is None:
+                                    inline_data_label_pair = gen_inline_data_label(met_dataset, tar.in_d)
+                                    if inline_data_label_pair is None:
                                         self.logger.error(f"Unable to generate inline data label for {met_dataset['_id']}")
+                                    assert inline_data_label_pair is not None
                                         
                                     # Now we should have the participant label
-                                    assert inline_data_label is not None
-                                    assert par_dataset_id is not None
+                                    inline_data_label = inline_data_label_pair.label
+                                    par_dataset_id = inline_data_label_pair.dataset_id
                                     
                                     # Last, store it
                                     inline_data_labels.append(inline_data_label)

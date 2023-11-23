@@ -70,6 +70,10 @@ if TYPE_CHECKING:
     )
     
     class InlineDataLabel(TypedDict):
+        """
+        This typed dict mimics the one in the inline data,
+        so it cannot be altered or renamed
+        """
         label: "str"
         dataset_orig_id: "str"
     
@@ -80,6 +84,10 @@ if TYPE_CHECKING:
 class DatasetValidationSchema(NamedTuple):
     dataset_id: "str"
     schema_id: "Optional[str]"
+
+class InlineDataLabelPair(NamedTuple):
+    label: "InlineDataLabel"
+    dataset_id: "str"
 
 from .migration_utils import (
     AGGREGATION_DATASET_LABEL,
@@ -108,7 +116,7 @@ def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") ->
     
     return {}
 
-def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, Any]", default_label: "Optional[str]" = None) -> "Tuple[InlineDataLabel, str]":
+def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, Any]", default_label: "Optional[str]" = None) -> "InlineDataLabelPair":
     # First, look for the label in the participant dataset
     par_metadata = par_dataset.get("_metadata",{})
     par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
@@ -140,53 +148,37 @@ def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, An
         "label": par_label,
         "dataset_orig_id": par_dataset.get("orig_id", par_dataset_id),
     }
-    return inline_data_label , par_dataset_id
+    return InlineDataLabelPair(
+        label=inline_data_label,
+        dataset_id=par_dataset_id,
+    )
 
 
-def gen_inline_data_label_from_assessment_and_participant_dataset(ass_dataset: "Mapping[str, Any]", par_dataset: "Mapping[str, Any]") -> "Tuple[InlineDataLabel, str]":
-    # First, look for the label in the participant dataset
-    par_metadata = par_dataset.get("_metadata",{})
-    par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
-    # Then, look for it in the assessment dataset
-    if par_label is None:
-        ass_metadata = ass_dataset.get("_metadata",{})
-        ass_label = None if ass_metadata is None else ass_metadata.get("level_2:participant_id")
-        par_label = ass_label
-    
-    # Now, trying pattern matching
-    # to extract the label
-    if par_label is None:
-        match_p = re.search(r"Predictions made by (.*) participant", par_dataset["description"])
-        if match_p:
-            par_label = match_p.group(1)
-    
-    # Last chance is guessing from the original id!!!!
-    if par_label is None:
-        par_orig_id = par_dataset.get("orig_id", par_dataset["_id"])
-        if ':' in par_orig_id:
-            par_label = par_orig_id[par_orig_id.index(':') + 1 :]
-        else:
-            par_label = par_orig_id
-        
-        # Removing suffix
-        if par_label.endswith("_P"):
-            par_label = par_label[:-2]
-    
+def gen_inline_data_label_from_assessment_and_participant_dataset(ass_dataset: "Mapping[str, Any]", par_dataset: "Mapping[str, Any]") -> "InlineDataLabelPair":
+    ass_metadata = ass_dataset.get("_metadata",{})
+    default_ass_label = None if ass_metadata is None else ass_metadata.get("level_2:participant_id")
+    part_label_pair = gen_inline_data_label_from_participant_dataset(par_dataset, default_label=default_ass_label)
+
+    metrics_label = ass_dataset.get("depends_on", {}).get("metrics_id", "")
+
     ass_dataset_id = cast("str", ass_dataset["_id"])
     inline_data_label: "InlineDataLabel" = {
-        "label": par_label,
+        "label": part_label_pair.label["label"] + "\0 \0" + metrics_label,
         "dataset_orig_id": ass_dataset.get("orig_id", ass_dataset_id),
     }
-    return inline_data_label , ass_dataset_id
+    return InlineDataLabelPair(
+        label=inline_data_label,
+        dataset_id=ass_dataset_id,
+    )
 
 
-def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]") -> "Union[Tuple[Literal[None], Literal[None]], Tuple[InlineDataLabel, str]]":
+def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]") -> "Optional[InlineDataLabelPair]":
     met_metadata = met_dataset.get("_metadata",{})
     met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
     if len(par_datasets) > 0:
         return gen_inline_data_label_from_participant_dataset(par_datasets[0], default_label=met_label)
     
-    return None, None
+    return None
 
 def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics_graphql: "Sequence[Mapping[str, Any]]", community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Optional[MetricsTrio]":
     # Select the metrics just "guessing"
@@ -724,12 +716,12 @@ class DatasetsCatalog:
         
         return failed
 
-    def get_participant_labels(self) -> "Sequence[Tuple[InlineDataLabel, str]]":
+    def get_participant_labels(self) -> "Sequence[InlineDataLabelPair]":
         """
         This method gets all the inline data labels from participant datasets
         """
         
-        participant_labels: "MutableSequence[Tuple[InlineDataLabel, str]]" = []
+        participant_labels: "MutableSequence[InlineDataLabelPair]" = []
 
         # We need the participant datasets
         idat_part = self.get(PARTICIPANT_DATASET_LABEL)
@@ -740,19 +732,18 @@ class DatasetsCatalog:
         # And we are building the list
         for raw_p_dataset in idat_part.datasets:
             inline_data_label_pair = gen_inline_data_label_from_participant_dataset(raw_p_dataset)
-            if inline_data_label_pair[0] is not None:
-                participant_labels.append(inline_data_label_pair)
+            participant_labels.append(inline_data_label_pair)
         
         return participant_labels
     
-    def get_asssessment_labels(self) -> "Sequence[Tuple[InlineDataLabel, str]]":
+    def get_assessment_labels(self) -> "Sequence[InlineDataLabelPair]":
         """
         This method gets all the inline data labels
         """
         
-        assessment_labels: "MutableSequence[Tuple[InlineDataLabel, str]]" = []
+        assessment_labels: "MutableSequence[InlineDataLabelPair]" = []
 
-        # We need the participant datasets
+        # We need the assessment datasets
         idat_ass = self.get(ASSESSMENT_DATASET_LABEL)
         if idat_ass is None:
             self.logger.warning(f"No {ASSESSMENT_DATASET_LABEL} dataset in challenge {self.challenge['_id']}")
@@ -760,16 +751,31 @@ class DatasetsCatalog:
         
         # And we are building the list
         for raw_a_dataset in idat_ass.datasets:
-            l_raw_p_dataset_ids = raw_a_dataset.get("depends_on", {}).get("rel_dataset_ids", [])
+            raw_a_depends_on = raw_a_dataset.get("depends_on", {})
+
+            # Get the metrics, and skip if they are not available
+            raw_a_metrics_id = raw_a_depends_on.get("metrics_id")
+            if raw_a_metrics_id is None:
+                continue
+
+            # And get the participant dataset to obtain the assessment inline_data label
+            l_raw_p_dataset_ids = raw_a_depends_on.get("rel_dataset_ids", [])
             for raw_p_dataset_id in l_raw_p_dataset_ids:
                 if raw_p_dataset_id.get("role") in (None, "dependency"):
                     raw_p_datasets = self.get_dataset(raw_p_dataset_id["dataset_id"])
-                    if len(raw_p_datasets) > 0 and raw_p_datasets[0]["type"] != PARTICIPANT_DATASET_LABEL:
-                        continue
-                    
-                    inline_data_label_pair = gen_inline_data_label(raw_a_dataset, par_datasets=raw_p_datasets)
-                    if inline_data_label_pair[0] is not None:
-                        assessment_labels.append(inline_data_label_pair)
+                    if len(raw_p_datasets) > 0:
+                        raw_p_dataset = None
+                        for cand_raw_p_dataset in raw_p_datasets:
+                            if cand_raw_p_dataset["type"] == PARTICIPANT_DATASET_LABEL:
+                                raw_p_dataset = cand_raw_p_dataset
+                                break
+
+                        if raw_p_dataset is None:
+                            continue
+
+                        inline_data_label_pair = gen_inline_data_label_from_assessment_and_participant_dataset(raw_a_dataset, par_dataset=raw_p_dataset)
+                        if inline_data_label_pair is not None:
+                            assessment_labels.append(inline_data_label_pair)
         
         return assessment_labels
     
