@@ -94,7 +94,7 @@ def validate_challenges(
     }
     # check whether config file exists and has all the required fields
     if log_filename is not None:
-            loggingConfig["filename"] = log_filename
+        loggingConfig["filename"] = log_filename
     
     logging.basicConfig(**loggingConfig)
     coloredlogs.install(
