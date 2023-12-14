@@ -163,7 +163,7 @@ def gen_inline_data_label_from_assessment_and_participant_dataset(ass_dataset: "
 
     ass_dataset_id = cast("str", ass_dataset["_id"])
     inline_data_label: "InlineDataLabel" = {
-        "label": part_label_pair.label["label"] + "\0 \0" + metrics_label,
+        "label": part_label_pair.label["label"] + " " + metrics_label,
         "dataset_orig_id": ass_dataset.get("orig_id", ass_dataset_id),
     }
     return InlineDataLabelPair(
