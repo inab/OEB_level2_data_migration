@@ -101,6 +101,7 @@ INPUT_DATASET_LABEL: "Final[str]" = "input"
 PARTICIPANT_DATASET_LABEL: "Final[str]" = "participant"
 ASSESSMENT_DATASET_LABEL: "Final[str]" = "assessment"
 AGGREGATION_DATASET_LABEL: "Final[str]" = "aggregation"
+METRICS_REFERENCE_DATASET_LABEL: "Final[str]" = "metrics_reference"
 
 ASSESSMENT_CATEGORY_LABEL: "Final[str]" = "assessment"
 AGGREGATION_CATEGORY_LABEL: "Final[str]" = "aggregation"
