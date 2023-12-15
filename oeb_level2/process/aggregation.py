@@ -31,6 +31,7 @@ import json
 from ..schemas import TYPE2SCHEMA_ID
 from ..utils.catalogs import (
     DatasetsCatalog,
+    gen_challenge_assessment_metrics_dict,
     gen_inline_data_label,
     IndexedChallenge,
     TestActionsCatalog,
@@ -203,7 +204,8 @@ class AggregationValidator():
                 bench_event_prefix_et_al,
                 community_prefix,
             )
-            
+            cam_d = gen_challenge_assessment_metrics_dict(agg_ch)            
+
             self.logger.info(f"Validating challenge {challenge_id} ({challenge_label_and_sep.label})")
             
             challenge_orig_id = agg_ch.get("orig_id")
@@ -252,28 +254,33 @@ class AggregationValidator():
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("input_datasets", []),
                 d_categories=ass_cat,
+                cam_d=cam_d,
             )
             # public reference datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("public_reference_datasets", []),
                 d_categories=ass_cat,
+                cam_d=cam_d,
             )
             # Metrics reference datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("metrics_reference_datasets", []),
                 d_categories=ass_cat,
+                cam_d=cam_d,
             )
             
             # Index stored participant datasets
             d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("participant_datasets", []),
                 d_categories=ass_cat,
+                cam_d=cam_d,
             )
             
             # Then the assessment datasets
             ass_d_schema_pairs = d_catalog.merge_datasets(
                 raw_datasets=agg_ch.get("assessment_datasets", []),
                 d_categories=ass_cat,
+                cam_d=cam_d,
             )
             
             # The test actions catalog, which depends on the dataset ones
@@ -334,6 +341,7 @@ class AggregationValidator():
             agg_d_schema_pairs = d_catalog.merge_datasets(
                 raw_datasets=aggregation_datasets_fixed,
                 d_categories=agg_cat,
+                cam_d=cam_d,
             )
             
             agg_d_schema_dict = dict(agg_d_schema_pairs)
@@ -745,6 +753,7 @@ class AggregationValidator():
                 d_catalog=d_catalog,
                 ta_catalog=ta_catalog,
                 ass_cat=ass_cat,
+                cam_d=cam_d,
             )
         
         if should_exit_ch:

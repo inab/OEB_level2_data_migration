@@ -96,6 +96,7 @@ from .migration_utils import (
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
     INPUT_DATASET_LABEL,
+    METRICS_REFERENCE_DATASET_LABEL,
     MetricsTrio,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
@@ -154,12 +155,34 @@ def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, An
     )
 
 
-def gen_inline_data_label_from_assessment_and_participant_dataset(ass_dataset: "Mapping[str, Any]", par_dataset: "Mapping[str, Any]") -> "InlineDataLabelPair":
-    ass_metadata = ass_dataset.get("_metadata",{})
-    default_ass_label = None if ass_metadata is None else ass_metadata.get("level_2:participant_id")
-    part_label_pair = gen_inline_data_label_from_participant_dataset(par_dataset, default_label=default_ass_label)
+def gen_inline_data_label_from_assessment_and_participant_dataset(
+    ass_dataset: "Mapping[str, Any]",
+    par_dataset: "Mapping[str, Any]",
+    metrics_id: "Optional[str]" = None,
+) -> "InlineDataLabelPair":
+    # With this change, minimal assessment datasets also work
+    default_ass_label = ass_dataset.get("participant_id")
+    metrics_label: "Optional[str]"
+    if default_ass_label is None:
+        ass_metadata = ass_dataset.get("_metadata",{})
+        if ass_metadata is None:
+            default_ass_label = None
+        else:
+            default_ass_label = ass_metadata.get("level_2:participant_id")
 
-    metrics_label = ass_dataset.get("depends_on", {}).get("metrics_id", "")
+        if metrics_id is not None:
+            metrics_label = metrics_id
+        else:
+            metrics_label = ass_dataset.get("depends_on", {}).get("metrics_id", "")
+    elif metrics_id is not None:
+        metrics_label = metrics_id
+    else:
+        # Not so correct, but it should work
+        metrics_label = ass_dataset.get("metrics", {}).get("metric_id", "")
+
+    assert metrics_label is not None
+
+    part_label_pair = gen_inline_data_label_from_participant_dataset(par_dataset, default_label=default_ass_label)
 
     ass_dataset_id = cast("str", ass_dataset["_id"])
     inline_data_label: "InlineDataLabel" = {
@@ -629,18 +652,17 @@ class DatasetsCatalog:
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
     catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
-    def merge_datasets(self, raw_datasets: "Iterable[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None) -> "Sequence[DatasetValidationSchema]":
+    def merge_datasets(self, raw_datasets: "Iterable[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None, cam_d: "Optional[Mapping[str, Mapping[str, str]]]" = None) -> "Sequence[DatasetValidationSchema]":
         d_indexed = []
         for raw_dataset in raw_datasets:
             d_type = raw_dataset["type"]
             
             idat = self.catalogs.get(d_type)
             if idat is None:
-                # Only needed for aggregation dataset checks
-                if d_type == AGGREGATION_DATASET_LABEL:
+                # Although it is only needed for aggregation dataset checks
+                # it could be reused outside
+                if cam_d is None:
                     cam_d = gen_challenge_assessment_metrics_dict(self.challenge)
-                else:
-                    cam_d = {}
                 
                 idat = IndexedDatasets(
                     type=d_type,
@@ -980,8 +1002,8 @@ class IndexedTestActions:
 ActionType2InOutDatasetTypes = {
     # "SetupEvent": (None, ),
     "TestEvent": (INPUT_DATASET_LABEL, ["public_reference"], PARTICIPANT_DATASET_LABEL),
-    "MetricsEvent": (PARTICIPANT_DATASET_LABEL, ["metrics_reference"], ASSESSMENT_DATASET_LABEL),
-    "AggregationEvent": (ASSESSMENT_DATASET_LABEL, ['public_reference', 'metrics_reference'], AGGREGATION_DATASET_LABEL),
+    "MetricsEvent": (PARTICIPANT_DATASET_LABEL, [METRICS_REFERENCE_DATASET_LABEL], ASSESSMENT_DATASET_LABEL),
+    "AggregationEvent": (ASSESSMENT_DATASET_LABEL, ['public_reference', METRICS_REFERENCE_DATASET_LABEL], AGGREGATION_DATASET_LABEL),
     # "StatisticsEvent": (AGGREGATION_DATASET_LABEL, ??? , AGGREGATION_DATASET_LABEL),
 }
 
@@ -1044,6 +1066,9 @@ class IndexedChallenge:
     challenge_label_and_sep: "ChallengeLabelAndSep"
     d_catalog: "DatasetsCatalog"
     ta_catalog: "TestActionsCatalog"
+    # This one should be generated in next way
+    # gen_challenge_assessment_metrics_dict(self.challenge)
+    cam_d: "Mapping[str, Mapping[str, str]]"
     # Assessment metrics categories catalog
     ass_cat: "Sequence[Mapping[str, Any]]"
     # Which logger to use
@@ -1057,6 +1082,6 @@ class IndexedChallenge:
             metrics_label=metrics_label,
             challenge_id=self.challenge_id,
             challenge_acronym=self.challenge['acronym'],
-            challenge_assessment_metrics_d=gen_challenge_assessment_metrics_dict(self.challenge),
+            challenge_assessment_metrics_d=self.cam_d,
             dataset_id=dataset_id,
         )

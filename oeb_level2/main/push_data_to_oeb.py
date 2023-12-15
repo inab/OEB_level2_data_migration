@@ -563,17 +563,12 @@ def validate_transform_and_push(
     #logging.info("-> Querying related TestActions")
     #stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     #stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
-    logging.info("-> Querying related assessment Datasets")
-    # Needed to better consolidate
-    stagedAssessmentDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": list(community_ids_set), "type": [ ASSESSMENT_DATASET_LABEL ]}))
-    #stagedAssessmentDatasets = list(migration_utils.fetchSandboxAndGraphQLStagedData('Dataset', {"community_ids": list(community_ids_set), "type": [ ASSESSMENT_DATASET_LABEL ]}))
     
     logging.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
     process_assessments = AssessmentBuilder(schemaMappings, migration_utils)
     valid_assessment_tuples = process_assessments.build_assessment_datasets(
-        metrics_reference_query_response["data"]["getChallenges"],
         metrics_reference_query_response["data"]["getMetrics"],
-        stagedAssessmentDatasets,
+        agg_challenges,
         min_assessment_datasets, 
         data_visibility,
         valid_participant_tuples,
