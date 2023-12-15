@@ -70,7 +70,10 @@ if TYPE_CHECKING:
         InlineDataLabelPair,
     )
     
-    from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
+    from ..utils.migration_utils import (
+        BenchmarkingEventPrefixEtAl,
+        MetricsLimits,
+    )
     
     from numbers import Real
     
@@ -81,6 +84,7 @@ if TYPE_CHECKING:
         tool_id: "str"
         metric_value: "Real"
         stderr: "Real"
+        hide: "bool"
     
     class ScatterData(TypedDict, total=False):
         tool_id: "str"
@@ -88,6 +92,7 @@ if TYPE_CHECKING:
         stderr_x: "Real"
         metric_y: "Real"
         stderr_y: "Real"
+        hide: "bool"
     
     class SeriesVal(TypedDict):
         v: "Required[Real]"
@@ -97,6 +102,7 @@ if TYPE_CHECKING:
         label: "str"
         metric_id: "str"
         values: "Union[Sequence[Real], Sequence[SeriesVal]]"
+        hide: "bool"
     
     class DataLabel(TypedDict):
         label: "Required[str]"
@@ -403,7 +409,8 @@ class AggregationValidator():
                             ass_par_by_id: "MutableMapping[str, str]" = {}
                             # The right type should be "Union[MutableSequence[BarData], MutableSequence[ScatterData], MutableSequence[SeriesData]]"
                             # but the validation gets more complicated
-                            challenge_participants = cast("MutableSequence[Union[BarData, ScatterData, SeriesData]]", [])
+                            challenge_participants: "MutableSequence[Union[BarData, ScatterData, SeriesData]]" = []
+                            challenge_participants_ids: "MutableSequence[str]" = []
                             inline_data["challenge_participants"] = challenge_participants
                             
                             # Visualization type determines later the labels
@@ -464,6 +471,22 @@ class AggregationValidator():
                                     continue
                                 # To gather the assessment datasets for each metric
                                 met_datasets = list(idat_ass.datasets_from_metric(metrics_trio.metrics_id))
+
+                                # This one will be used for further filtering
+                                metrics_limits: "Optional[MetricsLimits]"
+                                the_min: "Optional[Real]" = None
+                                the_min_inclusive: "bool" = False
+                                the_max: "Optional[Real]" = None
+                                the_max_inclusive: "bool" = False
+                                if metrics_trio.representation_hints is not None:
+                                    metrics_limits = metrics_trio.representation_hints.get("limits")
+                                    if metrics_limits is not None:
+                                        the_min = metrics_limits.get("min")
+                                        the_min_inclusive = metrics_limits.get("min_inclusive", True)
+                                        the_max = metrics_limits.get("max")
+                                        the_max_inclusive = metrics_limits.get("max_inclusive", True)
+                                else:
+                                    metrics_limits = None
                                 
                                 met_set = set(map(lambda m: cast("str", m["_id"]), met_datasets))
                                 if not(rel_ids_set >= met_set):
@@ -541,6 +564,7 @@ class AggregationValidator():
                                             mini_entry = mini_entry_s
                                         
                                         challenge_participants.append(mini_entry)
+                                        challenge_participants_ids.append(par_dataset_id)
                                         cha_par_by_id[par_dataset_id] = mini_entry
                                         ass_par_by_id[par_dataset_id] = met_dataset['_id']
                                     elif i_trio == 0:
@@ -565,6 +589,13 @@ class AggregationValidator():
                                     if do_processing and isinstance(fetched_ass_inline_data, FetchedInlineData):
                                         ass_inline_data = fetched_ass_inline_data.data
                                         if mini_entry_2d is not None:
+                                            do_hide = False
+                                            the_value = ass_inline_data["value"]
+                                            if the_min is not None:
+                                                do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
+                                            if not do_hide and the_max is not None:
+                                                do_hide |= the_value > the_max if the_max_inclusive else the_value >= the_max
+
                                             mini_entry_values: "ScatterData"
                                             if i_trio == 0:
                                                 mini_entry_values = {
@@ -578,16 +609,41 @@ class AggregationValidator():
                                                 }
                                             
                                             mini_entry_2d.update(mini_entry_values)
+                                            if do_hide:
+                                                mini_entry_2d["hide"] = do_hide
                                         elif mini_entry_b:
+                                            do_hide = False
+                                            the_value = ass_inline_data["value"]
+                                            if the_min is not None:
+                                                do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
+                                            if not do_hide and the_max is not None:
+                                                do_hide |= the_value > the_max if the_max_inclusive else the_value >= the_max
+
                                             mini_entry_b.update({
                                                 "metric_value": ass_inline_data["value"],
                                                 "stderr": ass_inline_data.get("error", 0),
                                             })
+                                            if do_hide:
+                                                mini_entry_b["hide"] = do_hide
                                         elif mini_entry_s:
                                             mini_entry_s.update({
                                                 "values": ass_inline_data["values"],
                                             })
                             
+                            # Filter out now
+                            challenge_participants_to_remove = []
+                            for i_chal, challenge_participant in enumerate(challenge_participants):
+                                if challenge_participant.get("hide"):
+                                    challenge_participants_to_remove.append(i_chal)
+                            
+                            if len(challenge_participants_to_remove) > 0:
+                                self.logger.info(f"Filtered {len(challenge_participants_to_remove)} participants")
+                                for i_chal in reversed(challenge_participants_to_remove):
+                                    par_dataset_id_to_remove = challenge_participants_ids.pop(i_chal)
+                                    del cha_par_by_id[par_dataset_id_to_remove]
+                                    del ass_par_by_id[par_dataset_id_to_remove]
+                                    del challenge_participants[i_chal]
+
                             if not rebuild_agg:
                                 if series_type == "aggregation-data-series":
                                     found_metrics_labels = list(map(lambda mt: mt.proposed_label, found_metrics))

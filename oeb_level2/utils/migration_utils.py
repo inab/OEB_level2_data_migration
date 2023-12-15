@@ -54,6 +54,8 @@ if TYPE_CHECKING:
     
     from typing_extensions import (
         Final,
+        NotRequired,
+        TypedDict,
     )
     
     from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
@@ -67,6 +69,17 @@ if TYPE_CHECKING:
     from oebtools.auth import OEBCredentials
     
     from oebtools.fetch import IdAndOrigId
+
+    from numbers import Real
+
+    class MetricsLimits(TypedDict):
+        min: "NotRequired[Real]"
+        min_inclusive: "NotRequired[bool]"
+        max: "NotRequired[Real]"
+        max_inclusive: "NotRequired[bool]"
+
+    class RepresentationHints(TypedDict):
+        limits: "NotRequired[MetricsLimits]"
 
 import requests
 
@@ -151,6 +164,7 @@ class MetricsTrio(NamedTuple):
     tool_id: "Optional[str]"
     proposed_label: "str"
     all_labels: "Sequence[str]"
+    representation_hints: "Optional[RepresentationHints]"
 
 class OpenEBenchUtils():
     DEFAULT_OEB_API = "https://dev-openebench.bsc.es/api/scientific/graphql"
@@ -710,6 +724,7 @@ class OpenEBenchUtils():
     getMetrics {
         _id
         _metadata
+        representation_hints
         orig_id
     }
 """
@@ -972,6 +987,7 @@ class OpenEBenchUtils():
     getMetrics {
         _id
         _metadata
+        representation_hints
         orig_id
     }
 """
@@ -1056,6 +1072,10 @@ class OpenEBenchUtils():
                     # Deserialize the metadata
                     if isinstance(metadata,str):
                         metric['_metadata'] = json.loads(metadata)
+                    # and representation hints
+                    representation_hints = metric.get("representation_hints")
+                    if isinstance(representation_hints, str):
+                        metric["representation_hints"] = json.loads(representation_hints)
             
             return cast("Mapping[str, Mapping[str, Any]]", response)
         except Exception as e:
@@ -1706,6 +1726,7 @@ class OpenEBenchUtils():
             tool_id=tool_id,
             proposed_label=all_labels[0],
             all_labels=all_labels,
+            representation_hints=mmi.get("representation_hints"),
         )
     
     def getMetricsTrioFromMetricsId(self, metrics_id: "str", community_prefix: "str", tool_id: "Optional[str]") -> "MetricsTrio":
