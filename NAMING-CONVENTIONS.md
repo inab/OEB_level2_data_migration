@@ -117,6 +117,25 @@ and then should be followed by the challenge label.
   - In the worst cases, if the metrics entry has an `orig_id`, the original id is the metrics label.
     Else the label is the metrics id.
 
+* Assessment entries are discarded from the aggregation process when their values are outside the limits
+  of the metrics. The way a metrics entry can declare this limits is through the `representation_hints`
+  block, where restrictions on one or both extremes can be declared.
+  
+  Next example shows how to declare a metric value should be between 0 and 1, but the lower
+  value should be exclusive (i.e. discarding the 0):
+  
+  ```json
+  {
+    "representation_hints": {
+      "limits": {
+        "min": 0,
+        "min_inclusive": false,
+        "max": 1
+      }
+    }
+  }
+  ```
+
 ## Datasets
 
 * [W] Original id from a dataset tied to a single community must start with the community prefix.
