@@ -35,6 +35,9 @@ import datetime
 import sys
 import os
 import os.path
+import shutil
+import tempfile
+import urllib.error
 import urllib.parse
 import urllib.request
 import logging
@@ -46,6 +49,7 @@ from typing import (
 )
 if TYPE_CHECKING:
     from typing import (
+        IO,
         Mapping,
         MutableMapping,
         Optional,
@@ -55,6 +59,7 @@ if TYPE_CHECKING:
     
     from typing_extensions import (
         NotRequired,
+        Protocol,
         TypedDict,
     )
     
@@ -69,10 +74,15 @@ if TYPE_CHECKING:
         ConfigParams,
         _ParticipantElements,
     )
+    
+    class CallableStrOpen(Protocol):
+        def __call__(self, filename: str, mode: str = "r", encoding: "Optional[str]" = None) -> "IO[str]": ...
+
 
 import coloredlogs  # type: ignore[import]
+import magic
+
 from oebtools.fetch import OEBFetcher
-import requests
 from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 from oebtools.uploader import(
@@ -281,24 +291,41 @@ def validate_transform_and_push(
     if input_url is not None:
         logging.info(f"-> Fetching and reading minimal dataset to be processed from {input_url}")
         
-        response = requests.request("GET", input_url)
-        if (response.status_code == 200):
-            data = json.loads(response.text)
-        else:
-            logging.fatal(str(response.status_code) +" input url " + input_url + " is missing or has incorrect format")
+        tfile = tempfile.NamedTemporaryFile()
+        try:
+            with urllib.request.urlopen(input_url) as response:
+                shutil.copyfileobj(response, tfile, length=1024*1024)
+            input_file_to_open = tfile.name
+        except urllib.error.HTTPError as he:
+            logging.exception(f"{he.code} HTTP error. Input url {input_url} is either missing or has incorrect format. Reason: {he.reason}")
+            sys.exit(1)
+        except Exception as e:
+            logging.exception(f"Input url {input_url} is either missing or has incorrect format.")
             sys.exit(1)
     else:
         logging.info(f"-> Opening and reading minimal dataset file {input_file}")
-        try:
-            with open(input_file, 'r') as f:
-                data = json.load(f)
-                # If could be a single entry
-                if not isinstance(data, list):
-                    data = [ data ]
-        except Exception as e:
-            logging.fatal(e, "input file " + input_file +
-                          " is missing or has incorrect format")
-            sys.exit(1)
+        input_file_to_open = input_file
+
+    try:
+        foundmime = magic.from_file(input_file_to_open, mime=True)
+        opencmd: "CallableStrOpen"
+        if foundmime == "application/x-xz":
+            import lzma
+            opencmd = cast("CallableStrOpen", lzma.open)
+        elif foundmime == "application/gzip":
+            import gzip
+            opencmd = cast("CallableStrOpen", gzip.open)
+        else:
+            opencmd = cast("CallableStrOpen", open)
+        with opencmd(input_file_to_open, mode='rt', encoding="utf-8") as f:
+            data = json.load(f)
+            # If could be a single entry
+            if not isinstance(data, list):
+                data = [ data ]
+    except Exception as e:
+        logging.exception("Input file " + input_file +
+                      " is missing or has incorrect format")
+        sys.exit(1)
 
     logging.info("-> Validating minimal dataset to be processed")
     # Some data have incomplete timestamps (hence, incorrect)

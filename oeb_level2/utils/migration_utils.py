@@ -84,13 +84,13 @@ if TYPE_CHECKING:
 import requests
 
 from oebtools.common import(
+    DEFAULT_BDM_TAG,
     FLAVOR_SANDBOX,
     FLAVOR_STAGED,
     YieldedInput,
 )
 
 from oebtools.fetch import (
-    DEFAULT_BDM_TAG,
     DEFAULT_CONCEPT_DESC,
     FetchedInlineData,
     OEBFetcher,
