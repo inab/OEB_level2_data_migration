@@ -61,6 +61,11 @@
 						"name": "participant_id_key",
 						"members": [ "." ]
 					}
+				},
+				"exclude": {
+					"title": "Should participant be excluded?",
+					"type": "boolean",
+					"default": false
 				}
 			},
 			"required": ["tool_id","data_version","data_contacts"]

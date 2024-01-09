@@ -176,6 +176,10 @@ and then should be followed by the challenge label.
   - Unless it is guessed by other means, the last chance comes from reversing the
     process applied to generate the original_id of the participant dataset.
     
+* Participant entries, and subsequent assessment entries, are excluded (i.e. hard masked) when
+  `_metadata` section from the participant dataset contains the key `level_2:exclude_participant`
+  with a value which evaluates to `true`.
+
 * [W] An assessment dataset's original id must end with the metrics label of the involved metric,
   plus challenge original id separator, plus the participant label, plus '_A'.
 

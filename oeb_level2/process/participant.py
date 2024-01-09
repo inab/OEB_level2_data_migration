@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
 
 from ..utils.migration_utils import (
+    EXCLUDE_PARTICIPANT_KEY,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
@@ -64,6 +65,7 @@ class ParticipantConfig:
     data_version: "str"
     data_contacts: "Sequence[str]"
     participant_label: "str"
+    exclude: "bool" = False
     
     def process_contact_ids(self, contacts_graphql: "Sequence[Mapping[str, Any]]") -> "Sequence[str]":
         # add dataset contacts ids
@@ -331,6 +333,7 @@ class ParticipantBuilder():
             # Breadcrumbs about the participant id to ease the discovery
             new_metadata = {
                 PARTICIPANT_ID_KEY: min_participant_data["participant_id"],
+                EXCLUDE_PARTICIPANT_KEY: p_config.exclude,
             }
             if stagedEntry is not None:
                 staged_metadata = stagedEntry.get("_metadata")

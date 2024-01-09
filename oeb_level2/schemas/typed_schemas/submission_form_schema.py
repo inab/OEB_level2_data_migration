@@ -1,7 +1,7 @@
 # Automatically generated file from a JSON schema
 
 
-from typing import Literal, Union, TypedDict, List
+from typing import List, Literal, Union, TypedDict
 from typing_extensions import Required
 
 
@@ -20,7 +20,16 @@ class ConfigParams(TypedDict, total=False):
     """
 
     data_visibility: Required["DatasetsVisibility"]
-    """ Required property """
+    """
+    Datasets visibility.
+
+    The desired visibility of the submitted datasets, which must be acknowledged by the APIs
+
+    default: public
+    readonly: True
+
+    Required property
+    """
 
     benchmarking_event_id: Required[str]
     """
@@ -55,6 +64,14 @@ class ConfigParams(TypedDict, total=False):
     """
 
     tool_id: "ParticipantTool"
+    """
+    Participant Tool.
+
+    The id of the tool used to generate the dataset. Should be selected by uploader, using API
+
+    pattern: ^OEBT[0-9]{3}[A-Z0-9]{7}$
+    """
+
     tool_mapping: List["_ParticipantElements"]
     """
     List of tools.
@@ -168,7 +185,7 @@ DATA_MODEL_TAG_DEFAULT = '6495b7317f830ad739591be2de1e279ea6c4c0d8'
 
 
 
-DatasetsVisibility = Union[Literal["public"], Literal["community"], Literal["challenge"], Literal["participant"]]
+DatasetsVisibility = Union[Literal['public'], Literal['community'], Literal['challenge'], Literal['participant']]
 """
 Datasets visibility.
 
@@ -177,13 +194,13 @@ The desired visibility of the submitted datasets, which must be acknowledged by 
 default: public
 readonly: True
 """
-DATASETSVISIBILITY_PUBLIC: Literal["public"] = "public"
+DATASETSVISIBILITY_PUBLIC: Literal['public'] = "public"
 """The values for the 'Datasets visibility' enum"""
-DATASETSVISIBILITY_COMMUNITY: Literal["community"] = "community"
+DATASETSVISIBILITY_COMMUNITY: Literal['community'] = "community"
 """The values for the 'Datasets visibility' enum"""
-DATASETSVISIBILITY_CHALLENGE: Literal["challenge"] = "challenge"
+DATASETSVISIBILITY_CHALLENGE: Literal['challenge'] = "challenge"
 """The values for the 'Datasets visibility' enum"""
-DATASETSVISIBILITY_PARTICIPANT: Literal["participant"] = "participant"
+DATASETSVISIBILITY_PARTICIPANT: Literal['participant'] = "participant"
 """The values for the 'Datasets visibility' enum"""
 
 
@@ -209,6 +226,11 @@ pattern: ^OEBT[0-9]{3}[A-Z0-9]{7}$
 
 
 
+SHOULD_PARTICIPANT_BE_EXCLUDED_QUESTION_MARK__DEFAULT = False
+""" Default value of the field path 'participant elements exclude' """
+
+
+
 Version = Union[str, Union[int, float]]
 """
 Version.
@@ -227,18 +249,50 @@ _ContactsItem = str
 
 class _ParticipantElements(TypedDict, total=False):
     tool_id: Required["ParticipantTool"]
-    """ Required property """
+    """
+    Participant Tool.
+
+    The id of the tool used to generate the dataset. Should be selected by uploader, using API
+
+    pattern: ^OEBT[0-9]{3}[A-Z0-9]{7}$
+
+    Required property
+    """
 
     data_version: Required["Version"]
-    """ Required property """
+    """
+    Version.
+
+    Version (or release date) of the dataset
+
+    minLength: 1
+
+    Required property
+    """
 
     data_contacts: Required["Contacts"]
-    """ Required property """
+    """
+    Contacts.
+
+    Emails of the dataset contact(s). Should be registered in Mongo and OIDC, as they are going to be used to do the proper internal mappings
+
+    minItems: 1
+    uniqueItems: True
+
+    Required property
+    """
 
     participant_id: str
     """
     The id / name of the tool which generated this dataset.
 
     minLength: 1
+    """
+
+    exclude: bool
+    """
+    Should participant be excluded?.
+
+    default: False
     """
 

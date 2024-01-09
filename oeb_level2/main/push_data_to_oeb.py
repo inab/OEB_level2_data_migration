@@ -256,6 +256,7 @@ def validate_transform_and_push(
                     data_version=str(tool_mapping_e["data_version"]),
                     data_contacts=tool_mapping_e["data_contacts"],
                     participant_label=participant_label,
+                    exclude=tool_mapping_e.get("exclude", False),
                 )
             
         

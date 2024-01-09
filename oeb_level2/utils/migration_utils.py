@@ -144,6 +144,8 @@ CHALLENGE_LABEL_KEY = "level_2:challenge_id"
 
 PARTICIPANT_ID_KEY = "level_2:participant_id"
 
+EXCLUDE_PARTICIPANT_KEY = "level_2:exclude_participant"
+
 METRIC_ID_KEY = "level_2:metric_id"
 
 DEFAULT_ORIG_ID_SEPARATOR = "_"
