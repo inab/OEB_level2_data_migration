@@ -13,6 +13,11 @@
                         "title": "the standard error / deviation for the metric (if exists)",
                         "type": "number",
                         "minLength": 1
+                },
+                "hide": {
+                        "title": "Should value be initially hidden?",
+                        "type": "boolean",
+                        "default": false
                 }
         },
         "required": [

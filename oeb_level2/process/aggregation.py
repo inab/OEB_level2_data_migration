@@ -589,8 +589,8 @@ class AggregationValidator():
                                     fetched_ass_inline_data = idat_ass.get_payload(met_dataset["_id"])
                                     if do_processing and isinstance(fetched_ass_inline_data, FetchedInlineData):
                                         ass_inline_data = fetched_ass_inline_data.data
+                                        do_hide = ass_inline_data.get("hide", False)
                                         if mini_entry_2d is not None:
-                                            do_hide = False
                                             the_value = ass_inline_data["value"]
                                             if the_min is not None:
                                                 do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
@@ -613,7 +613,6 @@ class AggregationValidator():
                                             if do_hide:
                                                 mini_entry_2d["hide"] = do_hide
                                         elif mini_entry_b:
-                                            do_hide = False
                                             the_value = ass_inline_data["value"]
                                             if the_min is not None:
                                                 do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
@@ -630,6 +629,8 @@ class AggregationValidator():
                                             mini_entry_s.update({
                                                 "values": ass_inline_data["values"],
                                             })
+                                            if do_hide:
+                                                mini_entry_s["hide"] = do_hide
                             
                             # Filter out now
                             challenge_participants_to_remove = []
@@ -1213,8 +1214,8 @@ class AggregationBuilder():
                                 elif not failed_min_agg:
                                     ass_inline_data = fetched_ass_inline_data.data
                                     
+                                    do_hide = ass_inline_data.get("hide", False)
                                     if mini_entry_2d is not None:
-                                        do_hide = False
                                         the_value = ass_inline_data["value"]
                                         if the_min is not None:
                                             do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
@@ -1237,7 +1238,6 @@ class AggregationBuilder():
                                         if do_hide:
                                             mini_entry_2d["hide"] = do_hide
                                     elif mini_entry_b:
-                                        do_hide = False
                                         the_value = ass_inline_data["value"]
                                         if the_min is not None:
                                             do_hide |= the_value < the_min if the_min_inclusive else the_value <= the_min
@@ -1254,6 +1254,8 @@ class AggregationBuilder():
                                         mini_entry_s.update({
                                             "values": ass_inline_data["values"],
                                         })
+                                        if do_hide:
+                                            mini_entry_s["hide"] = do_hide
 
                         # Filter out now
                         challenge_participants_to_remove = []

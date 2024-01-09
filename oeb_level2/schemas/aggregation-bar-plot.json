@@ -19,6 +19,11 @@
 					},
 					"stderr": {
 						"type": "number"
+					},
+					"hide": {
+						"title": "Should value be initially hidden?",
+						"type": "boolean",
+						"default": false
 					}
 				},
 				"required": [

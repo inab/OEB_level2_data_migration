@@ -34,6 +34,11 @@
                                         }
                                 }
                         ]
+                },
+                "hide": {
+                        "title": "Should the series of values be initially hidden?",
+                        "type": "boolean",
+                        "default": false
                 }
         },
         "required": [

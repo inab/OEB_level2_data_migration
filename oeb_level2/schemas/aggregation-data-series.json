@@ -50,6 +50,11 @@
 								}
 							}
 						]
+					},
+					"hide": {
+						"title": "Should value be initially hidden?",
+						"type": "boolean",
+						"default": false
 					}
 				},
 				"join_keys": [
