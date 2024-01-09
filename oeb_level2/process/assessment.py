@@ -60,9 +60,11 @@ if TYPE_CHECKING:
 
 from ..utils.migration_utils import (
     ASSESSMENT_DATASET_LABEL,
+    METRIC_ID_KEY,
     METRICS_REFERENCE_DATASET_LABEL,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
+    PARTICIPANT_ID_KEY,
 )
 from ..schemas import (
     SERIES_METRIC_SCHEMA_ID,
@@ -302,8 +304,8 @@ class AssessmentBuilder():
             
             # Breadcrumbs about the participant label and metrics label to ease the discovery
             new_metadata = {
-                "level_2:participant_id": participant_label,
-                "level_2:metric_id": metrics_label,
+                PARTICIPANT_ID_KEY: participant_label,
+                METRIC_ID_KEY: metrics_label,
             }
             if stagedEntry is not None:
                 staged_metadata = stagedEntry.get("_metadata")

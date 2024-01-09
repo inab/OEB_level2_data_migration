@@ -51,6 +51,7 @@ if TYPE_CHECKING:
 from ..utils.migration_utils import (
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
+    PARTICIPANT_ID_KEY,
 )
 
 class ChallengePair(NamedTuple):
@@ -329,7 +330,7 @@ class ParticipantBuilder():
             
             # Breadcrumbs about the participant id to ease the discovery
             new_metadata = {
-                "level_2:participant_id": min_participant_data["participant_id"],
+                PARTICIPANT_ID_KEY: min_participant_data["participant_id"],
             }
             if stagedEntry is not None:
                 staged_metadata = stagedEntry.get("_metadata")

@@ -140,6 +140,12 @@ METRICS_LABEL_SEPARATOR_KEY = "level_2:metric_separator"
 
 COMMUNITY_LABEL_KEY = "level_2:community_label"
 
+CHALLENGE_LABEL_KEY = "level_2:challenge_id"
+
+PARTICIPANT_ID_KEY = "level_2:participant_id"
+
+METRIC_ID_KEY = "level_2:metric_id"
+
 DEFAULT_ORIG_ID_SEPARATOR = "_"
 
 DEFAULT_AGGREGATION_SEPARATOR = "agg"
@@ -392,7 +398,7 @@ class OpenEBenchUtils():
         # Then, dig in to get the participant label
         the_metadata = dataset.get("_metadata")
         if the_metadata is not None:
-            participant_label = the_metadata.get("level_2:participant_id", participant_label)
+            participant_label = the_metadata.get(PARTICIPANT_ID_KEY, participant_label)
         
         expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
         
@@ -464,8 +470,8 @@ class OpenEBenchUtils():
         # Then, dig in to get the participant label and metrics label
         the_metadata = dataset.get("_metadata")
         if the_metadata is not None:
-            participant_label = the_metadata.get("level_2:participant_id", participant_label)
-            metrics_label = the_metadata.get("level_2:metric_id", metrics_label)
+            participant_label = the_metadata.get(PARTICIPANT_ID_KEY, participant_label)
+            metrics_label = the_metadata.get(METRIC_ID_KEY, metrics_label)
         
         expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
         
@@ -587,7 +593,7 @@ class OpenEBenchUtils():
         challenge_aggregation_separator = bench_event_prefix_et_al.aggregation_sep
         challenge_metrics_label_separator = bench_event_prefix_et_al.metrics_label_sep
         if isinstance(_metadata, dict):
-            the_label = _metadata.get("level_2:challenge_id")
+            the_label = _metadata.get(CHALLENGE_LABEL_KEY)
             if the_label is not None:
                 challenge_label = the_label
             the_challenge_orig_id_separator = _metadata.get(ORIG_ID_SEPARATOR_KEY)
@@ -1706,8 +1712,8 @@ class OpenEBenchUtils():
         all_labels: "MutableSequence[str]" = []
         mmi_metadata = mmi.get("_metadata")
         
-        if isinstance(mmi_metadata, dict) and ('level_2:metric_id' in mmi_metadata):
-            proposed_label = cast("str", mmi_metadata['level_2:metric_id'])
+        if isinstance(mmi_metadata, dict) and (METRIC_ID_KEY in mmi_metadata):
+            proposed_label = cast("str", mmi_metadata[METRIC_ID_KEY])
             if proposed_label is not None:
                 all_labels.append(proposed_label)
         

@@ -116,6 +116,7 @@ from ..utils.migration_utils import (
     ASSESSMENT_DATASET_LABEL,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
+    PARTICIPANT_ID_KEY,
 )
 
 class AggregationTuple(NamedTuple):
@@ -448,7 +449,7 @@ class AggregationValidator():
                                     part_raw_metadata = part_raw_dataset.get("_metadata")
                                     if part_raw_metadata is None:
                                         part_raw_metadata = {}
-                                    part_raw_label = part_raw_metadata.get("level_2:participant_id", part_d_label)
+                                    part_raw_label = part_raw_metadata.get(PARTICIPANT_ID_KEY, part_d_label)
                                     if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
                                         inline_data_labels.append(potential_inline_data_label)
                                         idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label

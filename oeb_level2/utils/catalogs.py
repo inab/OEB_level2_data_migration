@@ -96,10 +96,12 @@ from .migration_utils import (
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
     INPUT_DATASET_LABEL,
+    METRIC_ID_KEY,
     METRICS_REFERENCE_DATASET_LABEL,
     MetricsTrio,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
+    PARTICIPANT_ID_KEY,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
 
@@ -120,7 +122,7 @@ def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") ->
 def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, Any]", default_label: "Optional[str]" = None) -> "InlineDataLabelPair":
     # First, look for the label in the participant dataset
     par_metadata = par_dataset.get("_metadata",{})
-    par_label = None if par_metadata is None else par_metadata.get("level_2:participant_id")
+    par_label = None if par_metadata is None else par_metadata.get(PARTICIPANT_ID_KEY)
     # Then, look for it in the assessment dataset
     if par_label is None:
         par_label = default_label
@@ -168,7 +170,7 @@ def gen_inline_data_label_from_assessment_and_participant_dataset(
         if ass_metadata is None:
             default_ass_label = None
         else:
-            default_ass_label = ass_metadata.get("level_2:participant_id")
+            default_ass_label = ass_metadata.get(PARTICIPANT_ID_KEY)
 
         if metrics_id is not None:
             metrics_label = metrics_id
@@ -197,7 +199,7 @@ def gen_inline_data_label_from_assessment_and_participant_dataset(
 
 def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Sequence[Mapping[str, Any]]") -> "Optional[InlineDataLabelPair]":
     met_metadata = met_dataset.get("_metadata",{})
-    met_label = None if met_metadata is None else met_metadata.get("level_2:participant_id")
+    met_label = None if met_metadata is None else met_metadata.get(PARTICIPANT_ID_KEY)
     if len(par_datasets) > 0:
         return gen_inline_data_label_from_participant_dataset(par_datasets[0], default_label=met_label)
     
@@ -219,8 +221,8 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
             else:
                 # Second guess (it can introduce false crosses)
                 metric_metadata = metric.get("_metadata")
-                if isinstance(metric_metadata, dict) and 'level_2:metric_id' in metric_metadata:
-                    if metric_metadata['level_2:metric_id'].upper() == dataset_metrics_id_u:
+                if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
+                    if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
                         guessed_metrics.append(metric)
     
     
