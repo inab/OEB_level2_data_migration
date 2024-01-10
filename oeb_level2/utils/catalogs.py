@@ -95,6 +95,7 @@ from .migration_utils import (
     ASSESSMENT_CATEGORY_LABEL,
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
+    EXCLUDE_PARTICIPANT_KEY,
     INPUT_DATASET_LABEL,
     METRIC_ID_KEY,
     METRICS_REFERENCE_DATASET_LABEL,
@@ -596,6 +597,11 @@ class IndexedDatasets:
                 self.d_inline_dict[index_id] = fetched_inline_data
             
             # Only happens to assessment datasets
+            # As we do not have access to the participant dataset here
+            # the code cannot know whether the dataset should be added
+            # here. So, a clean up task has to be performed in DatasetsCatalog.
+            # The optimal place is check_dataset_depends_on, because it
+            # is already fetching the related datasets.
             if d_on_metrics_id is not None:
                 self.d_m_dict.setdefault(d_on_metrics_id, []).append(d_pos)
             
@@ -632,6 +638,19 @@ class IndexedDatasets:
 
     def datasets_from_metric(self, metrics_id: "str") -> "Iterator[Mapping[str, Any]]":
         return map(lambda d_index: self.d_list[d_index], self.d_m_dict.get(metrics_id, []))
+
+    def exclude_dataset_from_metrics(self, dataset_id: "str") -> "bool":
+        was_excluded = False
+        # First, get its index
+        the_id = self.d_dict.get(dataset_id)
+        # And now ... search for it and remove!
+        if the_id is not None:
+            for d_indexes in self.d_m_dict.values():
+                if the_id in d_indexes:
+                    was_excluded = True
+                    d_indexes.remove(the_id)
+
+        return was_excluded
 
     def keys(self) -> "KeysView[str]":
         return self.d_dict.keys()
@@ -708,6 +727,7 @@ class DatasetsCatalog:
             return False
             
         failed = False
+        do_exclude_from_m_dict = False
         d_on = raw_dataset.get("depends_on")
         if d_on is not None:
             # Let's check datasets which are declared in depends_on
@@ -726,6 +746,12 @@ class DatasetsCatalog:
                         ambiguous_dataset_ids.append(d_on_id)
                     elif len(challenge_ids_set.intersection(d_on_datasets[0].get("challenge_ids", []))) == 0:
                         unmatching_dataset_ids.append(d_on_id)
+                    
+                    # Now detect exclusion cases
+                    if d_type == ASSESSMENT_DATASET_LABEL and len(d_on_datasets) > 0:
+                        for d_on_dataset in d_on_datasets:
+                            if d_on_dataset.get("type") == PARTICIPANT_DATASET_LABEL and d_on_dataset.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False):
+                                do_exclude_from_m_dict = True
             
             if len(ambiguous_dataset_ids) > 0:
                 self.logger.error(f"{raw_dataset['_id']} depends on these ambiguous datasets: {', '.join(ambiguous_dataset_ids)}")
@@ -738,6 +764,11 @@ class DatasetsCatalog:
                 self.logger.error(f"{raw_dataset['_id']} does not share challenges with these datasets: {', '.join(unmatching_dataset_ids)}")
                 failed = True
         
+        # Clean up task to exclude assessment datasets from
+        # further processing when aggregation datasets are analysed
+        if do_exclude_from_m_dict:
+            idat.exclude_dataset_from_metrics(raw_dataset["_id"])
+
         return failed
 
     def get_participant_labels(self) -> "Sequence[InlineDataLabelPair]":

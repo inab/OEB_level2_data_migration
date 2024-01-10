@@ -103,10 +103,6 @@ if TYPE_CHECKING:
         metric_id: "str"
         values: "Union[Sequence[Real], Sequence[SeriesVal]]"
         hide: "bool"
-    
-    class DataLabel(TypedDict):
-        label: "Required[str]"
-        dataset_orig_id: "Required[str]"
 
 from oebtools.fetch import FetchedInlineData
 
@@ -114,6 +110,7 @@ from ..utils.migration_utils import (
     AGGREGATION_DATASET_LABEL,
     AGGREGATION_CATEGORY_LABEL,
     ASSESSMENT_DATASET_LABEL,
+    EXCLUDE_PARTICIPANT_KEY,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
@@ -429,7 +426,7 @@ class AggregationValidator():
                             rel_ids_set = set(map(lambda r: cast("str", r["dataset_id"]), filter(lambda r: r.get("role", "dependency") == "dependency", raw_dataset["depends_on"]["rel_dataset_ids"])))
                             
                             # Processing and validating already registered labels
-                            potential_inline_data_labels: "Sequence[DataLabel]" = inline_data.get("labels", [])
+                            potential_inline_data_labels: "Sequence[InlineDataLabel]" = inline_data.get("labels", [])
                             inline_data_labels: "MutableSequence[InlineDataLabel]" = []
                             inline_data["labels"] = inline_data_labels
                             
@@ -450,7 +447,10 @@ class AggregationValidator():
                                     if part_raw_metadata is None:
                                         part_raw_metadata = {}
                                     part_raw_label = part_raw_metadata.get(PARTICIPANT_ID_KEY, part_d_label)
-                                    if len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
+                                    part_exclude = part_raw_metadata.get(EXCLUDE_PARTICIPANT_KEY, False)
+                                    if part_exclude:
+                                        self.logger.info(f"Stale label {part_d_label}, as its associated participant dataset {part_raw_dataset['_id']} is excluded by choice")
+                                    elif len(ch_ids_set.intersection(part_raw_dataset["challenge_ids"])) > 0 and part_raw_label == part_d_label:
                                         inline_data_labels.append(potential_inline_data_label)
                                         idl_by_d_id[part_raw_dataset["_id"]] = potential_inline_data_label
                                         discarded_label = False
@@ -1088,10 +1088,10 @@ class AggregationBuilder():
                         if series_type == "aggregation-data-series":
                             inline_data["series_type"] = "aggregation-data-series"
                             inline_data.setdefault("visualization", {})["available_metrics"] = available_metrics
-                        inline_data_labels: "MutableSequence[DataLabel]" = []
+                        inline_data_labels: "MutableSequence[InlineDataLabel]" = []
                         inline_data["labels"] = inline_data_labels
                         # Inline data labels by participant dataset id
-                        idl_by_d_id: "MutableMapping[str, DataLabel]" = {}
+                        idl_by_d_id: "MutableMapping[str, InlineDataLabel]" = {}
                         challenge_participants: "MutableSequence[Union[BarData, ScatterData, SeriesData]]" = []
                         challenge_participants_ids: "MutableSequence[str]" = []
                         inline_data["challenge_participants"] = challenge_participants
