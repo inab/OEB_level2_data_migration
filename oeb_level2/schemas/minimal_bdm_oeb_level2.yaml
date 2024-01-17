@@ -415,6 +415,7 @@ $defs:
                       - "top-right"
                       - "bottom-left"
                       - "bottom-right"
+                      default: "top-right"
                   required:
                   - type
                   - x_axis
@@ -455,6 +456,9 @@ $defs:
                       enum:
                       - "left"
                       - "right"
+                      - "minimize"
+                      - "maximize"
+                      default: "maximize"
                   required:
                   - type
                   - metric
@@ -524,6 +528,8 @@ $defs:
                       enum:
                       - left
                       - right
+                      - minimize
+                      - maximize
                       - top-left
                       - top-right
                       - bottom-left

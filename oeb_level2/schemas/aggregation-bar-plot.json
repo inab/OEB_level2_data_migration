@@ -52,8 +52,11 @@
 					"type": "string",
 					"enum": [
 						"left",
-						"right"
-					]
+						"right",
+						"minimize",
+						"maximize"
+					],
+					"default": "maximize"
 				}
                         },
                         "required": [

@@ -67,7 +67,8 @@
 						"top-right",
 						"bottom-left",
 						"bottom-right"
-					]
+					],
+					"default": "top-right"
 				}
                         },
                         "required": [
