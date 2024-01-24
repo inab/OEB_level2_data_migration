@@ -23,6 +23,7 @@ import os
 import sys
 import copy
 import datetime
+import enum
 import hashlib
 import inspect
 import itertools
@@ -153,6 +154,13 @@ DEFAULT_ORIG_ID_SEPARATOR = "_"
 DEFAULT_AGGREGATION_SEPARATOR = "agg"
 
 DEFAULT_METRICS_LABEL_SEPARATOR = "+"
+
+
+class GraphQLQueryLabel(enum.Enum):
+    Input = "input"
+    MetricsReference = "metrics_reference"
+    Participant = "participant"
+    Aggregation = "aggregation"
 
 class ChallengeLabelAndSep(NamedTuple):
     ch_id: "str"
@@ -674,9 +682,9 @@ class OpenEBenchUtils():
         ))
 
     # function that retrieves all the required metadata from OEB database
-    def graphql_query_OEB_DB(self, data_type: "str", bench_event_id: "str") -> "Mapping[str, Mapping[str, Any]]":
+    def graphql_query_OEB_DB(self, data_type: GraphQLQueryLabel, bench_event_id: "str") -> "Mapping[str, Mapping[str, Any]]":
 
-        if data_type == "input":
+        if data_type == GraphQLQueryLabel.Input:
             query_name = "InputQuery"
             query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
@@ -701,7 +709,7 @@ class OpenEBenchUtils():
             variables = {
                 'bench_event_id': bench_event_id,
             }
-        elif data_type == "metrics_reference":
+        elif data_type == GraphQLQueryLabel.MetricsReference:
             query_name = "MetricsReferenceQuery"
             query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
@@ -739,7 +747,73 @@ class OpenEBenchUtils():
             variables = {
                 'bench_event_id': bench_event_id,
             }
-        elif data_type == "aggregation":
+        elif data_type == GraphQLQueryLabel.Participant:
+            query_name = "ParticipantsQuery"
+            query = """
+    getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
+        _id
+        orig_id
+        community_id
+        _metadata
+    }
+    getChallenges(challengeFilters: {benchmarking_event_id: $bench_event_id}) {
+        _id
+        acronym
+        _metadata
+        orig_id
+        challenge_contact_ids
+        metrics_categories {
+          category
+          description
+          metrics {
+            metrics_id
+            orig_id
+            tool_id
+          }
+        }
+        participant_datasets: datasets(datasetFilters: {type: "participant"}) {
+            _id
+            _schema
+            orig_id
+            community_ids
+            challenge_ids
+            visibility
+            name
+            version
+            description
+            dates {
+                creation
+                modification
+            }
+            type
+            datalink {
+                inline_data
+                schema_url
+                uri
+                schema_uri
+            }
+            dataset_contact_ids
+            depends_on {
+                tool_id
+                metrics_id
+                rel_dataset_ids {
+                    dataset_id
+                }
+            }
+            _metadata
+        }
+    }
+    getMetrics {
+        _id
+        _metadata
+        representation_hints
+        orig_id
+    }
+"""
+            variables = {
+                'bench_event_id': bench_event_id,
+            }
+        elif data_type == GraphQLQueryLabel.Aggregation:
             query_name = "AggregationQuery"
             query = """
     getBenchmarkingEvents(benchmarkingEventFilters: {id: $bench_event_id}) {
@@ -1017,7 +1091,7 @@ class OpenEBenchUtils():
             # get challenges and input datasets for provided benchmarking event
             data = response.get('data')
             if not isinstance(data, dict):
-                self.logger.fatal(f"graphqL query:\n{query}\nreturned errors:\n{response}")
+                self.logger.fatal(f"GraphQL query:\n{query}\nreturned errors:\n{response}")
                 sys.exit(2)
             
             if len(data["getBenchmarkingEvents"]) == 0:
@@ -1051,16 +1125,16 @@ class OpenEBenchUtils():
                         challenge_metadata = None
                     
                     # Deserializing inline_data
-                    datasets = challenge.get('datasets',[])
-                    for dataset in datasets:
-                        datalink = dataset.get('datalink')
-                        if datalink is not None:
-                            inline_data = datalink.get('inline_data')
-                            if isinstance(inline_data, str):
-                                datalink['inline_data'] = json.loads(inline_data)
+                    #datasets = challenge.get('datasets',[])
+                    #for dataset in datasets:
+                    #    datalink = dataset.get('datalink')
+                    #    if datalink is not None:
+                    #        inline_data = datalink.get('inline_data')
+                    #        if isinstance(inline_data, str):
+                    #            datalink['inline_data'] = json.loads(inline_data)
                     
                     # And now, for the embedded datasets and test actions
-                    for sub_k in ('event_test_actions', 'metrics_test_actions', 'public_reference_datasets', 'metrics_reference_datasets', 'input_datasets', 'participant_datasets', 'assessment_datasets', 'aggregation_datasets'):
+                    for sub_k in ('datasets', 'event_test_actions', 'metrics_test_actions', 'public_reference_datasets', 'metrics_reference_datasets', 'input_datasets', 'participant_datasets', 'assessment_datasets', 'aggregation_datasets'):
                         sub_v_l = challenge.get(sub_k)
                         if isinstance(sub_v_l, list):
                             for sub_v in sub_v_l:

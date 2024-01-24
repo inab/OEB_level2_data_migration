@@ -100,6 +100,7 @@ from ..process.aggregation import (
 from ..utils.migration_utils import (
     ASSESSMENT_DATASET_LABEL,
     AGGREGATION_DATASET_LABEL,
+    GraphQLQueryLabel,
     OpenEBenchUtils,
     PARTICIPANT_DATASET_LABEL,
 )
@@ -469,7 +470,7 @@ def validate_transform_and_push(
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
     input_query_response = migration_utils.graphql_query_OEB_DB(
-        "input",
+        GraphQLQueryLabel.Input,
         bench_event_id,
     )
     
@@ -516,7 +517,7 @@ def validate_transform_and_push(
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about aggregations")
     aggregation_query_response = migration_utils.graphql_query_OEB_DB(
-        "aggregation",
+        GraphQLQueryLabel.Aggregation,
         bench_event_id,
     )
     
@@ -571,7 +572,7 @@ def validate_transform_and_push(
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about metrics reference and assessments")
     metrics_reference_query_response = migration_utils.graphql_query_OEB_DB(
-        "metrics_reference",
+        GraphQLQueryLabel.MetricsReference,
         bench_event_id,
     )
 

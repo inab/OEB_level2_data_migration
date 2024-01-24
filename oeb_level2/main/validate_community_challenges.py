@@ -44,7 +44,6 @@ if TYPE_CHECKING:
     from . import BasicLoggingConfigDict
 
 import coloredlogs  # type: ignore[import]
-from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 from .. import schemas as level2_schemas
 from .. import version as oeb_level2_version
@@ -54,6 +53,7 @@ from ..process.participant import (
 )
 from ..process.aggregation import AggregationValidator
 from ..utils.migration_utils import (
+    GraphQLQueryLabel,
     OpenEBenchUtils,
 )
 
@@ -135,7 +135,7 @@ def validate_challenges(
 
     logging.info("-> Querying graphql about aggregations")
     aggregation_query_response = migration_utils.graphql_query_OEB_DB(
-        "aggregation",
+        GraphQLQueryLabel.Aggregation,
         bench_event_id,
     )
     
