@@ -90,18 +90,14 @@ class InlineDataLabelPair(NamedTuple):
     dataset_id: "str"
 
 from .migration_utils import (
-    AGGREGATION_DATASET_LABEL,
-    ASSESSMENT_DATASET_LABEL,
     ASSESSMENT_CATEGORY_LABEL,
     BenchmarkingEventPrefixEtAl,
     DATASET_ORIG_ID_SUFFIX,
     EXCLUDE_PARTICIPANT_KEY,
-    INPUT_DATASET_LABEL,
     METRIC_ID_KEY,
-    METRICS_REFERENCE_DATASET_LABEL,
     MetricsTrio,
+    OEBDatasetType,
     OpenEBenchUtils,
-    PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
@@ -273,7 +269,7 @@ TEST_ACTION_ID_PREFIX = OEB_CONCEPT_PREFIXES['TestAction']
 @dataclasses.dataclass
 class IndexedDatasets:
     # The dataset type of all the datasets
-    type: "str"
+    type: "OEBDatasetType"
     # Which logger to use
     logger: "Union[logging.Logger, ModuleType]"
     # Validator for inline data
@@ -310,13 +306,13 @@ class IndexedDatasets:
     def index_dataset(self, raw_dataset: "Mapping[str, Any]") -> "Optional[DatasetValidationSchema]":
         d_type = raw_dataset["type"]
         
-        if d_type != self.type:
-            self.logger.error(f"This instance is focused on datasets of type {self.type}, not of type {d_type}")
+        if d_type != self.type.value:
+            self.logger.error(f"This instance is focused on datasets of type {self.type.value}, not of type {d_type}")
             return None
         
-        is_participant = self.type == PARTICIPANT_DATASET_LABEL
-        is_assessment = self.type == ASSESSMENT_DATASET_LABEL
-        is_aggregation = self.type == AGGREGATION_DATASET_LABEL
+        is_participant = self.type == OEBDatasetType.Participant
+        is_assessment = self.type == OEBDatasetType.Assessment
+        is_aggregation = self.type == OEBDatasetType.Aggregation
         
         # Now, time to record the position where the assessment
         # dataset is going to be in the list of assessment datasets
@@ -335,17 +331,17 @@ class IndexedDatasets:
         
         if id_to_check is not None:
             if not id_to_check.startswith(self.community_prefix):
-                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
+                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type.value}) does not start with the community prefix {self.community_prefix}. You should fix it to avoid possible duplicates")
             if is_participant or is_assessment or is_aggregation:
                 if not id_to_check.startswith(self.bench_event_prefix_et_al.prefix):
-                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the benchmarking event prefix {self.bench_event_prefix_et_al.prefix}. You should fix it to avoid possible duplicates")
+                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type.value}) does not start with the benchmarking event prefix {self.bench_event_prefix_et_al.prefix}. You should fix it to avoid possible duplicates")
             if len(raw_dataset.get("challenge_ids",[])) == 1 or is_assessment or is_aggregation:
                 if not id_to_check.startswith(self.challenge_prefix):
-                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not start with the challenge prefix {self.challenge_prefix}. You should fix it to avoid possible duplicates")
+                    self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type.value}) does not start with the challenge prefix {self.challenge_prefix}. You should fix it to avoid possible duplicates")
         
             expected_suffix = DATASET_ORIG_ID_SUFFIX.get(self.type)
             if (expected_suffix is not None) and not id_to_check.endswith(expected_suffix):
-                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
+                self.logger.warning(f"Dataset {index_id} with orig id {id_to_check} (type {self.type.value}) does not end with the expected suffix {expected_suffix}. You should fix it to avoid possible duplicates")
         
         # Some validations
         # Validating the category where it matches
@@ -354,7 +350,7 @@ class IndexedDatasets:
         if is_assessment or is_aggregation:
             raw_challenge_ids = raw_dataset.get("challenge_ids",[])
             if len(raw_challenge_ids) > 1:
-                self.logger.warning(f"The number of challenges for dataset {index_id} ({index_id_orig} , type {self.type}) should be 1, but it is {len(raw_challenge_ids)}. Fix the entry keeping only the rightful challenge id ({self.challenge['_id']})")
+                self.logger.warning(f"The number of challenges for dataset {index_id} ({index_id_orig} , type {self.type.value}) should be 1, but it is {len(raw_challenge_ids)}. Fix the entry keeping only the rightful challenge id ({self.challenge['_id']})")
             
             d_on = raw_dataset.get("depends_on", {})
             d_on_metrics_id = d_on.get("metrics_id")
@@ -372,7 +368,7 @@ class IndexedDatasets:
                                 m_matched = d_on_metrics_id
                                 break
                             elif m_tool_should is not None:
-                                self.logger.warning(f"Metrics {d_on_metrics_id}, used for {self.type}, registered more than once in challenge {raw_dataset['challenge_ids'][0]}. Database contents should be curated")
+                                self.logger.warning(f"Metrics {d_on_metrics_id}, used for {self.type.value}, registered more than once in challenge {raw_dataset['challenge_ids'][0]}. Database contents should be curated")
                             else:
                                 m_tool_should = potential_tool_id
                     if m_matched is not None:
@@ -380,9 +376,9 @@ class IndexedDatasets:
             
             if m_matched is None:
                 if m_tool_should is None:
-                    self.logger.error(f"{self.type.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} depends on metric {d_on_metrics_id} implemented by {d_on_tool_id}, which are not registered as valid {self.type} challenge metrics. Fix it")
+                    self.logger.error(f"{self.type.value.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} depends on metric {d_on_metrics_id} implemented by {d_on_tool_id}, which are not registered as valid {self.type.value} challenge metrics. Fix it")
                 else:
-                    self.logger.error(f"{self.type.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} matched metric {d_on_metrics_id}, but mismatched implementation ({d_on_tool_id} instead of {m_tool_should}). Fix it")
+                    self.logger.error(f"{self.type.value.capitalize()} dataset {index_id} ({'in database' if d_pos is None else 'to be submitted'}) from challenge {', '.join(raw_dataset['challenge_ids'])} matched metric {d_on_metrics_id}, but mismatched implementation ({d_on_tool_id} instead of {m_tool_should}). Fix it")
                     
                 return None
         
@@ -431,26 +427,26 @@ class IndexedDatasets:
             config_val_block_errors = list(filter(lambda ve: (schema_uri is None) or (ve.get("schema_id") == schema_uri), config_val_block.get("errors", [])))
             
             if len(config_val_block_errors) > 0:
-                self.logger.error(f"Validation errors in {fetchable_uri} from {self.type} dataset {index_id} ({index_id_orig}) using {validable_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
+                self.logger.error(f"Validation errors in {fetchable_uri} from {self.type.value} dataset {index_id} ({index_id_orig}) using {validable_schemas}. It should be rebuilt\n{json.dumps(config_val_block_errors, indent=4)}")
                 # This commented out in order to give a try to propose a fixed version
                 #return None
         
         if is_aggregation:
             if not isinstance(o_datalink, dict):
                 # Skip it, we cannot work with it
-                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not have a datalink")
+                self.logger.info(f"Skipping {self.type.value} dataset {index_id} indexing, as it does not have a datalink")
                 return None
                 
             # Is this dataset an inline one?
             if the_data is None:
                 # Skip it, we cannot work with it
-                self.logger.info(f"Skipping {self.type} dataset {index_id} indexing, as it does not contain (inline) data")
+                self.logger.info(f"Skipping {self.type.value} dataset {index_id} indexing, as it does not contain (inline) data")
                 return None
         
             vis_hints = the_data.get("visualization", {})
             vis_type = vis_hints.get("type")
             if len(vis_hints) == 0:
-                self.logger.warning(f"No visualization type for {self.type} dataset {index_id}. Is it missing or intentional??")
+                self.logger.warning(f"No visualization type for {self.type.value} dataset {index_id}. Is it missing or intentional??")
                 # TODO: What should we do????
             elif vis_type in ("2D-plot", "bar-plot", "box-plot"):
                 suffix = None
@@ -460,10 +456,10 @@ class IndexedDatasets:
                     x_axis_metric_label = vis_hints.get("x_axis")
                     y_axis_metric_label = vis_hints.get("y_axis")
                     if x_axis_metric_label is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define x_axis label. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define x_axis label. Fix it")
                     
                     if y_axis_metric_label is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define y_axis label. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define y_axis label. Fix it")
                     
                     if x_axis_metric_label is not None and y_axis_metric_label is not None:
                         # Check there is some matching metric
@@ -480,7 +476,7 @@ class IndexedDatasets:
                         if x_trio is not None:
                             x_trio_proposed_label = x_trio.proposed_label
                         else:
-                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
+                            self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} uses for x axis unmatched metric {x_axis_metric_label}. Fix it")
                             x_trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                             
                         y_trio = match_metric_from_label(
@@ -496,7 +492,7 @@ class IndexedDatasets:
                         if y_trio is not None:
                             y_trio_proposed_label = y_trio.proposed_label
                         else:
-                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses for y axis unmatched metric {y_axis_metric_label}. Fix it")
+                            self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} uses for y axis unmatched metric {y_axis_metric_label}. Fix it")
                             y_trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                         
                         # Saving it for later usage
@@ -511,7 +507,7 @@ class IndexedDatasets:
                 elif vis_type == "bar-plot":
                     metrics_label = vis_hints.get("metric")
                     if metrics_label is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
                     else:
                         # Check there is some matching metric
                         trio = match_metric_from_label(
@@ -527,7 +523,7 @@ class IndexedDatasets:
                         if trio is not None:
                             trio_proposed_label = trio.proposed_label
                         else:
-                            self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
+                            self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
                             trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                         
                         # Saving it for later usage
@@ -541,7 +537,7 @@ class IndexedDatasets:
                 elif vis_type == "box-plot":
                     available_metrics = vis_hints.get("available_metrics")
                     if available_metrics is None:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} of visualization type {vis_type} did not define available metrics labels. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define available metrics labels. Fix it")
                     else:
                         matched_trios = []
                         proposed_labels = []
@@ -561,7 +557,7 @@ class IndexedDatasets:
                             if trio is not None:
                                 trio_proposed_label = trio.proposed_label
                             else:
-                                self.logger.critical(f"{self.type.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
+                                self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} uses unmatched metric {metrics_label}. Fix it")
                                 trio_proposed_label = "FIX_UNMATCHED_METRIC_LABEL"
                             proposed_labels.append(trio_proposed_label)
                         
@@ -574,14 +570,14 @@ class IndexedDatasets:
                 
                 if suffix is not None:
                     if index_id_orig is None or not (index_id_orig.endswith(suffix) or index_id_orig.endswith(proposed_suffix)):
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with either computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} orig id {index_id_orig} does not end with either computed metrics suffix {suffix} or proposed computed metrics suffix {proposed_suffix}. Fix it")
                     
                     proposed_orig_id = self.challenge_prefix + self.challenge_label_and_sep.aggregation_sep + proposed_suffix
                     if index_id_orig is None or index_id_orig != proposed_orig_id:
-                        self.logger.critical(f"{self.type.capitalize()} dataset {index_id} orig id {index_id_orig} does not match with proposed original id {proposed_orig_id}. Fix it")
+                        self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} orig id {index_id_orig} does not match with proposed original id {proposed_orig_id}. Fix it")
                         
             else:
-                self.logger.warning(f"Unhandled visualization type {vis_type} for {self.type} dataset {index_id}. Is it a new visualization or a typo??")
+                self.logger.warning(f"Unhandled visualization type {vis_type} for {self.type.value} dataset {index_id}. Is it a new visualization or a typo??")
             
         # New dataset to be tracked
         if d_pos is None:
@@ -671,12 +667,16 @@ class DatasetsCatalog:
     bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl" = dataclasses.field(default_factory=BenchmarkingEventPrefixEtAl)
     challenge_prefix: "str" = ""
     challenge: "Mapping[str, Any]" = dataclasses.field(default_factory=dict)
-    catalogs: "MutableMapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
+    catalogs: "MutableMapping[OEBDatasetType, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
     def merge_datasets(self, raw_datasets: "Iterable[Mapping[str, Any]]", d_categories: "Optional[Sequence[Mapping[str, Any]]]" = None, cam_d: "Optional[Mapping[str, Mapping[str, str]]]" = None) -> "Sequence[DatasetValidationSchema]":
         d_indexed = []
         for raw_dataset in raw_datasets:
-            d_type = raw_dataset["type"]
+            try:
+                d_type = OEBDatasetType(raw_dataset["type"])
+            except ValueError:
+                self.logger.exception(f"Unknown type {raw_dataset['type']} for dataset {raw_dataset['_id']}. Skipping (or FIXME)")
+                continue
             
             idat = self.catalogs.get(d_type)
             if idat is None:
@@ -714,16 +714,23 @@ class DatasetsCatalog:
         return d_indexed
     
     def check_dataset_depends_on(self, raw_dataset: "Mapping[str, Any]") -> "bool":
-        d_type = raw_dataset["type"]
+        d_type_str = raw_dataset["type"]
         
-        idat = self.catalogs.get(d_type)
+        d_type: "Optional[OEBDatasetType]"
+        try:
+            d_type = OEBDatasetType(d_type_str)
+            idat = self.catalogs.get(d_type)
+        except ValueError:
+            d_type = None
+            idat = None
+
         # We are not going to validate uningested datasets
         if idat is None:
-            self.logger.error(f"Revoked check of datasets of type {d_type}, as they have not been indexed yet")
+            self.logger.error(f"Revoked check of datasets of type {d_type_str}, as they have not been indexed yet")
             return False
         
         if idat.get(raw_dataset["_id"]) is None:
-            self.logger.error(f"Revoked check of dataset {raw_dataset['_id']} of type {d_type}, as it either has not been indexed yet or some previous validation failed")
+            self.logger.error(f"Revoked check of dataset {raw_dataset['_id']} of type {d_type_str}, as it either has not been indexed yet or some previous validation failed")
             return False
             
         failed = False
@@ -748,9 +755,9 @@ class DatasetsCatalog:
                         unmatching_dataset_ids.append(d_on_id)
                     
                     # Now detect exclusion cases
-                    if d_type == ASSESSMENT_DATASET_LABEL and len(d_on_datasets) > 0:
+                    if d_type == OEBDatasetType.Assessment and len(d_on_datasets) > 0:
                         for d_on_dataset in d_on_datasets:
-                            if d_on_dataset.get("type") == PARTICIPANT_DATASET_LABEL and d_on_dataset.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False):
+                            if d_on_dataset.get("type") == OEBDatasetType.Participant.value and d_on_dataset.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False):
                                 do_exclude_from_m_dict = True
             
             if len(ambiguous_dataset_ids) > 0:
@@ -779,9 +786,9 @@ class DatasetsCatalog:
         participant_labels: "MutableSequence[InlineDataLabelPair]" = []
 
         # We need the participant datasets
-        idat_part = self.get(PARTICIPANT_DATASET_LABEL)
+        idat_part = self.get(OEBDatasetType.Participant)
         if idat_part is None:
-            self.logger.warning(f"No {PARTICIPANT_DATASET_LABEL} dataset in challenge {self.challenge['_id']}")
+            self.logger.warning(f"No {OEBDatasetType.Participant.value} dataset in challenge {self.challenge['_id']}")
             return participant_labels
         
         # And we are building the list
@@ -799,9 +806,9 @@ class DatasetsCatalog:
         assessment_labels: "MutableSequence[InlineDataLabelPair]" = []
 
         # We need the assessment datasets
-        idat_ass = self.get(ASSESSMENT_DATASET_LABEL)
+        idat_ass = self.get(OEBDatasetType.Assessment)
         if idat_ass is None:
-            self.logger.warning(f"No {ASSESSMENT_DATASET_LABEL} dataset in challenge {self.challenge['_id']}")
+            self.logger.warning(f"No {OEBDatasetType.Assessment.value} dataset in challenge {self.challenge['_id']}")
             return assessment_labels
         
         # And we are building the list
@@ -821,7 +828,7 @@ class DatasetsCatalog:
                     if len(raw_p_datasets) > 0:
                         raw_p_dataset = None
                         for cand_raw_p_dataset in raw_p_datasets:
-                            if cand_raw_p_dataset["type"] == PARTICIPANT_DATASET_LABEL:
+                            if cand_raw_p_dataset["type"] == OEBDatasetType.Participant.value:
                                 raw_p_dataset = cand_raw_p_dataset
                                 break
 
@@ -834,7 +841,7 @@ class DatasetsCatalog:
         
         return assessment_labels
     
-    def get(self, dataset_type: "str") -> "Optional[IndexedDatasets]":
+    def get(self, dataset_type: "OEBDatasetType") -> "Optional[IndexedDatasets]":
         return self.catalogs.get(dataset_type)
     
     def get_dataset(self, dataset_id: "str") -> "Sequence[Mapping[str, Any]]":
@@ -883,7 +890,7 @@ class IndexedTestActions:
     od_to_a: "MutableMapping[str, int]" = dataclasses.field(default_factory=dict)
     
     # These catalogs allow checking other kind of input datasets
-    other_d_catalogs: "Mapping[str, IndexedDatasets]" = dataclasses.field(default_factory=dict)
+    other_d_catalogs: "Mapping[OEBDatasetType, IndexedDatasets]" = dataclasses.field(default_factory=dict)
     
     def index_test_action(self, raw_test_action: "Mapping[str, Any]") -> "Optional[IndexedTestActions]":
         a_type = raw_test_action["action_type"]
@@ -949,7 +956,7 @@ class IndexedTestActions:
                     else:
                         unmatched_in_dataset_ids.append(candidate_d_id)
                         should_fail = True
-                        self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type} or others like {', '.join(self.other_d_catalogs.keys())}")
+                        self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type.value} or others like {', '.join(map(lambda k: k.value, self.other_d_catalogs.keys()))}")
             elif d_role == "outgoing":
                 candidate_d = None if self.out_d_catalog is None else self.out_d_catalog.get(candidate_d_id)
                 # Search for it to match
@@ -978,18 +985,18 @@ class IndexedTestActions:
                 else:
                     unmatched_out_dataset_ids.append(candidate_d_id)
                     should_fail = True
-                    self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type}")
+                    self.logger.debug(f"Unmatched {d_role} dataset {candidate_d_id} as {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type.value}")
             else:
                 self.logger.critical(f"Unexpected {d_role} dataset {candidate_d_id} in {index_id}. This program does not know how to handle it.")
         
         if len(unmatched_in_dataset_ids) > 0 or len(unmatched_out_dataset_ids) > 0:
             if len(unmatched_in_dataset_ids) > 0:
-                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_in_dataset_ids)} unmatched {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type} input datasets: {', '.join(unmatched_in_dataset_ids)}")
+                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_in_dataset_ids)} unmatched {'(none)' if self.in_d_catalog is None else self.in_d_catalog.type.value} input datasets: {', '.join(unmatched_in_dataset_ids)}")
                 #if self.in_d_catalog:
                 #    self.logger.error('\n'.join(self.in_d_catalog.keys()))
                 #sys.exit(18)
             if len(unmatched_out_dataset_ids) > 0:
-                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_out_dataset_ids)} unmatched {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type} output datasets: {', '.join(unmatched_out_dataset_ids)}")
+                self.logger.error(f"In {self.action_type} entry {raw_test_action['_id']} from challenge {raw_test_action['challenge_id']}, {len(unmatched_out_dataset_ids)} unmatched {'(none)' if self.out_d_catalog is None else self.out_d_catalog.type.value} output datasets: {', '.join(unmatched_out_dataset_ids)}")
         
         if should_fail:
             return None
@@ -1032,12 +1039,12 @@ class IndexedTestActions:
         
         return self.a_list[a_pos].action
             
-ActionType2InOutDatasetTypes = {
+ActionType2InOutDatasetTypes: "Mapping[str, Tuple[OEBDatasetType, Sequence[OEBDatasetType], OEBDatasetType]]" = {
     # "SetupEvent": (None, ),
-    "TestEvent": (INPUT_DATASET_LABEL, ["public_reference"], PARTICIPANT_DATASET_LABEL),
-    "MetricsEvent": (PARTICIPANT_DATASET_LABEL, [METRICS_REFERENCE_DATASET_LABEL], ASSESSMENT_DATASET_LABEL),
-    "AggregationEvent": (ASSESSMENT_DATASET_LABEL, ['public_reference', METRICS_REFERENCE_DATASET_LABEL], AGGREGATION_DATASET_LABEL),
-    # "StatisticsEvent": (AGGREGATION_DATASET_LABEL, ??? , AGGREGATION_DATASET_LABEL),
+    "TestEvent": (OEBDatasetType.Input, [OEBDatasetType.PublicReference], OEBDatasetType.Participant),
+    "MetricsEvent": (OEBDatasetType.Participant, [OEBDatasetType.MetricsReference], OEBDatasetType.Assessment),
+    "AggregationEvent": (OEBDatasetType.Assessment, [OEBDatasetType.PublicReference, OEBDatasetType.MetricsReference], OEBDatasetType.Aggregation),
+    # "StatisticsEvent": (OEBDatasetType.Aggregation, [???], OEBDatasetType.Aggregation),
 }
 
 @dataclasses.dataclass

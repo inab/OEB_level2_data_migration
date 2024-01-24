@@ -111,18 +111,20 @@ from ..schemas import (
 )
 
 
-INPUT_DATASET_LABEL: "Final[str]" = "input"
-PARTICIPANT_DATASET_LABEL: "Final[str]" = "participant"
-ASSESSMENT_DATASET_LABEL: "Final[str]" = "assessment"
-AGGREGATION_DATASET_LABEL: "Final[str]" = "aggregation"
-METRICS_REFERENCE_DATASET_LABEL: "Final[str]" = "metrics_reference"
+class OEBDatasetType(enum.Enum):
+    Input = "input"
+    Participant = "participant"
+    Assessment = "assessment"
+    Aggregation = "aggregation"
+    MetricsReference = "metrics_reference"
+    PublicReference = "public_reference"
 
 ASSESSMENT_CATEGORY_LABEL: "Final[str]" = "assessment"
 AGGREGATION_CATEGORY_LABEL: "Final[str]" = "aggregation"
 
 DATASET_ORIG_ID_SUFFIX = {
-    PARTICIPANT_DATASET_LABEL: "_P",
-    ASSESSMENT_DATASET_LABEL: "_A",
+    OEBDatasetType.Participant: "_P",
+    OEBDatasetType.Assessment: "_A",
 }
 
 TEST_ACTION_ORIG_ID_SUFFIX = {
@@ -332,7 +334,7 @@ class OpenEBenchUtils():
     @staticmethod
     def gen_metrics_event_original_id(assessment_dataset: "Mapping[str, Any]") -> "str":
         ass_d_id = assessment_dataset.get("orig_id", assessment_dataset["_id"])
-        return rchop(ass_d_id, DATASET_ORIG_ID_SUFFIX[ASSESSMENT_DATASET_LABEL]) + TEST_ACTION_ORIG_ID_SUFFIX["MetricsEvent"]
+        return rchop(ass_d_id, DATASET_ORIG_ID_SUFFIX[OEBDatasetType.Assessment]) + TEST_ACTION_ORIG_ID_SUFFIX["MetricsEvent"]
     
     @staticmethod
     def gen_aggregation_event_original_id(aggregation_dataset: "Mapping[str, Any]") -> "str":
@@ -410,7 +412,13 @@ class OpenEBenchUtils():
         if the_metadata is not None:
             participant_label = the_metadata.get(PARTICIPANT_ID_KEY, participant_label)
         
-        expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        try:
+            dataset_type = OEBDatasetType(dataset["type"])
+            the_suffix = DATASET_ORIG_ID_SUFFIX.get(dataset_type, "")
+        except ValueError:
+            the_suffix = ""
+            
+        expected_orig_id = the_prefix + participant_label + the_suffix
         
         return expected_orig_id
         
@@ -432,7 +440,13 @@ class OpenEBenchUtils():
         # Then, dig in to get the participant label
         participant_label = cast("str", min_dataset["participant_id"])
         
-        expected_orig_id = the_prefix + participant_label + DATASET_ORIG_ID_SUFFIX.get(min_dataset["type"], "")
+        try:
+            dataset_type = OEBDatasetType(min_dataset["type"])
+            the_suffix = DATASET_ORIG_ID_SUFFIX.get(dataset_type, "")
+        except ValueError:
+            the_suffix = ""
+            
+        expected_orig_id = the_prefix + participant_label + the_suffix
         
         return expected_orig_id
         
@@ -483,7 +497,13 @@ class OpenEBenchUtils():
             participant_label = the_metadata.get(PARTICIPANT_ID_KEY, participant_label)
             metrics_label = the_metadata.get(METRIC_ID_KEY, metrics_label)
         
-        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(dataset["type"], "")
+        try:
+            dataset_type = OEBDatasetType(dataset["type"])
+            the_suffix = DATASET_ORIG_ID_SUFFIX.get(dataset_type, "")
+        except ValueError:
+            the_suffix = ""
+            
+        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + the_suffix
         
         return expected_orig_id
     
@@ -506,7 +526,13 @@ class OpenEBenchUtils():
         participant_label = cast("str", min_dataset["participant_id"])
         metrics_label = cast("str", min_dataset["metrics"]["metric_id"])
         
-        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + DATASET_ORIG_ID_SUFFIX.get(min_dataset["type"], "")
+        try:
+            dataset_type = OEBDatasetType(min_dataset["type"])
+            the_suffix = DATASET_ORIG_ID_SUFFIX.get(dataset_type, "")
+        except ValueError:
+            the_suffix = ""
+            
+        expected_orig_id = the_prefix + metrics_label + challenge_orig_id_separator + participant_label + the_suffix
         
         return expected_orig_id
         
@@ -1552,9 +1578,9 @@ class OpenEBenchUtils():
         o_keys = list(output_d_dict.keys())
         for o_dataset in output_datasets:
 #            # Early check
-#            if o_dataset["type"] == PARTICIPANT_DATASET_LABEL:
+#            if o_dataset["type"] == OEBDatasetType.Participant.value:
 #                self.gen_expected_participant_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "")
-#            elif o_dataset["type"] == ASSESSMENT_DATASET_LABEL:
+#            elif o_dataset["type"] == OEBDatasetType.Assessment.value:
 #                self.gen_expected_assessment_original_id(o_dataset, community_prefix, bench_event_prefix_et_al, "", "")
             
             should_exit = False
@@ -1567,7 +1593,7 @@ class OpenEBenchUtils():
                 the_error, fetched_inline_data = self.admin_tools.fetchInlineDataFromDatalink(
                     o_id,
                     o_dataset["datalink"],
-                    discard_unvalidable=o_type == PARTICIPANT_DATASET_LABEL
+                    discard_unvalidable=o_type == OEBDatasetType.Participant.value
                 )
                 
                 if the_error is not None:

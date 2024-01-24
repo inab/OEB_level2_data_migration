@@ -59,11 +59,9 @@ if TYPE_CHECKING:
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
 
 from ..utils.migration_utils import (
-    ASSESSMENT_DATASET_LABEL,
     METRIC_ID_KEY,
-    METRICS_REFERENCE_DATASET_LABEL,
+    OEBDatasetType,
     OpenEBenchUtils,
-    PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
 )
 from ..schemas import (
@@ -229,12 +227,12 @@ class AssessmentBuilder():
             if stagedEntry is None:
                 valid_data = {
                     "_id": min_id,
-                    "type": ASSESSMENT_DATASET_LABEL,
+                    "type": OEBDatasetType.Assessment.value,
                 }
             else:
                 valid_data = {
                     "_id": ass_dataset_id,
-                    "type": ASSESSMENT_DATASET_LABEL,
+                    "type": OEBDatasetType.Assessment.value,
                     "orig_id": min_id,
                     "dates": stagedEntry["dates"]
                 }
@@ -262,7 +260,7 @@ class AssessmentBuilder():
             # select metrics_reference datasets used in the challenges
             rel_oeb_datasets: "Set[str]" = set()
             for a_idx_cha in execution_challenges:
-                idx_mr = a_idx_cha.d_catalog.get(METRICS_REFERENCE_DATASET_LABEL)
+                idx_mr = a_idx_cha.d_catalog.get(OEBDatasetType.MetricsReference)
                 if idx_mr is not None:
                     rel_oeb_datasets.update(map(lambda a_d: cast("str", a_d["_id"]), idx_mr.datasets))
 

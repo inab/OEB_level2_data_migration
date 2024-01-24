@@ -50,8 +50,8 @@ if TYPE_CHECKING:
 
 from ..utils.migration_utils import (
     EXCLUDE_PARTICIPANT_KEY,
+    OEBDatasetType,
     OpenEBenchUtils,
-    PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
 )
 
@@ -248,12 +248,12 @@ class ParticipantBuilder():
             if stagedEntry is None:
                 valid_participant_data = {
                     "_id": min_id,
-                    "type": PARTICIPANT_DATASET_LABEL,
+                    "type": OEBDatasetType.Participant.value,
                 }
             else:
                 valid_participant_data = {
                     "_id": stagedEntry["_id"],
-                    "type": PARTICIPANT_DATASET_LABEL,
+                    "type": OEBDatasetType.Participant.value,
                     "orig_id": min_id,
                 }
                 staged_dates = stagedEntry.get("dates")

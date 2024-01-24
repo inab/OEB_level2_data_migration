@@ -107,12 +107,11 @@ if TYPE_CHECKING:
 from oebtools.fetch import FetchedInlineData
 
 from ..utils.migration_utils import (
-    AGGREGATION_DATASET_LABEL,
     AGGREGATION_CATEGORY_LABEL,
-    ASSESSMENT_DATASET_LABEL,
+    ASSESSMENT_CATEGORY_LABEL,
     EXCLUDE_PARTICIPANT_KEY,
+    OEBDatasetType,
     OpenEBenchUtils,
-    PARTICIPANT_DATASET_LABEL,
     PARTICIPANT_ID_KEY,
 )
 
@@ -138,7 +137,7 @@ class AggregationValidator():
 #    @staticmethod _participant_label_grouper
 #
     @staticmethod
-    def _check_labels_consistency(d_catalog: "DatasetsCatalog", label_pairs: "Sequence[InlineDataLabelPair]", pairs_desc: "str", logger: "logging.Logger") -> "bool":
+    def _check_labels_consistency(d_catalog: "DatasetsCatalog", label_pairs: "Sequence[InlineDataLabelPair]", pairs_desc: "OEBDatasetType", logger: "logging.Logger") -> "bool":
         # Let's validate the participant or assessment labels
         label2inline_data_labels: "MutableMapping[str, MutableSequence[str]]" = dict()
         for x_inline_data_label, x_dataset_id in label_pairs:
@@ -148,7 +147,7 @@ class AggregationValidator():
         failed_x_dataset = False
         for x_label, x_dataset_ids in label2inline_data_labels.items():
             if len(x_dataset_ids) > 1:
-                logger.warning(f"{pairs_desc.capitalize()} label {x_label} maps to {len(x_dataset_ids)} datasets ({', '.join(x_dataset_ids)})")
+                logger.warning(f"{pairs_desc.value.capitalize()} label {x_label} maps to {len(x_dataset_ids)} datasets ({', '.join(x_dataset_ids)})")
                 
                 s_tool_id: "Set[str]" = set()
                 ref_community_ids: "Optional[Set[str]]" = None
@@ -169,17 +168,17 @@ class AggregationValidator():
                         else:
                             # More validations about communities and challenges
                             if set(raw_x_datasets[0]["community_ids"]) != ref_community_ids:
-                                logger.fatal(f"{pairs_desc.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different community ids")
+                                logger.fatal(f"{pairs_desc.value.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different community ids")
                                 failed_x_dataset = True
                             if set(raw_x_datasets[0]["challenge_ids"]) != ref_challenge_ids:
-                                logger.fatal(f"{pairs_desc.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different challenge ids")
+                                logger.fatal(f"{pairs_desc.value.capitalize()} datasets {x_dataset_id} and {ref_dataset_id} have different challenge ids")
                                 failed_x_dataset = True
                 
                 if len(s_tool_id) > 1:
-                    logger.fatal(f"{pairs_desc.capitalize()} label {x_label} datasets depend on more than one tool: {', '.join(s_tool_id)}")
+                    logger.fatal(f"{pairs_desc.value.capitalize()} label {x_label} datasets depend on more than one tool: {', '.join(s_tool_id)}")
                     failed_x_dataset = True
                 else:
-                    logger.warning(f"It you are going to use classical viewers, it is recommended to remove this {pairs_desc} datasets ambiguity")
+                    logger.warning(f"It you are going to use classical viewers, it is recommended to remove this {pairs_desc.value} datasets ambiguity")
 
         return failed_x_dataset
     
@@ -238,9 +237,9 @@ class AggregationValidator():
             agg_cat = []
             for m_cat in agg_ch.get("metrics_categories", []):
                 d_category = m_cat.get("category")
-                if d_category == ASSESSMENT_DATASET_LABEL:
+                if d_category == ASSESSMENT_CATEGORY_LABEL:
                     ass_cat.append(m_cat)
-                elif d_category == AGGREGATION_DATASET_LABEL:
+                elif d_category == AGGREGATION_CATEGORY_LABEL:
                     agg_cat.append(m_cat)
             
             d_catalog = DatasetsCatalog(
@@ -312,17 +311,17 @@ class AggregationValidator():
             # Let's validate the participant labels
             participant_label_pairs = d_catalog.get_participant_labels()
             # Now, analyze them
-            failed_part_dataset = self._check_labels_consistency(d_catalog, participant_label_pairs, PARTICIPANT_DATASET_LABEL, self.logger)
+            failed_part_dataset = self._check_labels_consistency(d_catalog, participant_label_pairs, OEBDatasetType.Participant, self.logger)
             if failed_part_dataset:
-                self.logger.critical(f"As some {PARTICIPANT_DATASET_LABEL} datasets seem corrupted, fix or remove some of them to continue")
+                self.logger.critical(f"As some {OEBDatasetType.Participant.value} datasets seem corrupted, fix or remove some of them to continue")
                 sys.exit(5)
 
             # Let's validate the assessment labels
             assessment_label_pairs = d_catalog.get_assessment_labels()
             # Now, analyze them
-            failed_ass_dataset = self._check_labels_consistency(d_catalog, assessment_label_pairs, ASSESSMENT_DATASET_LABEL, self.logger)
+            failed_ass_dataset = self._check_labels_consistency(d_catalog, assessment_label_pairs, OEBDatasetType.Assessment, self.logger)
             if failed_ass_dataset:
-                self.logger.critical(f"As some {ASSESSMENT_DATASET_LABEL} datasets seem corrupted, fix or remove some of them to continue")
+                self.logger.critical(f"As some {OEBDatasetType.Assessment.value} datasets seem corrupted, fix or remove some of them to continue")
                 sys.exit(5)
 
             # Now, let's index the existing aggregation datasets, and
@@ -354,13 +353,13 @@ class AggregationValidator():
             ta_catalog.merge_test_actions(agg_ch.get("aggregation_test_actions", []))
             
             # Let's rebuild the aggregation datasets, from the minimal information
-            idat_agg = d_catalog.get(AGGREGATION_DATASET_LABEL)
+            idat_agg = d_catalog.get(OEBDatasetType.Aggregation)
             # A new community has no aggregation dataset
             if idat_agg is not None:
                 
-                idat_ass = d_catalog.get(ASSESSMENT_DATASET_LABEL)
+                idat_ass = d_catalog.get(OEBDatasetType.Assessment)
                 assert idat_ass is not None
-                idat_part = d_catalog.get(PARTICIPANT_DATASET_LABEL)
+                idat_part = d_catalog.get(OEBDatasetType.Participant)
                 assert idat_part is not None
                 
                 ita_m_events = ta_catalog.get("MetricsEvent")
@@ -962,7 +961,7 @@ class AggregationBuilder():
                 # Setting the appropriate workflow_metrics_id
                 # and the related dataset ids
                 wmi_was_set = False
-                idat_ass = idx_agg.d_catalog.get(ASSESSMENT_DATASET_LABEL)
+                idat_ass = idx_agg.d_catalog.get(OEBDatasetType.Assessment)
                 assert idat_ass is not None
                 
                 for metrics_category in idx_agg.challenge.get("metrics_categories",[]):
@@ -1297,7 +1296,7 @@ class AggregationBuilder():
                         self.logger.warning(f"Found more than one dataset with id {the_id}. Problems in the horizon???")
                     
                     for orig_dataset in orig_datasets:
-                        if orig_dataset["type"] != AGGREGATION_DATASET_LABEL:
+                        if orig_dataset["type"] != OEBDatasetType.Aggregation.value:
                             # Discard incompatible entries
                             continue
                         
@@ -1352,7 +1351,7 @@ class AggregationBuilder():
             valid_data = {
                 "_id": the_id,
                 "_schema": self.schemaMappings["Dataset"],
-                "type": AGGREGATION_DATASET_LABEL,
+                "type": OEBDatasetType.Aggregation.value,
                 "community_ids": community_ids,
                 "challenge_ids": challenge_ids,
                 "datalink": datalink,
