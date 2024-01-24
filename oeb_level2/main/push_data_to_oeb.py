@@ -162,9 +162,9 @@ def validate_transform_and_push(
     )
     logging.debug(f"Logging level set to {log_level}")
     
-    level2_min_validator, num_level2_schemas = level2_schemas.create_validator_for_oeb_level2()
-    if num_level2_schemas < 6:
-        logging.error("OEB level2 operational JSON Schemas not found")
+    level2_min_validator, num_level2_schemas, expected_level2_schemas = level2_schemas.create_validator_for_oeb_level2()
+    if num_level2_schemas < expected_level2_schemas:
+        logging.error(f"OEB level2 operational JSON Schemas not found ({num_level2_schemas} vs {expected_level2_schemas})")
         sys.exit(1)
     
     # This is to avoid too much verbosity

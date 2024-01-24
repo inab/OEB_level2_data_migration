@@ -89,5 +89,5 @@ def create_validator(schemas_dir: "Union[str, Sequence[SchemaHashEntry]]", confi
 def get_oeb_level2_schemas_path() -> "str":
 	return os.path.dirname(__file__)
 
-def create_validator_for_oeb_level2() -> "Tuple[ExtensibleValidator, int]":
-	return create_validator(get_oeb_level2_schemas_path())
+def create_validator_for_oeb_level2() -> "Tuple[ExtensibleValidator, int, int]":
+	return (*create_validator(get_oeb_level2_schemas_path()), len(LEVEL2_SCHEMA_IDS))
