@@ -41,18 +41,9 @@ if TYPE_CHECKING:
         Union,
     )
     
-    from typing_extensions import (
-        NotRequired,
-        TypedDict,
-    )
-    
-    class BasicLoggingConfigDict(TypedDict):
-        filename: NotRequired[str]
-        format: NotRequired[str]
-        level: int
+    from . import BasicLoggingConfigDict
 
 import coloredlogs  # type: ignore[import]
-import requests
 from rfc3339_validator import validate_rfc3339  # type: ignore[import]
 
 from .. import schemas as level2_schemas
@@ -74,8 +65,6 @@ from . import (
     LOGFORMAT,
     VERBOSE_LOGFORMAT,
 )
-
-DEFAULT_DATA_MODEL_RELDIR = os.path.join("json-schemas","1.0.x")
 
 
 def validate_challenges(

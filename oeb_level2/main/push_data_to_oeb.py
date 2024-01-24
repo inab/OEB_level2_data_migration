@@ -58,17 +58,12 @@ if TYPE_CHECKING:
     )
     
     from typing_extensions import (
-        NotRequired,
         Protocol,
-        TypedDict,
     )
     
     from extended_json_schema_validator.extensible_validator import ParsedContentEntry
     
-    class BasicLoggingConfigDict(TypedDict):
-        filename: NotRequired[str]
-        format: NotRequired[str]
-        level: int
+    from . import BasicLoggingConfigDict
 
     from ..schemas.typed_schemas.submission_form_schema import (
         ConfigParams,

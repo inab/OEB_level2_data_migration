@@ -19,6 +19,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import (
+    TYPE_CHECKING,
+)
+if TYPE_CHECKING:
+    from typing_extensions import (
+        NotRequired,
+        TypedDict,
+    )
+    
+    class BasicLoggingConfigDict(TypedDict):
+        filename: NotRequired[str]
+        format: NotRequired[str]
+        level: int
+
 #COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s[%(process)d]\n[%(levelname)s] %(message)s'
 COLORED_LOGS_FMT_DEBUG='%(asctime)s %(hostname)s %(name)s %(funcName)s %(lineno)d\n[%(levelname)s] %(message)s'
 COLORED_LOGS_FMT='%(asctime)s %(hostname)s %(name)s\n[%(levelname)s] %(message)s'
