@@ -30,7 +30,6 @@ import itertools
 import tempfile
 import logging
 import json
-import urllib.request
 import urllib.parse
 
 from typing import (
@@ -276,7 +275,7 @@ class OpenEBenchUtils():
     # function to pull a github repo obtained from https://github.com/inab/vre-process_nextflow-executor/blob/master/tool/VRE_NF.py
     
     @staticmethod
-    def gen_community_prefix(community: "Mapping[str, Any]") -> "str":
+    def get_community_label(community: "Mapping[str, Any]") -> "str":
         comm_meta = cast("Optional[Mapping[str, Any]]", community.get('_metadata'))
         if comm_meta is None:
             comm_meta = {}
@@ -284,7 +283,11 @@ class OpenEBenchUtils():
         if community_label is None:
             community_label = community["acronym"]
         
-        return OpenEBenchUtils.gen_community_prefix_from_label(community_label)
+        return cast("str", community_label)
+
+    @staticmethod
+    def gen_community_prefix(community: "Mapping[str, Any]") -> "str":
+        return OpenEBenchUtils.gen_community_prefix_from_label(OpenEBenchUtils.get_community_label(community))
 
     @staticmethod
     def gen_community_prefix_from_label(community_label: "str") -> "str":

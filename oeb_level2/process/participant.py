@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         Any,
         Mapping,
         MutableMapping,
+        MutableSequence,
         Optional,
         Sequence,
     )
@@ -47,6 +48,10 @@ if TYPE_CHECKING:
     from ..schemas.typed_schemas.submission_form_schema import DatasetsVisibility
     from ..utils.catalogs import IndexedChallenge
     from ..utils.migration_utils import BenchmarkingEventPrefixEtAl
+
+from ..utils.catalogs import (
+    gen_inline_data_label_from_participant_dataset,
+)
 
 from ..utils.migration_utils import (
     EXCLUDE_PARTICIPANT_KEY,
@@ -58,6 +63,17 @@ from ..utils.migration_utils import (
 class ChallengePair(NamedTuple):
     label: "str"
     entry: "Mapping[str, Any]"
+        
+    @classmethod
+    def FromChallengeEtAl(cls, challenge: "Mapping[str, Any]", bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl", community_prefix: "str") -> "ChallengePair":
+        return cls(
+            label=OpenEBenchUtils.get_challenge_label_from_challenge(
+                challenge,
+                bench_event_prefix_et_al,
+                community_prefix
+            ).label,
+            entry=challenge,
+        )
 
 @dataclass
 class ParticipantConfig:
@@ -67,6 +83,16 @@ class ParticipantConfig:
     participant_label: "str"
     exclude: "bool" = False
     
+    @classmethod
+    def FromDataset(cls, participant_ql: "Mapping[str, Any]") -> "ParticipantConfig":
+        return cls(
+            tool_id=participant_ql["depends_on"]["tool_id"],
+            data_version=participant_ql["version"],
+            data_contacts=participant_ql["dataset_contact_ids"],
+            participant_label=gen_inline_data_label_from_participant_dataset(participant_ql).label["label"],
+            exclude=participant_ql.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False),
+        )
+
     def process_contact_ids(self, contacts_graphql: "Sequence[Mapping[str, Any]]") -> "Sequence[str]":
         # add dataset contacts ids
         # CHECK IF EMAIL IS GIVEN
@@ -105,11 +131,22 @@ class ParticipantConfig:
         
         return self.data_contact_ids
         
-class ParticipantTuple(NamedTuple):
+@dataclass
+class ParticipantTuple:
     p_config: "ParticipantConfig"
     participant_dataset: "Mapping[str, Any]"
-    challenge_pairs: "Sequence[ChallengePair]"
+    challenge_pairs: "MutableSequence[ChallengePair]"
     community_acronym: "str"
+
+    @classmethod
+    def FromDataset(cls, participant_ql: "Mapping[str, Any]", community_label: "str") -> "ParticipantTuple":
+        return cls(
+            p_config=ParticipantConfig.FromDataset(participant_ql),
+            participant_dataset=participant_ql,
+            # Initially empty one
+            challenge_pairs=[],
+            community_acronym=community_label,
+        )
 
 
 class ParticipantBuilder():
