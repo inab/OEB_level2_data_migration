@@ -552,6 +552,13 @@ def validate_transform_and_push(
         do_fix_orig_ids,
     )
     
+    # We start storing here the participant entries to be validated and (hopefully) sent to the database
+    final_data = list(map(lambda pt: pt.participant_dataset, valid_participant_tuples))
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL participant data at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
+
     # Now it is time to check anomalous collisions
     logging.info(f"-> Check collisions on {len(valid_participant_tuples)} generated participant datasets")
     p_d_collisions = migration_utils.check_dataset_collisions(
@@ -567,6 +574,13 @@ def validate_transform_and_push(
         valid_participant_tuples,
         agg_challenges
     )
+
+    # Now the test events relating input datasets to participant ones
+    final_data.extend(valid_test_events)
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about metrics reference and assessments")
@@ -599,6 +613,13 @@ def validate_transform_and_push(
         community_prefix,
         do_fix_orig_ids,
     )
+
+    logging.info(f"-> Generated {len(valid_assessment_tuples)} minimal assessment datasets")
+    final_data.extend(map(lambda at: at.assessment_dataset, valid_assessment_tuples))
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL assessment data, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
     
     logging.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
     a_d_collisions = migration_utils.check_dataset_collisions(
@@ -616,6 +637,11 @@ def validate_transform_and_push(
         agg_challenges
     )
     
+    final_data.extend(valid_metrics_events)
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     
@@ -635,6 +661,12 @@ def validate_transform_and_push(
         community_prefix=community_prefix,
         do_fix_orig_ids=do_fix_orig_ids,
     )
+
+    final_data.extend(map(lambda ag: ag.aggregation_dataset, valid_aggregation_tuples))
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL aggregation data, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
     
     logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
     agg_d_collisions = migration_utils.check_dataset_collisions(
@@ -652,14 +684,13 @@ def validate_transform_and_push(
         aggregation_query_response["data"]["getChallenges"],
     )
 
-    # join all elements in a single list, validate, and push them to OEB tmp database
-    final_data = list(map(lambda pt: pt.participant_dataset, valid_participant_tuples))
-    final_data.extend(valid_test_events)
-    final_data.extend(map(lambda at: at.assessment_dataset, valid_assessment_tuples))
-    final_data.extend(valid_metrics_events)
-    final_data.extend(map(lambda ag: ag.aggregation_dataset, valid_aggregation_tuples))
     final_data.extend(valid_aggregation_events)
+    if output_filename is not None:
+        logging.info(f"Storing PARTIAL aggregation data and events, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        with open(output_filename, mode="w", encoding="utf-8") as wb:
+            json.dump(final_data, wb)
     
+    # All joined elements are in final_data, so validate, and push them to OEB tmp database
     # Generate the umbrella dataset
     version_str = datetime.datetime.now(datetime.timezone.utc).astimezone().replace(microsecond=0).isoformat()
     umbrella = migration_utils.generate_manifest_dataset(
@@ -673,7 +704,7 @@ def validate_transform_and_push(
     final_data.append(umbrella)
     
     if output_filename is not None:
-        logging.info(f"Storing output before validation at {output_filename}")
+        logging.info(f"Storing DEFINITIVE output before validation at {output_filename}")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
@@ -752,8 +783,10 @@ def main() -> "None":
 
     parser.add_argument(
         "--cache",
-        help="If this parameter is set to either an integer or a float, graphql and selected REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths",
+        help="If this parameter is used, graphql and REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths. When a value is provided, it sets the expiration in seconds for those cached values whose server did not provide or implement caching headers Last-Modified or ETag",
         dest="cache_entry_expire",
+        nargs="?",
+        const=-1,
         type=float,
     )
 
