@@ -25,8 +25,6 @@ import datetime
 import sys
 import os
 import os.path
-import urllib.parse
-import urllib.request
 import logging
 import uuid
 
@@ -231,8 +229,10 @@ def main() -> "None":
     )
     parser.add_argument(
         "--cache",
-        help="If this parameter is set to either an integer or a float, graphql and selected REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths",
+        help="If this parameter is used, graphql and REST requests will be cached at most the seconds specified in the parameter, in order to speed up some code paths. When a value is provided, it sets the expiration in seconds for those cached values whose server did not provide or implement caching headers Last-Modified or ETag",
         dest="cache_entry_expire",
+        nargs="?",
+        const=-1,
         type=float,
     )
     parser.add_argument(
