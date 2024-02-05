@@ -131,6 +131,7 @@ def validate_transform_and_push(
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
     cache_entry_expire: "Optional[Union[int, float]]" = None,
+    override_cache: "bool" = False,
     val_result_filename: "str" = "/dev/null",
     output_filename: "Optional[str]" = None,
     skip_min_validation: "bool" = False,
@@ -425,6 +426,7 @@ def validate_transform_and_push(
         config_json_dir,
         oeb_token=oeb_token,
         cache_entry_expire=cache_entry_expire,
+        override_cache=override_cache,
         level2_min_validator=level2_min_validator,
     )
 
@@ -789,6 +791,13 @@ def main() -> "None":
         const=-1,
         type=float,
     )
+    parser.add_argument(
+        "--invalidate-cache",
+        dest="override_cache",
+        help="When cache is enabled, this flag teaches to invalidate previously cached OEB contents",
+        action="store_true",
+        default=False,
+    )
 
     parser.add_argument(
         '-V',
@@ -806,6 +815,7 @@ def main() -> "None":
         oeb_credentials_filename=args.oeb_submit_api_creds,
         oeb_token=args.oeb_submit_api_token,
         cache_entry_expire=args.cache_entry_expire,
+        override_cache=args.override_cache,
         val_result_filename=args.val_output,
         output_filename=args.submit_output_file,
         dry_run=args.dry_run,

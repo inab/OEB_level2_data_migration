@@ -133,6 +133,7 @@ class AggregationValidator():
         self.schemaMappings = schemaMappings
         self.level2_min_validator = migration_utils.level2_min_validator
         self.admin_tools = migration_utils.admin_tools
+        self.override_cache = migration_utils.override_cache
 
 #    @staticmethod _participant_label_grouper
 #
@@ -245,6 +246,7 @@ class AggregationValidator():
             d_catalog = DatasetsCatalog(
                 logger=self.logger,
                 admin_tools=self.admin_tools,
+                override_cache=self.override_cache,
                 level2_min_validator=self.level2_min_validator,
                 metrics_graphql=metrics_agg_graphql,
                 community_prefix=community_prefix,

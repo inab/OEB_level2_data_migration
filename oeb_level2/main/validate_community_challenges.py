@@ -71,6 +71,7 @@ def validate_challenges(
     oeb_credentials_filename: "str",
     oeb_token: "Optional[str]" = None,
     cache_entry_expire: "Optional[Union[int, float]]" = None,
+    override_cache: "bool" = False,
     log_filename: "Optional[str]" = None,
     log_level: "int" = logging.INFO,
     proposed_entries_dir: "Optional[str]" = None,
@@ -125,6 +126,7 @@ def validate_challenges(
         config_json_dir,
         oeb_token=oeb_token,
         cache_entry_expire=cache_entry_expire,
+        override_cache=override_cache,
         level2_min_validator=level2_min_validator,
     )
     
@@ -236,6 +238,13 @@ def main() -> "None":
         type=float,
     )
     parser.add_argument(
+        "--invalidate-cache",
+        dest="override_cache",
+        help="When cache is enabled, this flag teaches to invalidate previously cached OEB contents",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
         "bench_event_id",
         help="Benchmarking event id whose challenges are going to be validated",
     )
@@ -259,6 +268,7 @@ def main() -> "None":
         args.oeb_submit_api_creds,
         oeb_token=args.oeb_submit_api_token,
         cache_entry_expire=args.cache_entry_expire,
+        override_cache=args.override_cache,
         log_filename=args.logFilename,
         log_level=logging.INFO if args.logLevel is None else args.logLevel,
         proposed_entries_dir=args.proposed_entries_dir,

@@ -275,6 +275,7 @@ class IndexedDatasets:
     # Validator for inline data
     level2_min_validator: "ExtensibleValidator"
     admin_tools: "OEBFetcher"
+    override_cache: "bool"
     metrics_graphql: "Sequence[Mapping[str, Any]]"
     community_prefix: "str"
     challenge_prefix: "str"
@@ -390,7 +391,7 @@ class IndexedDatasets:
         validable_schemas: "Optional[Sequence[str]]" = None
         fetched_inline_data: "Optional[FetchedInlineData]" = None
         if isinstance(o_datalink, dict):
-            the_error, fetched_payload = self.admin_tools.fetchInlineDataFromDatalink(index_id, o_datalink, discard_unvalidable=not is_assessment and not is_aggregation)
+            the_error, fetched_payload = self.admin_tools.fetchInlineDataFromDatalink(index_id, o_datalink, discard_unvalidable=not is_assessment and not is_aggregation, override_cache=self.override_cache)
             
             # Is this dataset an inline one?
             if the_error is None and isinstance(fetched_payload, FetchedInlineData):
@@ -660,6 +661,7 @@ class DatasetsCatalog:
     # Level2 min validator
     level2_min_validator: "ExtensibleValidator"
     admin_tools: "OEBFetcher"
+    override_cache: "bool"
     # Which logger to use
     logger: "Union[logging.Logger, ModuleType]" = logging
     metrics_graphql: "Sequence[Mapping[str, Any]]" = dataclasses.field(default_factory=list)
@@ -689,6 +691,7 @@ class DatasetsCatalog:
                     type=d_type,
                     logger=self.logger,
                     admin_tools=self.admin_tools,
+                    override_cache=self.override_cache,
                     metrics_graphql=self.metrics_graphql,
                     level2_min_validator=self.level2_min_validator,
                     community_prefix=self.community_prefix,

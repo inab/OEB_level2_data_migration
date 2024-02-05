@@ -196,6 +196,7 @@ class OpenEBenchUtils():
         workdir: "str",
         oeb_token: "Optional[str]" = None,
         cache_entry_expire: "Optional[Union[int, float]]" = None,
+        override_cache: "bool" = False,
         level2_min_validator: "Optional[Any]" = None,
     ):
         self.logger = logging.getLogger(
@@ -224,6 +225,7 @@ class OpenEBenchUtils():
             oeb_credentials=cast("OEBCredentials", oeb_credentials) if oeb_token is None  else  oeb_token,
             cache_entry_expire=cache_entry_expire,
         )
+        self.override_cache = override_cache
         
         self.oeb_submission_api = oeb_credentials.get('submissionURI', self.DEFAULT_OEB_SUBMISSION_API)
         oebIdProviders = oeb_credentials['accessURI']
@@ -708,6 +710,7 @@ class OpenEBenchUtils():
             checkoutDir=repo_tag_destdir,
             git_repo=git_uri,
             tag=git_tag,
+            override_cache=self.override_cache,
         ))
 
     # function that retrieves all the required metadata from OEB database
@@ -1115,6 +1118,7 @@ class OpenEBenchUtils():
                 query,
                 variables=variables,
                 query_name=query_name,
+                override_cache=self.override_cache,
             )
             
             # get challenges and input datasets for provided benchmarking event
@@ -1283,7 +1287,7 @@ class OpenEBenchUtils():
 
     def _setup_oeb_validator(self, data_model_source: "Union[str, Tuple[str, Sequence[SchemaHashEntry]]]") -> "None":
         # create the cached json schemas for validation
-        self.concept_ids_map = self.admin_tools.fetchIdsAndOrigIds()
+        self.concept_ids_map = self.admin_tools.fetchIdsAndOrigIds(override_cache=self.override_cache)
         self.schema_validators, self.schema_prefix = self.admin_tools.schemas_manager._setupValidator(
             data_model_source,
             concept_ids_map=self.concept_ids_map,
@@ -1320,7 +1324,7 @@ class OpenEBenchUtils():
     def load_schemas_from_server(self) -> "Mapping[str, str]":
         if self.schema_validators is None:
             # fetch in memory the cached json schemas for validation
-            data_model_in_memory = self.admin_tools.schemas_manager.checkoutSchemas(fetchFromREST=True)
+            data_model_in_memory = self.admin_tools.schemas_manager.checkoutSchemas(fetchFromREST=True, override_cache=self.override_cache)
             self._setup_oeb_validator(data_model_in_memory)
         
         assert self.schemaMappings is not None
@@ -1394,7 +1398,8 @@ class OpenEBenchUtils():
                 filtering_keys=filtering_keys,
                 negative_filtering_keys={
                     "_id": seen
-                }
+                },
+                override_cache=self.override_cache,
             ):
                 this_seen.add(d["_id"])
                 yield d
@@ -1416,6 +1421,7 @@ class OpenEBenchUtils():
             data_type,
             flavor=FLAVOR_SANDBOX,
             filtering_keys=filtering_keys,
+            override_cache=self.override_cache,
         ):
             seen.add(d["_id"])
             yield d
@@ -1428,7 +1434,8 @@ class OpenEBenchUtils():
                 filtering_keys=filtering_keys,
                 negative_filtering_keys={
                     "_id": seen
-                }
+                },
+                override_cache=self.override_cache,
             ):
                 this_seen.add(d["_id"])
                 yield d
@@ -1476,6 +1483,7 @@ class OpenEBenchUtils():
                     response = self.admin_tools.query_graphql(
                         graphql_query,
                         variables=variables,
+                        override_cache=self.override_cache,
                     )
                     # get challenges and input datasets for provided benchmarking event
                     data = response.get('data')
@@ -1494,6 +1502,7 @@ class OpenEBenchUtils():
         for fetched_data_type, datares_raw in self.admin_tools.fetchEntriesFromIds(
             [the_id],
             flavor=FLAVOR_STAGED,
+            override_cache=self.override_cache,
         ):
             if dataType != fetched_data_type:
                 raise ValueError(f"Expected {the_id} to be {dataType} instead of {fetched_data_type}")
@@ -1509,7 +1518,7 @@ class OpenEBenchUtils():
         i_keys = list(input_d_dict.keys())
         
         known_datasets_map: "MutableMapping[str, MutableSequence[IdAndOrigId]]" = {}
-        for tp_id in self.admin_tools.getFetchedConceptIdsMap()["Dataset"]:
+        for tp_id in self.admin_tools.getFetchedConceptIdsMap(override_cache=self.override_cache)["Dataset"]:
             known_datasets_map.setdefault(tp_id[0], []).append(tp_id)
             if tp_id[1] is not None:
                 known_datasets_map.setdefault(tp_id[1], []).append(tp_id)
@@ -1572,7 +1581,7 @@ class OpenEBenchUtils():
         
         db_d_map: "MutableMapping[str, IdAndOrigId]" = {}
         db_orig_d_map: "MutableMapping[str, MutableSequence[IdAndOrigId]]" = {}
-        for tp_id in self.admin_tools.getFetchedConceptIdsMap()["Dataset"]:
+        for tp_id in self.admin_tools.getFetchedConceptIdsMap(override_cache=self.override_cache)["Dataset"]:
             db_d_map[tp_id[0]] = tp_id
             if tp_id[1] is not None:
                 db_orig_d_map.setdefault(tp_id[1], []).append(tp_id)
@@ -1596,7 +1605,8 @@ class OpenEBenchUtils():
                 the_error, fetched_inline_data = self.admin_tools.fetchInlineDataFromDatalink(
                     o_id,
                     o_dataset["datalink"],
-                    discard_unvalidable=o_type == OEBDatasetType.Participant.value
+                    discard_unvalidable=o_type == OEBDatasetType.Participant.value,
+                    override_cache=self.override_cache,
                 )
                 
                 if the_error is not None:
@@ -1802,6 +1812,7 @@ class OpenEBenchUtils():
                 data_model_dir=(self.schema_prefix, list(self.schema_validators.getValidSchemas().values())),
                 deep_schemas_dir=get_oeb_level2_schemas_path(),
                 payload_mode=payload_mode,
+                override_cache=self.override_cache,
             )
         except urllib.error.HTTPError as he:
             self.logger.fatal(f"Error in uploading data to OpenEBench. Bad request: {he.code} {he.reason}\n{he.read()!r}")
