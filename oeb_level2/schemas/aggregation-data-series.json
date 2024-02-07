@@ -79,14 +79,6 @@
                         "title": "the visualization hints",
                         "type": "object",
                         "properties": {
-				"type": {
-					"type": "string",
-					"enum": [
-						"2D-plot",
-						"box-plot",
-						"bar-plot"
-					]
-				},
 				"available_metrics":  {
 					"title": "Axis metrics labels",
 					"type": "array",
@@ -96,23 +88,102 @@
 					},
 					"uniqueItems": true,
 					"minItems": 1
+				}
+			},
+			"oneOf": [
+				{
+					"properties": {
+						"metrics_representation": {
+							"title": "Axis metrics labels",
+							"type": "array",
+							"items": {
+								"type": "object",
+								"properties": {
+									"metric_id": {
+										"title": "Label of the metric",
+										"type": "string",
+										"minLength": 1
+									},
+									"type": {
+										"title": "Type of representation for this metric",
+										"type": "string",
+										"enum": [
+											"2D-plot",
+											"box-plot",
+											"bar-plot"
+										]
+									},
+									"optimization": {
+										"title": "Chart representation optimization",
+										"type": "string",
+										"enum": [
+											"minimize",
+											"maximize"
+										],
+										"default": "maximize"
+									},
+									"type_group_ids": {
+										"title": "For complex representations (i.e. 2D-plot and future line-plot), the group id which helps clustering the metrics by participant. Order does matter.",
+										"type": "array",
+										"items": {
+											"type": "string",
+											"minLength": 1
+										},
+										"minItems": 1,
+										"uniqueItems": true
+									}
+								},
+								"join_keys": [
+									{
+										"members": [
+											"metric_id"
+										],
+										"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
+										"refers_to": "available_metrics_index"
+									}
+								],
+								"required": [
+									"metric_id",
+									"type"
+								]
+							},
+							"uniqueItems": true,
+							"minItems": 1
+						}
+					},
+					"required": [
+						"metrics_representation",
+						"available_metrics"
+					]
 				},
-				"optimization": {
-					"title": "Chart representation optimization (valid for bar-plot and 2D-plot)",
-					"type": "string",
-					"enum": [
-						"left",
-						"right",
-						"top-left",
-						"top-right",
-						"bottom-left",
-						"bottom-right"
+				{
+					"properties": {
+						"type": {
+							"type": "string",
+							"enum": [
+								"2D-plot",
+								"box-plot",
+								"bar-plot"
+							]
+						},
+						"optimization": {
+							"title": "Chart representation optimization (valid for bar-plot and 2D-plot)",
+							"type": "string",
+							"enum": [
+								"left",
+								"right",
+								"top-left",
+								"top-right",
+								"bottom-left",
+								"bottom-right"
+							]
+						}
+					},
+					"required": [
+						"type",
+						"available_metrics"
 					]
 				}
-                        },
-                        "required": [
-				"type",
-				"available_metrics"
                         ],
                         "unevaluatedProperties": false
                 },
