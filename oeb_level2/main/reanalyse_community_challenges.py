@@ -331,6 +331,7 @@ class ParticipantReanalysisUnit(NamedTuple):
     vre_config_json_path: "str"
     vre_in_metadata_json_path: "str"
     challenge_pairs: "Sequence[ChallengePair]"
+    workflow_tool_id: "str"
 
 def prepare_participants_reanalysis(
     migration_utils: "OpenEBenchUtils",
@@ -379,28 +380,33 @@ def prepare_participants_reanalysis(
             arguments_dict["participant_id"]["value"] = p_label
             arguments_dict["project"]["value"] = job_dir
 
-            # FIXME: Using first challenge to get the tool details
-            c_entry = p_tuple.challenge_pairs[0].entry
-            c_label = p_tuple.challenge_pairs[0].label
+            # Using first valid challenge to get the tool details
+            # Should a check about all of them using the same tool be added?
             tool_link: "Optional[str]" = None
-            for m_cat in c_entry.get("metrics_categories", []):
-                if m_cat.get("category") == AGGREGATION_CATEGORY_LABEL:
-                    for m_tool in m_cat.get("metrics", []):
-                        workflow_tool_id = m_tool.get("tool_id")
-                        if workflow_tool_id is None:
-                            logging.fatal(f"Fix challenge {c_label}")
-                            sys.exit(3)
-                        
-                        tool = migration_utils.fetchStagedEntry("Tool", workflow_tool_id)
-                        for tool_access in tool.get("tool_access", []):
-                            if tool_access.get("tool_access_type") == "other":
-                                tool_link = tool_access.get("link")
+            workflow_tool_id: "Optional[str]" = None
+            for challenge_pair in p_tuple.challenge_pairs:
+                c_entry = p_tuple.challenge_pairs[0].entry
+                c_label = p_tuple.challenge_pairs[0].label
+                for m_cat in c_entry.get("metrics_categories", []):
+                    if m_cat.get("category") == AGGREGATION_CATEGORY_LABEL:
+                        for m_tool in m_cat.get("metrics", []):
+                            workflow_tool_id = m_tool.get("tool_id")
+                            if workflow_tool_id is None:
+                                logging.fatal(f"Fix challenge {c_label}")
+                                sys.exit(3)
+                            
+                            tool = migration_utils.fetchStagedEntry("Tool", workflow_tool_id)
+                            for tool_access in tool.get("tool_access", []):
+                                if tool_access.get("tool_access_type") == "other":
+                                    tool_link = tool_access.get("link")
+                                    break
+                            
+                            if tool_link is not None:
                                 break
-                        
                         if tool_link is not None:
                             break
-                    if tool_link is not None:
-                        break
+                if tool_link is not None:
+                    break
 
             if tool_link is not None:
                 # FIXME: be prepared for other kind of git repos
@@ -421,6 +427,11 @@ def prepare_participants_reanalysis(
                 arguments_dict["nextflow_repo_tag"]["value"] = nextflow_repo_tag
                 # This argument does not always appear
                 arguments_dict.setdefault("nextflow_repo_reldir", {"name": "nextflow_repo_reldir"})["value"] = nextflow_repo_reldir
+            else:
+                logging.fatal(f"FIXME: challenges {challenge_labels_spc} tool {workflow_tool_id}")
+                sys.exit(3)
+            
+            assert workflow_tool_id is not None
 
             vre_config_json = {
                 "input_files": list(input_files_dict.values()),
@@ -450,23 +461,23 @@ def prepare_participants_reanalysis(
                     vre_config_json_path=vre_config_json_path,
                     vre_in_metadata_json_path=vre_in_metadata_json_path,
                     challenge_pairs=challenge_pairs_to_run,
+                    workflow_tool_id=workflow_tool_id,
                 )
             )
-            print(f"{p_label} => {challenge_labels_spc} <= {uri}")
+            logging.info(f"{p_label} => {challenge_labels_spc} <= {uri}")
 
     return jobs_to_perform
 
-def run_vre_runner_job(vre_runner_path: "str", job_to_perform: "ParticipantReanalysisUnit") -> "None":
-    logging.info(f"\t-> {job_to_perform.p_tuple.p_config.participant_label} challenges {' '.join(map(lambda cp: cp.label, job_to_perform.challenge_pairs))}")
-
+def run_vre_runner_job(vre_runner_path: "str", job_to_perform: "ParticipantReanalysisUnit") -> "Tuple[Optional[int], str]":
     job_meta_dir = os.path.join(job_to_perform.job_dir, "_meta_")
     os.makedirs(job_meta_dir, exist_ok=True)
 
+    vre_out_metadata_json_path = os.path.join(job_meta_dir, "out_metadata.json")
     cmdline = [
         vre_runner_path,
         "--config", job_to_perform.vre_config_json_path,
         "--in_metadata", job_to_perform.vre_in_metadata_json_path,
-        "--out_metadata", os.path.join(job_meta_dir, "out_metadata.json"),
+        "--out_metadata", vre_out_metadata_json_path,
         "--log_file", os.path.join(job_meta_dir, "runner_log.txt"),
     ]
     retcode = -1
@@ -492,12 +503,9 @@ def run_vre_runner_job(vre_runner_path: "str", job_to_perform: "ParticipantReana
             with open(retcode_file, mode="w", encoding="utf-8") as wH:
                 wH.write(str(cproc.returncode))
 
-            if cproc.returncode != 0:
-                logging.error(f"\t\t-> Job at {job_to_perform.job_dir} failed (exit {cproc.returncode})")
-            else:
-                logging.info("\t\tDone!")
+            return cproc.returncode, vre_out_metadata_json_path
     else:
-        logging.info("\t\tSkipped")
+        return None, vre_out_metadata_json_path
 
 def reanalyse_challenges(
     bench_event_id: "str",
@@ -736,10 +744,62 @@ def reanalyse_challenges(
         template_in_metadata_dict,
     )
     
-    logging.info(f"* {len(jobs_to_perform)} jobs will be run (please be patient)")
+    logging.info(f"{len(jobs_to_perform)} jobs will be run (please be patient)")
 
-    for job_to_perform in jobs_to_perform:
-        run_vre_runner_job(vre_runner_path, job_to_perform)
+    for job_i, job_to_perform in enumerate(jobs_to_perform, 1):
+        logging.info(f"* Job {job_i} of {len(jobs_to_perform)}: {job_to_perform.p_tuple.p_config.participant_label} challenges {' '.join(map(lambda cp: cp.label, job_to_perform.challenge_pairs))}")
+        retval , vre_out_metadata_json_path = run_vre_runner_job(vre_runner_path, job_to_perform)
+        if retval is None:
+            logging.info("\t\tAlready done. Skipping.")
+        elif retval != 0:
+            logging.error(f"\t\t-> Job at {job_to_perform.job_dir} failed (exit {retval})")
+            continue
+        else:
+            logging.info("\t\tDone!")
+        
+        # Now it is time to transfer the minimal aggregation dataset to
+        # the results place and generate its companion config file
+        minimal_result_dir = os.path.join(minimal_entries_dir, os.path.basename(job_to_perform.job_dir))
+        if os.path.exists(minimal_result_dir):
+            shutil.rmtree(minimal_result_dir)
+        os.makedirs(minimal_result_dir, exist_ok=True)
+
+        with open(vre_out_metadata_json_path, mode="r", encoding="utf-8") as vH:
+            vre_out_metadata = json.load(vH)
+        
+        minimal_datasets_path: "Optional[str]" = None
+        for output_meta in vre_out_metadata.get("output_files", []):
+            if output_meta.get("name") == "data_model_export_dir":
+                minimal_datasets_path = output_meta.get("file_path")
+        if minimal_datasets_path is None:
+            logging.error(f"\t\tMissing data_model_export_dir in {vre_out_metadata_json_path}")
+            continue
+                
+        rel_minimal_datasets_path = os.path.basename(minimal_datasets_path)
+        dest_minimal_datasets_path = os.path.join(minimal_result_dir, rel_minimal_datasets_path)
+        shutil.copyfile(minimal_datasets_path, dest_minimal_datasets_path)
+        config_level2 = {
+            "consolidated_oeb_data": rel_minimal_datasets_path,
+            "data_visibility": "public",
+            "benchmarking_event_id": bench_event_id,
+            "community_id": community_id,
+            "tool_mapping": [
+                {
+                    "participant_id": job_to_perform.p_tuple.p_config.participant_label,
+                    "tool_id": job_to_perform.p_tuple.p_config.tool_id,
+                    "data_version": 1,
+                    "data_contacts": job_to_perform.p_tuple.p_config.data_contacts,
+                    "participant_file": job_to_perform.p_tuple.p_config.participant_file,
+                }
+            ],
+            "data_storage_endpoint": "https://trng-b2share.eudat.eu/api/",
+            "fix_original_ids": True,
+            "workflow_oeb_id": job_to_perform.workflow_tool_id,
+        }
+        with open(os.path.join(minimal_result_dir, "config_level2.json"), mode="w", encoding="utf-8") as clH:
+            json.dump(config_level2, clH)
+        
+        logging.info(f"\t-> Minimal datasets available at {minimal_result_dir}")
     
 
 def main() -> "None":
@@ -788,8 +848,8 @@ def main() -> "None":
     parser.add_argument(
         "-m",
         "--minimal-entries-dir",
-        help="Directory where minimal entries obtained from the metrics workflow are going to be saved, easing the work (by default, current directory)",
-        default=".",
+        help="Output directory where minimal entries computed by the metrics workflow are going to be saved, easing the work (by default, current directory)",
+        required=True,
     )
     parser.add_argument(
         "--cache",
