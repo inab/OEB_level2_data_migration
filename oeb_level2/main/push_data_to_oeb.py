@@ -216,7 +216,8 @@ def validate_transform_and_push(
         #Collect data
         data_visibility = config_params["data_visibility"]
         bench_event_id = config_params["benchmarking_event_id"]
-        file_location = config_params["participant_file"]
+        # This one is optional in the new style
+        old_file_location = config_params.get("participant_file")
         community_id = config_params["community_id"]
         data_model_repo = config_params.get("data_model_repo")
         data_model_tag = config_params.get("data_model_tag")
@@ -233,11 +234,18 @@ def validate_transform_and_push(
             tool_mapping_old = cast("_ParticipantElements", config_params)
             tool_id = tool_mapping_old["tool_id"]
             
+            assert old_file_location is not None
+            valid = validate_url(old_file_location)
+            if not valid:
+                logging.fatal(f"Participant file location {old_file_location} is invalid")
+                sys.exit(1)
+            
             tool_mapping[None] = ParticipantConfig(
                 tool_id=tool_id,
                 data_version=str(tool_mapping_old["data_version"]),
                 data_contacts=tool_mapping_old["data_contacts"],
                 participant_label="TEMPORARY_LABEL",   # This one will be re-set later
+                participant_file=old_file_location,
             )
         else:
             tool_id = None
@@ -245,12 +253,21 @@ def validate_transform_and_push(
             for tool_mapping_e in tool_mapping_list:
                 participant_label = tool_mapping_e["participant_id"]
                 assert participant_label is not None
+
+                participant_file = tool_mapping_e.get("participant_file", old_file_location)
+                assert participant_file is not None
                 
+                valid = validate_url(participant_file)
+                if not valid:
+                    logging.fatal(f"Participant file location {participant_file} is invalid")
+                    sys.exit(1)
+
                 tool_mapping[participant_label] = ParticipantConfig(
                     tool_id=tool_mapping_e["tool_id"],
                     data_version=str(tool_mapping_e["data_version"]),
                     data_contacts=tool_mapping_e["data_contacts"],
                     participant_label=participant_label,
+                    participant_file=participant_file,
                     exclude=tool_mapping_e.get("exclude", False),
                 )
             
@@ -271,12 +288,6 @@ def validate_transform_and_push(
             # timestamp and a random element
             ts = uuid.uuid1()
             dataset_submission_id = str(ts)
-            
-        # check participant file location is a valid url
-        valid = validate_url(file_location)
-        if not valid:
-            logging.fatal("Participant file location invalid: "+file_location)
-            sys.exit(1)
 
     except Exception as e:
 
@@ -336,6 +347,14 @@ def validate_transform_and_push(
                     if validate_rfc3339(new_val_date):
                         logging.warning(f"Patching date in entry {data_i} from {input_file}")
                         val_date_b["validation_date"] = new_val_date
+        elif "id" in data_entry:
+            partenum = data_entry.get("participants")
+            if isinstance(partenum, list):
+                uniqpartenum = set(partenum)
+                if len(uniqpartenum) < len(partenum):
+                    logging.warning(f"Patching participants list in entry {data_i} from {input_file}")
+                    data_entry["participants"] = list(uniqpartenum)
+                    
     
     # Now, it is time to validate the fetched data
     # in inline mode
@@ -509,12 +528,6 @@ def validate_transform_and_push(
     for p_config in tool_mapping.values():
         p_config.process_contact_ids(input_query_response["data"]["getContacts"])
     
-    '''
-    # upload predicitions file to stable server and get permanent identifier
-    data_doi = migration_utils.upload_to_storage_service(
-        min_participant_data, file_location, contacts[0], version_str)
-    '''
-    
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
     logging.info("-> Querying graphql about aggregations")
     aggregation_query_response = migration_utils.graphql_query_OEB_DB(
@@ -545,7 +558,6 @@ def validate_transform_and_push(
         stagedParticipantDatasets,
         min_participant_dataset,
         data_visibility,
-        file_location, 
         community_id,
         bench_event_prefix_et_al,
         community_prefix,

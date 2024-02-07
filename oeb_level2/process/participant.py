@@ -81,15 +81,20 @@ class ParticipantConfig:
     data_version: "str"
     data_contacts: "Sequence[str]"
     participant_label: "str"
+    participant_file: "str"
     exclude: "bool" = False
     
     @classmethod
     def FromDataset(cls, participant_ql: "Mapping[str, Any]") -> "ParticipantConfig":
+        participant_file = participant_ql["datalink"]["uri"]
+        if participant_file is None:
+            participant_file = "(inline)"
         return cls(
             tool_id=participant_ql["depends_on"]["tool_id"],
             data_version=participant_ql["version"],
             data_contacts=participant_ql["dataset_contact_ids"],
             participant_label=gen_inline_data_label_from_participant_dataset(participant_ql).label["label"],
+            participant_file=participant_file,
             exclude=participant_ql.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False),
         )
 
@@ -167,7 +172,6 @@ class ParticipantBuilder():
         staged_participant_datasets: "Sequence[Mapping[str, Any]]",
         min_participant_dataset: "Sequence[Mapping[str, Any]]",
         data_visibility: "DatasetsVisibility", 
-        file_location: "str",
         community_id: "str",
         bench_event_prefix_et_al: "BenchmarkingEventPrefixEtAl",
         community_prefix: "str",
@@ -338,7 +342,7 @@ class ParticipantBuilder():
 
             # add participant's file permanent location
             valid_participant_data["datalink"] = min_participant_data["datalink"]
-            valid_participant_data["datalink"]["uri"] = file_location
+            valid_participant_data["datalink"]["uri"] = p_config.participant_file
             
             # check validation date is iso format, otherwise fix it
             if not min_participant_data["datalink"]["validation_date"].endswith("Z") and not (re.search("[+-]\d{2}:\d{2}$", min_participant_data["datalink"]["validation_date"])):

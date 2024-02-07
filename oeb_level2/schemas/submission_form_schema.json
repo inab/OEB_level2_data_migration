@@ -41,6 +41,12 @@
 				}
 			}
 		},
+		"ParticipantFile": {
+			"title": "Participant file associated",
+			"description": "Path or URI (e.g. DOI) to the participant file associated with the consolidated results",
+			"type": "string",
+			"readonly": true
+		},
 		"ParticipantElements": {
 			"type": "object",
 			"properties": {
@@ -66,6 +72,9 @@
 					"title": "Should participant be excluded?",
 					"type": "boolean",
 					"default": false
+				},
+				"participant_file": {
+					"$ref": "#/$defs/ParticipantFile"
 				}
 			},
 			"required": ["tool_id","data_version","data_contacts"]
@@ -98,10 +107,7 @@
 			"readonly": true
 		},
 		"participant_file": {
-			"title": "Participant file associated",
-			"description": "Path or URI (e.g. DOI) to the participant file associated with the consolidated results",
-			"type": "string",
-			"readonly": true
+			"$ref": "#/$defs/ParticipantFile"
 		},
 		"community_id": {
 			"title": "OEB community",
@@ -212,7 +218,7 @@
 	},
 	"oneOf": [
 		{
-			"required": ["tool_id"],
+			"required": ["tool_id", "participant_file"],
 			"not": {
 				"required": ["tool_mapping"]
 			}
@@ -227,8 +233,7 @@
 	"required": [
 		"consolidated_oeb_data",
 		"data_visibility",
-		"benchmarking_event_id",
-		"participant_file"
+		"benchmarking_event_id"
 	]
 }
 

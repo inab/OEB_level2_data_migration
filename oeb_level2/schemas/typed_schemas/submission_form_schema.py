@@ -1,7 +1,7 @@
 # Automatically generated file from a JSON schema
 
 
-from typing import List, Literal, Union, TypedDict
+from typing import TypedDict, Literal, Union, List
 from typing_extensions import Required
 
 
@@ -43,15 +43,13 @@ class ConfigParams(TypedDict, total=False):
     Required property
     """
 
-    participant_file: Required[str]
+    participant_file: "ParticipantFileAssociated"
     """
     Participant file associated.
 
     Path or URI (e.g. DOI) to the participant file associated with the consolidated results
 
     readonly: True
-
-    Required property
     """
 
     community_id: str
@@ -215,6 +213,17 @@ OPENEBENCH_BENCHMARKING_DATA_MODEL_REPOSITORY_DEFAULT = 'https://github.com/inab
 
 
 
+ParticipantFileAssociated = str
+"""
+Participant file associated.
+
+Path or URI (e.g. DOI) to the participant file associated with the consolidated results
+
+readonly: True
+"""
+
+
+
 ParticipantTool = str
 """
 Participant Tool.
@@ -294,5 +303,14 @@ class _ParticipantElements(TypedDict, total=False):
     Should participant be excluded?.
 
     default: False
+    """
+
+    participant_file: "ParticipantFileAssociated"
+    """
+    Participant file associated.
+
+    Path or URI (e.g. DOI) to the participant file associated with the consolidated results
+
+    readonly: True
     """
 
