@@ -1136,6 +1136,11 @@ class OpenEBenchUtils():
                               " in OEB. Please contact OpenEBench support for information about how to open a new challenge")
                 sys.exit(2)
             
+            # Cleaning up a corner case
+            for challenge_ql in data["getChallenges"]:
+                if challenge_ql.get("metrics_categories", []) is None:
+                    del challenge_ql["metrics_categories"]
+            
             # Deserializing _metadata
             benchmarking_events = data.get('getBenchmarkingEvents')
             if benchmarking_events is not None:
