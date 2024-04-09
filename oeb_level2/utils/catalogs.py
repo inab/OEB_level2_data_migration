@@ -211,16 +211,15 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
         if metric['_id'] == metrics_label:
             guessed_metrics = [ metric ]
             break
-        if metric['orig_id'].startswith(community_prefix):
-            # First guess
+        metric_metadata = metric.get("_metadata")
+        # First guess
+        if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
+            if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
+                guessed_metrics.append(metric)
+        elif metric['orig_id'].startswith(community_prefix):
+            # Second guess (it can introduce false crosses)
             if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
                 guessed_metrics.append(metric)
-            else:
-                # Second guess (it can introduce false crosses)
-                metric_metadata = metric.get("_metadata")
-                if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
-                    if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
-                        guessed_metrics.append(metric)
     
     
     if len(guessed_metrics) == 0:
