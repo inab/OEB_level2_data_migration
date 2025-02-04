@@ -93,58 +93,85 @@
 			"oneOf": [
 				{
 					"properties": {
-						"metrics_representation": {
-							"title": "Axis metrics labels",
+						"representations": {
+							"title": "Different representations of the data series",
+							"description": "These representations are focused on how the metrics, with their related data series, are conjoined. Two representations belonging to the very same group will share the same canvas. So, different groups mean different canvases.",
 							"type": "array",
 							"items": {
 								"type": "object",
 								"properties": {
-									"metric_id": {
-										"title": "Label of the metric",
-										"type": "string",
-										"minLength": 1
-									},
 									"type": {
-										"title": "Type of representation for this metric",
+										"title": "Type of representation for this set of metrics",
 										"type": "string",
 										"enum": [
 											"2D-plot",
 											"box-plot",
-											"bar-plot"
+											"bar-plot",
+											"line-plot"
 										]
 									},
-									"optimization": {
-										"title": "Chart representation optimization",
-										"type": "string",
-										"enum": [
-											"minimize",
-											"maximize"
-										],
-										"default": "maximize"
-									},
-									"type_group_ids": {
-										"title": "For complex representations (i.e. 2D-plot and future line-plot), the group id which helps clustering the metrics by participant. Order does matter.",
+									"metrics_series": {
+										"title": "Series of involved metrics",
+										"description": "Depending on the type of representation, the number of involved metrics could be 1, 2 or many",
 										"type": "array",
 										"items": {
-											"type": "string",
-											"minLength": 1
+											"type": "object",
+											"properties": {
+												"metric_id": {
+													"title": "Label of the metric",
+													"type": "string",
+													"minLength": 1
+												},
+												"optimization": {
+													"title": "Chart representation optimization",
+													"type": "string",
+													"enum": [
+														"minimize",
+														"maximize"
+													],
+													"default": "maximize"
+												},
+												"axis": {
+													"title": "Axis for this metrics series",
+													"type": "string",
+													"enum": [
+														"x",
+														"y",
+														"x2",
+														"y2"
+													]
+												},
+												"title": {
+													"type": "string",
+													"title": "Title to be shown about the metric in a possible axis or legend"
+												}
+											},
+											"unevaluatedProperties": false,
+											"required": [
+												"metric_id"
+											],
+											"join_keys": [
+												{
+													"members": [
+														"metric_id"
+													],
+													"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
+													"refers_to": "available_metrics_index"
+												}
+											]
 										},
-										"minItems": 1,
-										"uniqueItems": true
+										"minItems": 1
+									},
+									"type_group_id": {
+										"title": "For complex representations (i.e. 2D-plot and future line-plot), the group id which helps clustering the metrics by participant. Order does matter.",
+										"type": "string",
+										"minLength": 1
 									}
 								},
-								"join_keys": [
-									{
-										"members": [
-											"metric_id"
-										],
-										"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
-										"refers_to": "available_metrics_index"
-									}
-								],
+								"unevaluatedProperties": false,
 								"required": [
-									"metric_id",
-									"type"
+									"type",
+									"metrics_series"
 								]
 							},
 							"uniqueItems": true,
@@ -152,7 +179,7 @@
 						}
 					},
 					"required": [
-						"metrics_representation",
+						"representations",
 						"available_metrics"
 					]
 				},
