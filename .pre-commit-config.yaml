@@ -11,6 +11,7 @@ repos:
           - python
           - pyi
       - id: check-json
+        exclude: "^graphql_tests"
       - id: check-yaml
         types: [file]
         files: \.(yaml|yml)$
@@ -58,13 +59,21 @@ repos:
         pass_filenames: false
         args: [ oeb_level2/schemas ]
       - id: json_validation
-        name: Validate prototype data
+        name: Validate prototype minimal datasets data
         types:
           - json
-        files: ^(oeb_level2/schemas|minimal_dataset_examples|aggregation_examples)/.*\.(json|yaml)$
+        files: ^(oeb_level2/schemas|minimal_dataset_examples)/.*\.(json|yaml)$
         require_serial: true
         pass_filenames: false
-        args: [ "--guess-schema", "-c", "oeb_level2/schemas", "minimal_dataset_examples", "aggregation_examples" ]
+        args: [ "--guess-schema", "-c", "oeb_level2/schemas", "minimal_dataset_examples" ]
+      - id: json_validation
+        name: Validate prototype aggregations data
+        types:
+          - json
+        files: ^(oeb_level2/schemas|aggregation_examples)/.*\.(json|yaml)$
+        require_serial: true
+        pass_filenames: false
+        args: [ "--guess-schema", "-c", "oeb_level2/schemas", "aggregation_examples" ]
 
 #  - repo: https://github.com/ambv/black
 #    rev: 22.6.0

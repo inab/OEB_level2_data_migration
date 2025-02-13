@@ -1,0 +1,290 @@
+{
+    "series_type": "aggregation-data-series",
+    "challenge_participants": [
+        {
+            "label": "Tool_A",
+            "metric_id": "TE",
+            "values": [
+                {
+                    "v": -3,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "DCA",
+            "values": [
+                {
+                    "v": 2,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "PE",
+            "values": [
+                {
+                    "v": 0.8,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "EO",
+            "values": [
+                {
+                    "v": 0.25,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "AD",
+            "values": [
+                {
+                    "v": -0.04999999999999999,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "OA",
+            "values": [
+                {
+                    "v": 0.2222222222222222,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "FNR",
+            "values": [
+                {
+                    "v": 0.75,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "SP",
+            "values": [
+                {
+                    "v": 0.5555555555555556,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "DCR",
+            "values": [
+                {
+                    "v": -3.6666666666666665,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_A",
+            "metric_id": "DI",
+            "values": [
+                {
+                    "v": 0.5333333333333333,
+                    "e": 0
+                }
+            ]
+        },
+
+
+
+        {
+            "label": "Tool_B",
+            "metric_id": "TE",
+            "values": [
+                {
+                    "v": -3.2,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "DCA",
+            "values": [
+                {
+                    "v": 2.5,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "PE",
+            "values": [
+                {
+                    "v": 0.79,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "EO",
+            "values": [
+                {
+                    "v": 0.5,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "AD",
+            "values": [
+                {
+                    "v": -0.06,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "OA",
+            "values": [
+                {
+                    "v": 0.2,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "FNR",
+            "values": [
+                {
+                    "v": 0.75,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "SP",
+            "values": [
+                {
+                    "v": 0.7,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "DCR",
+            "values": [
+                {
+                    "v": -3.2,
+                    "e": 0
+                }
+            ]
+        },
+        {
+            "label": "Tool_B",
+            "metric_id": "DI",
+            "values": [
+                {
+                    "v": 0.4333,
+                    "e": 0
+                }
+            ]
+        }
+    ],
+    "visualization": {
+        "available_metrics": [
+            "TE",
+            "DCA",
+            "PE",
+            "EO",
+            "AD",
+            "OA",
+            "FNR",
+            "SP",
+            "DCR",
+            "DI"
+        ],
+        "representations": [
+            {
+                "type": "radar-plot",
+                "metrics_series": [
+                    {
+                        "metric_id": "TE",
+                        "optimization": "maximize",
+                        "title": "%{text}"
+                    },
+                    {
+                        "metric_id": "DCA",
+                        "optimization": "maximize",
+                        "title": "Difference in Conditional Acceptance"
+                    },
+                    {
+                        "metric_id": "PE",
+                        "optimization": "maximize",
+                        "title": "Predictive Equality"
+                    },
+                    {
+                        "metric_id": "EO",
+                        "optimization": "maximize",
+                        "title": "Equal Opportunity"
+                    },
+                    {
+                        "metric_id": "AD",
+                        "optimization": "maximize",
+                        "title": "Accuracy Difference"
+                    },
+                    {
+                        "metric_id": "OA",
+                        "optimization": "maximize",
+                        "title": "Overall accuracy"
+                    },
+                    {
+                        "metric_id": "FNR",
+                        "optimization": "maximize",
+                        "title": "False Negative Rate"
+                    },
+                    {
+                        "metric_id": "SP",
+                        "optimization": "maximize",
+                        "title": "Statistical Parity"
+                    },
+                    {
+                        "metric_id": "DCR",
+                        "optimization": "maximize",
+                        "title": "Difference in Conditional Rejection"
+                    },
+                    {
+                        "metric_id": "DI",
+                        "optimization": "maximize",
+                        "title": "Disparate Impact"
+                    }
+                ],
+                "type_group_id": "radar-1"
+            }
+        ]
+    },
+    "labels": [
+        {
+            "label": "Tool_A",
+            "dataset_orig_id": "OEBDTOOL1000A"
+        },
+        {
+            "label": "Tool_B",
+            "dataset_orig_id": "OEBDTOOL0000B"
+        }
+    ]
+}

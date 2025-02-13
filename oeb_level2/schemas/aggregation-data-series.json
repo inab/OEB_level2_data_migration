@@ -107,7 +107,8 @@
 											"2D-plot",
 											"box-plot",
 											"bar-plot",
-											"line-plot"
+											"line-plot",
+											"radar-plot"
 										]
 									},
 									"metrics_series": {
