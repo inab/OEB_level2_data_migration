@@ -105,6 +105,13 @@ from .memoized_method import memoized_method
 
 from ..schemas import (
     LEVEL2_SCHEMA_IDS,
+    META_TYPE_AGG_DATA_SERIES,
+    VIS_2D_PLOT,
+    VIS_BAR_PLOT,
+    VIS_BOX_PLOT,
+    VIS_LINE_PLOT,
+    VIS_RADAR_PLOT,
+    TYPE2SCHEMA_ID,
     get_oeb_level2_schemas_path,
     create_validator_for_oeb_level2,
 )
@@ -595,11 +602,11 @@ class OpenEBenchUtils():
         vis_type = vis["type"]
         # Then, dig in to get the metrics labels
         metrics_labels: "Sequence[str]"
-        if inline_data.get("series_type") == "aggregation-data-series":
+        if inline_data.get("series_type") == META_TYPE_AGG_DATA_SERIES:
             metrics_labels = vis.get("available_metrics", [])
-        elif vis_type == "2D-plot":
+        elif vis_type == VIS_2D_PLOT:
             metrics_labels = [ vis.get("x_axis"), vis.get("y_axis") ]
-        elif vis_type == "bar-plot":
+        elif vis_type == VIS_BAR_PLOT:
             metrics_labels = [ vis.get("metric") ]
         else:
             self.logger.fatal(f"Please implement aggregation {vis_type} minimal id generation")

@@ -106,6 +106,13 @@ if TYPE_CHECKING:
 
 from oebtools.fetch import FetchedInlineData
 
+from ..schemas import (
+    META_TYPE_AGG_DATA_SERIES,
+    VIS_2D_PLOT,
+    VIS_AGG_DATA_SERIES,
+    VIS_BAR_PLOT,
+)
+
 from ..utils.migration_utils import (
     AGGREGATION_CATEGORY_LABEL,
     ASSESSMENT_CATEGORY_LABEL,
@@ -416,8 +423,8 @@ class AggregationValidator():
                             # to use in each entry of challenge_participants
                             vis_type = inline_data.get("visualization",{}).get("type")
                             series_type = inline_data.get("series_type")
-                            if series_type == "aggregation-data-series":
-                                inline_data["series_type"] = "aggregation-data-series"
+                            if series_type == META_TYPE_AGG_DATA_SERIES:
+                                inline_data["series_type"] = META_TYPE_AGG_DATA_SERIES
                             raw_available_metrics_labels = inline_data.get("visualization",{}).get("available_metrics", [])
                             changed_metrics_labels = False
                             found_metrics = []
@@ -548,12 +555,12 @@ class AggregationValidator():
                                     mini_entry_s: "Optional[SeriesData]" = None
                                     do_processing = True
                                     if mini_entry is None:
-                                        if vis_type == "2D-plot":
+                                        if vis_type == VIS_2D_PLOT:
                                             mini_entry_2d = {
                                                 "tool_id": par_label,
                                             }
                                             mini_entry = mini_entry_2d
-                                        elif vis_type == "bar-plot":
+                                        elif vis_type == VIS_BAR_PLOT:
                                             mini_entry_b = {
                                                 "tool_id": par_label,
                                             }
@@ -573,12 +580,12 @@ class AggregationValidator():
                                         self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by {agg_dataset_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
                                         rebuild_agg = True
                                         do_processing = False
-                                    elif vis_type == "2D-plot":
+                                    elif vis_type == VIS_2D_PLOT:
                                         mini_entry_2d = cast("ScatterData", mini_entry)
-                                    elif vis_type == "bar-plot":
+                                    elif vis_type == VIS_BAR_PLOT:
                                         mini_entry_b = cast("BarData", mini_entry)
-                                    elif series_type == "aggregation-data-series":
-                                        if vis_type == "box-plot":
+                                    elif series_type == META_TYPE_AGG_DATA_SERIES:
+                                        if vis_type in VIS_AGG_DATA_SERIES:
                                             mini_entry_s = cast("SeriesData", mini_entry)
                                         else:
                                             self.logger.critical(f"Unimplemented aggregation for {series_type} visualization type {vis_type} in dataset {agg_dataset_id}")
@@ -648,7 +655,7 @@ class AggregationValidator():
                                     del challenge_participants[i_chal]
 
                             if not rebuild_agg:
-                                if series_type == "aggregation-data-series":
+                                if series_type == META_TYPE_AGG_DATA_SERIES:
                                     found_metrics_labels = list(map(lambda mt: mt.proposed_label, found_metrics))
                                     if len(found_metrics) != len(raw_available_metrics_labels):
                                         self.logger.warning(f"Mismatch in {agg_dataset_id} length between derived and used available_metrics\n\n{json.dumps(found_metrics_labels, indent=4, sort_keys=True)}\n\n{json.dumps(raw_available_metrics_labels, indent=4, sort_keys=True)}")
@@ -681,13 +688,13 @@ class AggregationValidator():
                                 else:
                                     s_new_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
                                     s_raw_challenge_participants: "Union[Sequence[BarData], Sequence[ScatterData], Sequence[SeriesData]]"
-                                    if vis_type == "box-plot":
+                                    if vis_type in VIS_AGG_DATA_SERIES:
                                         s_new_challenge_participants = sorted(cast("Sequence[SeriesData]", challenge_participants), key=lambda cp: cp["label"])
                                         s_raw_challenge_participants = sorted(cast("Sequence[SeriesData]", raw_challenge_participants), key=lambda cp: cp["label"])
-                                    elif vis_type == "2D-plot":
+                                    elif vis_type == VIS_2D_PLOT:
                                         s_new_challenge_participants = sorted(cast("Sequence[ScatterData]", challenge_participants), key=lambda cp: cp["tool_id"])
                                         s_raw_challenge_participants = sorted(cast("Sequence[ScatterData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
-                                    elif vis_type == "bar-plot":
+                                    elif vis_type == VIS_BAR_PLOT:
                                         s_new_challenge_participants = sorted(cast("Sequence[BarData]", challenge_participants), key=lambda cp: cp["tool_id"])
                                         s_raw_challenge_participants = sorted(cast("Sequence[BarData]", raw_challenge_participants), key=lambda cp: cp["tool_id"])
                                     else:
@@ -1051,23 +1058,23 @@ class AggregationBuilder():
                     
                     agg_postfix = idx_agg.challenge_label_and_sep.sep + idx_agg.challenge_label_and_sep.aggregation_sep
                     the_id_postfix = idx_agg.challenge_label_and_sep.sep
-                    if vis_type == "2D-plot":
+                    if vis_type == VIS_2D_PLOT:
                         involved_metrics.append(vis['x_axis'])
                         involved_metrics.append(vis['y_axis'])
                         the_id_postfix += f"{vis['x_axis']}{idx_agg.challenge_label_and_sep.metrics_label_sep}{vis['y_axis']}"
                         metrics_str = f"{vis['x_axis']} - {vis['y_axis']}"
                         manage_datalink = True
-                    elif vis_type == "bar-plot":
+                    elif vis_type == VIS_BAR_PLOT:
                         involved_metrics.append(vis['metric'])
                         the_id_postfix += vis['metric']
                         metrics_str = vis['metric']
                         manage_datalink = True
-                    elif series_type == "aggregation-data-series":
+                    elif series_type == META_TYPE_AGG_DATA_SERIES:
                         involved_metrics.extend(vis['available_metrics'])
                         the_id_postfix += idx_agg.challenge_label_and_sep.metrics_label_sep.join(vis['available_metrics'])
                         metrics_str = ' - '.join(vis['available_metrics'])
                         manage_datalink = True
-                        if vis_type != "box-plot":
+                        if vis_type not in VIS_AGG_DATA_SERIES:
                             self.logger.critical(f"Unimplemented aggregation for series type {series_type} and visualization type {vis_type} in minimal dataset {the_id}")
                     else:
                         self.logger.critical(f"Unimplemented aggregation for series type {series_type} and visualization type {vis_type} in minimal dataset {the_id}")
@@ -1086,8 +1093,8 @@ class AggregationBuilder():
                         inline_data = copy.deepcopy(min_inline_data)
                         datalink["inline_data"] = inline_data
                         available_metrics: "MutableSequence[str]" = []
-                        if series_type == "aggregation-data-series":
-                            inline_data["series_type"] = "aggregation-data-series"
+                        if series_type == META_TYPE_AGG_DATA_SERIES:
+                            inline_data["series_type"] = META_TYPE_AGG_DATA_SERIES
                             inline_data.setdefault("visualization", {})["available_metrics"] = available_metrics
                         inline_data_labels: "MutableSequence[InlineDataLabel]" = []
                         inline_data["labels"] = inline_data_labels
@@ -1168,12 +1175,12 @@ class AggregationBuilder():
                                 mini_entry_b: "Optional[BarData]" = None
                                 mini_entry_s: "Optional[SeriesData]" = None
                                 if mini_entry is None:
-                                    if vis_type == "2D-plot":
+                                    if vis_type == VIS_2D_PLOT:
                                         mini_entry_2d = {
                                             "tool_id": par_label,
                                         }
                                         mini_entry = mini_entry_2d
-                                    elif vis_type == "bar-plot":
+                                    elif vis_type == VIS_BAR_PLOT:
                                         mini_entry_b = {
                                             "tool_id": par_label,
                                         }
@@ -1196,11 +1203,11 @@ class AggregationBuilder():
                                 elif i_met == 0:
                                     self.logger.error(f"Assessment datasets {met_dataset['_id']} and {ass_par_by_id[par_dataset_id]} (both needed by minimal {the_id}) has metrics {met_dataset['depends_on']['metrics_id']}, but one is mislabelled (wrong?). Fix the wrong one")
                                     failed_min_agg = True
-                                elif vis_type == "2D-plot":
+                                elif vis_type == VIS_2D_PLOT:
                                     mini_entry_2d = cast("ScatterData", mini_entry)
-                                elif vis_type == "bar-plot":
+                                elif vis_type == VIS_BAR_PLOT:
                                     mini_entry_b = cast("BarData", mini_entry)
-                                elif vis_type == "box-plot":
+                                elif vis_type in VIS_AGG_DATA_SERIES:
                                     mini_entry_s = cast("SeriesData", mini_entry)
                                 else:
                                     self.logger.critical(f"Unimplemented aggregation for visualization type {vis_type} in minimal dataset {the_id}")

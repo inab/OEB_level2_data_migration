@@ -102,6 +102,13 @@ from .migration_utils import (
     TEST_ACTION_ORIG_ID_SUFFIX,
 )
 
+from ..schemas import (
+    TYPE2SCHEMA_ID,
+    VIS_2D_PLOT,
+    VIS_AGG_DATA_SERIES,
+    VIS_BAR_PLOT,
+)
+
 
 def gen_challenge_assessment_metrics_dict(the_challenge: "Mapping[str, Any]") -> "Mapping[str, Mapping[str, str]]":
     for metrics_category in the_challenge.get("metrics_categories",[]):
@@ -448,11 +455,11 @@ class IndexedDatasets:
             if len(vis_hints) == 0:
                 self.logger.warning(f"No visualization type for {self.type.value} dataset {index_id}. Is it missing or intentional??")
                 # TODO: What should we do????
-            elif vis_type in ("2D-plot", "bar-plot", "box-plot"):
+            elif vis_type in TYPE2SCHEMA_ID:
                 suffix = None
                 proposed_suffix: "str" = "FIX_UNDEFINED_METRIC_LABEL"
                 
-                if vis_type == "2D-plot":
+                if vis_type == VIS_2D_PLOT:
                     x_axis_metric_label = vis_hints.get("x_axis")
                     y_axis_metric_label = vis_hints.get("y_axis")
                     if x_axis_metric_label is None:
@@ -504,7 +511,7 @@ class IndexedDatasets:
                         # Check the suffix
                         suffix = self.challenge_label_and_sep.sep + f"{x_axis_metric_label}{self.challenge_label_and_sep.metrics_label_sep}{y_axis_metric_label}"
                         proposed_suffix = self.challenge_label_and_sep.sep + f"{x_trio_proposed_label}{self.challenge_label_and_sep.metrics_label_sep}{y_trio_proposed_label}"
-                elif vis_type == "bar-plot":
+                elif vis_type == VIS_BAR_PLOT:
                     metrics_label = vis_hints.get("metric")
                     if metrics_label is None:
                         self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define metric label. Fix it")
@@ -534,7 +541,7 @@ class IndexedDatasets:
                         # Check the suffix
                         suffix = self.challenge_label_and_sep.sep + metrics_label
                         proposed_suffix = self.challenge_label_and_sep.sep + trio_proposed_label
-                elif vis_type == "box-plot":
+                elif vis_type in VIS_AGG_DATA_SERIES:
                     available_metrics = vis_hints.get("available_metrics")
                     if available_metrics is None:
                         self.logger.critical(f"{self.type.value.capitalize()} dataset {index_id} of visualization type {vis_type} did not define available metrics labels. Fix it")
