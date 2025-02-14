@@ -634,8 +634,21 @@ class AggregationValidator():
                                             if do_hide:
                                                 mini_entry_b["hide"] = do_hide
                                         elif mini_entry_s:
+                                            if "values" in ass_inline_data:
+                                                the_values = ass_inline_data["values"]
+                                            elif "error" in ass_inline_data:
+                                                # This case is needed for radar plot
+                                                the_values = [
+                                                    {
+                                                        "v": ass_inline_data["value"],
+                                                        "e": ass_inline_data["error"],
+                                                    }
+                                                ]
+                                            else:
+                                                # This case is needed for radar plot
+                                                the_values = [ ass_inline_data["value"] ]
                                             mini_entry_s.update({
-                                                "values": ass_inline_data["values"],
+                                                "values": the_values,
                                             })
                                             if do_hide:
                                                 mini_entry_s["hide"] = do_hide
@@ -1259,8 +1272,19 @@ class AggregationBuilder():
                                         if do_hide:
                                             mini_entry_b["hide"] = do_hide
                                     elif mini_entry_s:
+                                        if "values" in ass_inline_data:
+                                            the_values = ass_inline_data["values"]
+                                        elif "error" in ass_inline_data:
+                                            the_values = [
+                                                {
+                                                    "v": ass_inline_data["value"],
+                                                    "e": ass_inline_data["error"],
+                                                }
+                                            ]
+                                        else:
+                                            the_values = [ ass_inline_data["value"] ]
                                         mini_entry_s.update({
-                                            "values": ass_inline_data["values"],
+                                            "values": the_values,
                                         })
                                         if do_hide:
                                             mini_entry_s["hide"] = do_hide
