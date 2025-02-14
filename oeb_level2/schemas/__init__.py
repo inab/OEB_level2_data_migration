@@ -26,8 +26,13 @@ from extended_json_schema_validator.extensible_validator import ExtensibleValida
 if TYPE_CHECKING:
 	from typing import (
 		Sequence,
+		Set,
 		Tuple,
 		Union,
+	)
+	
+	from typing_extensions import (
+		Final,
 	)
 	
 	from extended_json_schema_validator.extensible_validator import ExtensibleValidatorConfig
@@ -47,12 +52,26 @@ AGGREGATION_2D_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migrati
 
 AGGREGATION_BAR_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-bar-plot"
 
-AGGREGATION_BOX_PLOT_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series"
+AGGREGATION_DATA_SERIES_SCHEMA_ID = "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series"
+
+VIS_2D_PLOT: "Final[str]" = "2D-plot"
+VIS_BAR_PLOT: "Final[str]" = "bar-plot"
+VIS_BOX_PLOT: "Final[str]" = "box-plot"
+VIS_LINE_PLOT: "Final[str]" = "line-plot"
+VIS_RADAR_PLOT: "Final[str]" = "radar-plot"
+
+VIS_AGG_DATA_SERIES: "Final[Set[str]]" = {
+    VIS_BOX_PLOT,
+    VIS_LINE_PLOT,
+    VIS_RADAR_PLOT,
+}
 
 TYPE2SCHEMA_ID = {
-	"2D-plot": AGGREGATION_2D_PLOT_SCHEMA_ID,
-	"bar-plot": AGGREGATION_BAR_PLOT_SCHEMA_ID,
-	"box-plot": AGGREGATION_BOX_PLOT_SCHEMA_ID,
+	VIS_2D_PLOT: AGGREGATION_2D_PLOT_SCHEMA_ID,
+	VIS_BAR_PLOT: AGGREGATION_BAR_PLOT_SCHEMA_ID,
+	VIS_BOX_PLOT: AGGREGATION_DATA_SERIES_SCHEMA_ID,
+	VIS_LINE_PLOT: AGGREGATION_DATA_SERIES_SCHEMA_ID,
+	VIS_RADAR_PLOT: AGGREGATION_DATA_SERIES_SCHEMA_ID,
 }
 
 ASSESSMENT_INLINE_SCHEMAS = [
@@ -63,7 +82,7 @@ ASSESSMENT_INLINE_SCHEMAS = [
 AGGREGATION_INLINE_SCHEMAS = [
 	AGGREGATION_2D_PLOT_SCHEMA_ID,
 	AGGREGATION_BAR_PLOT_SCHEMA_ID,
-	AGGREGATION_BOX_PLOT_SCHEMA_ID,
+	AGGREGATION_DATA_SERIES_SCHEMA_ID,
 ]
 
 LEVEL2_SCHEMA_IDS = [
