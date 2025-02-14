@@ -478,9 +478,11 @@ $defs:
                     type: object
                     properties:
                       label:
+                        title: Label of the participant tool
                         type: string
                         minLength: 1
                       metric_id:
+                        title: Label of the metric represented by this data series
                         type: string
                         minLength: 1
                       values:
@@ -499,6 +501,10 @@ $defs:
                             - v
                         - items:
                             type: number
+                      hide:
+                        title: Should value be initially hidden?
+                        type: boolean
+                        default: false
                     join_keys:
                     - members:
                       - metric_id
@@ -509,35 +515,110 @@ $defs:
                     - metric_id
                     - values
                     unevaluatedProperties: false
+                  # This is commented out, to allow declaring it as a template
+                  # to be filled in by OEB_level2_data_migration
+                  # minItems: 1
                 visualization:
+                  title: The visualization hints
                   type: object
                   properties:
-                    type:
-                      type: string
-                      const: "box-plot"
                     available_metrics:
+                      title: Axis metrics labels
                       type: array
                       items:
                         type: string
                         minLength: 1
                       uniqueItems: true
                       minItems: 1
-                    optimization:
-                      title: Chart representation optimization (valid for bar-plot and 2D-plot)
-                      type: string
-                      enum:
-                      - left
-                      - right
-                      - minimize
-                      - maximize
-                      - top-left
-                      - top-right
-                      - bottom-left
-                      - bottom-right
-                  required:
-                  - type
-                  - available_metrics
-                  unevaluatedProperties: false
+                    oneOf:
+                    - properties:
+                        representations:
+                          title: Different representations of the data series
+                          description: These representations are focused on how the metrics, with their related data series, are conjoined. Two representations belonging to the very same group will share the same canvas. So, different groups mean different canvases.
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                title: Type of representation for this set of metrics
+                                type: string
+                                enum:
+                                - 2D-plot
+                                - box-plot
+                                - bar-plot
+                                - line-plot
+                                - radar-plot
+                              metrics_series:
+                                title: Series of involved metrics
+                                description: Depending on the type of representation, the number of involved metrics could be 1, 2 or many
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    metric_id:
+                                      title: Label of the metric
+                                      type: string
+                                      minLength: 1
+                                    optimization:
+                                      title: Chart representation optimization
+                                      type: string
+                                      enum:
+                                      - minimize
+                                      - maximize
+                                      default: maximize
+                                    axis:
+                                      title: Axis for this metrics series
+                                      type: string
+                                      enum:
+                                      - x
+                                      - y
+                                      - x2
+                                      - y2
+                                    title:
+                                      type: string
+                                      title: Title to be shown about the metric in a possible axis or legend
+                                  unevaluatedProperties: false
+                                  required:
+                                  - metric_id
+                                  join_keys:
+                                  - members:
+                                    - metric_id
+                                    schema_id: https://github.com/inab/OEB_level2_data_migration/aggregation-data-series
+                                    refers_to: available_metrics_index
+                                minItems: 1
+                              type_group_id:
+                                title: For complex representations (i.e. 2D-plot and future line-plot), the group id which helps clustering the metrics by participant. Order does matter.
+                                type: string
+                                minLength: 1
+                            unevaluatedProperties: false
+                            required:
+                            - type
+                            - metrics_series
+                          uniqueItems: true
+                          minItems: 1
+                      required:
+                      - representations
+                      - available_metrics
+                    - properties:
+                        type:
+                          type: string
+                          const: "box-plot"
+                        optimization:
+                          title: Chart representation optimization (valid for bar-plot and 2D-plot)
+                          type: string
+                          enum:
+                          - left
+                          - right
+                          - minimize
+                          - maximize
+                          - top-left
+                          - top-right
+                          - bottom-left
+                          - bottom-right
+                      required:
+                      - type
+                      - available_metrics
+                      unevaluatedProperties: false
                 labels:
                   title: Mapping labels to dataset assessment original ids. It can be an incomplete list.
                   type: array

@@ -200,6 +200,8 @@
 							"enum": [
 								"left",
 								"right",
+								"minimize",
+								"maximize",
 								"top-left",
 								"top-right",
 								"bottom-left",
