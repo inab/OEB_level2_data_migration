@@ -212,22 +212,29 @@ def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Seque
 def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics_graphql: "Sequence[Mapping[str, Any]]", community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Optional[MetricsTrio]":
     # Select the metrics just "guessing"
     guessed_metrics = []
+    exact_match = False
     dataset_metrics_id_u = metrics_label.upper()
     for metric in metrics_graphql:
         # Could the metrics label match the metrics id?
         if metric['_id'] == metrics_label:
             guessed_metrics = [ metric ]
+            exact_match = True
             break
         metric_metadata = metric.get("_metadata")
         # First guess
         if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
             if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
-                guessed_metrics.append(metric)
+                guessed_metrics = [ metric ]
+                exact_match = True
+                break
         elif metric['orig_id'].startswith(community_prefix):
             # Second guess (it can introduce false crosses)
-            if metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
+            if metric["orig_id"][len(community_prefix):].upper() == dataset_metrics_id_u:
+                guessed_metrics = [ metric ]
+                exact_match = True
+                break
+            elif metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
                 guessed_metrics.append(metric)
-    
     
     if len(guessed_metrics) == 0:
         logger.critical(f"For {dataset_id}, unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
