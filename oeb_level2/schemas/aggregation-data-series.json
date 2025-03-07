@@ -111,6 +111,45 @@
 											"radar-plot"
 										]
 									},
+									"axes_clues": {
+										"title": "Clues for used axes",
+										"description": "Representation clues for used axes. This is needed to adjust some parameters, like axis labels",
+										"type": "array",
+										"items": {
+											"type": "object",
+											"properties": {
+												"axis": {
+													"title": "Axis to be annotated",
+													"type": "string",
+													"enum": [
+														"x",
+														"y",
+														"x2",
+														"y2"
+													]
+												},
+												"title": {
+													"type": "string",
+													"title": "Text to be shown for the axis",
+													"minLength": 1
+												},
+												"scale": {
+													"title": "Axis scale, either linear or log2 (it affects all the axes)",
+													"type": "string",
+													"enum": [
+														"linear",
+														"log2"
+													],
+													"default": "linear"
+												}
+											},
+											"unevaluatedProperties": false,
+											"required": [
+												"axis"
+											]
+										},
+										"minItems": 1
+									},
 									"metrics_series": {
 										"title": "Series of involved metrics",
 										"description": "Depending on the type of representation, the number of involved metrics could be 1, 2 or many",
@@ -144,7 +183,8 @@
 												},
 												"title": {
 													"type": "string",
-													"title": "Title to be shown about the metric in a possible axis or legend"
+													"title": "Title to be shown about the metric in a possible axis or legend",
+													"minLength": 1
 												}
 											},
 											"unevaluatedProperties": false,
@@ -158,6 +198,13 @@
 													],
 													"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
 													"refers_to": "available_metrics_index"
+												},
+												{
+													"members": [
+														"axis"
+													],
+													"schema_id": "https://github.com/inab/OEB_level2_data_migration/aggregation-data-series",
+													"refers_to": "axes_index"
 												}
 											]
 										},
@@ -173,7 +220,14 @@
 								"required": [
 									"type",
 									"metrics_series"
-								]
+								],
+								"index": {
+									"name": "axes_index",
+									"limit_scope": true,
+									"members": [
+										"axes_clues.axis"
+									]
+								}
 							},
 							"uniqueItems": true,
 							"minItems": 1
@@ -207,6 +261,15 @@
 								"bottom-left",
 								"bottom-right"
 							]
+						},
+						"axes_scale": {
+							"title": "Axes scale, either linear or log2 (it affects all the axes)",
+							"type": "string",
+							"enum": [
+								"linear",
+								"log2"
+							],
+							"default": "linear"
 						}
 					},
 					"required": [

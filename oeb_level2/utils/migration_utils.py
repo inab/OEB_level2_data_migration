@@ -612,6 +612,8 @@ class OpenEBenchUtils():
             self.logger.fatal(f"Please implement aggregation {vis_type} minimal id generation")
             raise NotImplementedError(f"Please implement aggregation {vis_type} minimal id generation")
         
+        # TODO: validate metrics labels
+
         if len(ch_to) == 1:
             challenge_orig_id_separator = ch_to[0].sep
             aggregation_sep = ch_to[0].aggregation_sep

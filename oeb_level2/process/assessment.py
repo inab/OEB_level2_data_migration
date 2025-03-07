@@ -297,6 +297,7 @@ class AssessmentBuilder():
                 }
             else:
                 self.logger.critical("FIXME: unexpected assessment metric (talk to the developers)")
+                datalink_payload = {}
 
             valid_data["datalink"] = datalink_payload
             

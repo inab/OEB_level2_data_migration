@@ -134,6 +134,18 @@
         "representations": [
             {
                 "type": "line-plot",
+                "axes_clues": [
+                        {
+                                "axis": "x",
+                                "title": "False Positive Rate (FPR)",
+                                "scale": "linear"
+                        },
+                        {
+                                "axis": "y",
+                                "title": "True Positive Rate (TPR)",
+                                "scale": "linear"
+                        }
+                ],
                 "metrics_series": [
                     {
                         "metric_id": "FPR",
