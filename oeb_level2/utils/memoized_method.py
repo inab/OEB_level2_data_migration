@@ -54,16 +54,16 @@ if TYPE_CHECKING:
     RO = TypeVar('RO')
     PVS = ParamSpec('PVS')
 
-def memoized_method(maxsize: "Optional[int]" = 128, typed: "bool" = False) -> "Callable[[Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]],Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]]":
-    def decorator(func: "Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]") -> "Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]":
+def memoized_method(maxsize: "Optional[int]" = 128, typed: "bool" = False) -> "Callable[[Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]],Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]]": # type: ignore[valid-type]
+    def decorator(func: "Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]") -> "Callable[[Arg(RO, 'self'), VarArg(PVS.args), KwArg(PVS.kwargs)], RV]":  # type: ignore[valid-type]
         @functools.wraps(func)
-        def wrapped_func(self: "RO", *args: "PVS.args", **kwargs: "PVS.kwargs") -> "RV":
+        def wrapped_func(self: "RO", *args: "PVS.args", **kwargs: "PVS.kwargs") -> "RV": # type: ignore[valid-type]
             # We're storing the wrapped method inside the instance. If we had
             # a strong reference to self the instance would never die.
             self_weak = weakref.ref(self)
             @functools.wraps(func)
             @functools.lru_cache(maxsize=maxsize,typed=typed)
-            def cached_method(*args: "PVS.args", **kwargs: "PVS.kwargs") -> "RV":
+            def cached_method(*args: "PVS.args", **kwargs: "PVS.kwargs") -> "RV":  # type: ignore[valid-type]
                 # This cast is needed because func expects a value which is not optional
                 return func(cast("RO", self_weak()), *args, **kwargs)
             setattr(self, func.__name__, cached_method)
