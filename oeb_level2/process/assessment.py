@@ -102,6 +102,7 @@ class AssessmentBuilder():
             
         self.logger.info("Indexing already stored assessment datasets")
         staged_challenge_label_map: "MutableMapping[str, MutableMapping[str, InlineDataLabelPair]]" = dict()
+        staged_challenge_id_map: "MutableMapping[str, MutableMapping[str, InlineDataLabelPair]]" = dict()
         processed_cha = set()
         for idx_cha in agg_challenges.values():
             if id(idx_cha) in processed_cha:
@@ -110,6 +111,7 @@ class AssessmentBuilder():
             
             staged_label_map: "MutableMapping[str, InlineDataLabelPair]" = dict()
             staged_challenge_label_map[idx_cha.challenge_label_and_sep.label] = staged_label_map
+            staged_challenge_id_map[idx_cha.challenge_id] = staged_label_map
             ass_label_pairs = idx_cha.d_catalog.get_assessment_labels()
             for ass_label_pair in ass_label_pairs:
                 staged_label_map[ass_label_pair.label["label"]] = ass_label_pair
@@ -141,7 +143,10 @@ class AssessmentBuilder():
                 continue
 
             # Matching the correct challenge pair
-            possible_staged_label_map = staged_challenge_label_map.get(min_challenge_id)
+            if min_challenge_id in staged_challenge_id_map:
+                possible_staged_label_map = staged_challenge_id_map.get(min_challenge_id)
+            else:
+                possible_staged_label_map = staged_challenge_label_map.get(min_challenge_id)
             possible_idx_cha = agg_challenges.get(min_challenge_id)
             if possible_staged_label_map is None or possible_idx_cha is None:
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because challenge {min_challenge_id} was not found, skipping to next assessment element...")
