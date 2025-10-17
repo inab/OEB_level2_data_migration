@@ -185,6 +185,7 @@ class ParticipantBuilder():
         
         # replace all workflow challenge identifiers with the official OEB ids, which should already be defined in the database.
         oeb_challenges = {}
+        oeb_challenges_by_id = {}
         
         for challenge_graphql in challenges_graphql:
             oeb_challenges[
@@ -194,6 +195,7 @@ class ParticipantBuilder():
                     community_prefix
                 ).label
             ] = challenge_graphql
+            oeb_challenges_by_id[challenge_graphql["_id"]] = challenge_graphql
 
         stagedMap = dict()
         for staged_participant_dataset in staged_participant_datasets:
@@ -235,7 +237,10 @@ class ParticipantBuilder():
             min_id: "Optional[str]" = None
             for challenge_label in min_challenge_labels:
                 try:
-                    execution_challenge_id = oeb_challenges[challenge_label]["_id"]
+                    if challenge_label in oeb_challenges_by_id:
+                        execution_challenge_id = challenge_label
+                    else:
+                        execution_challenge_id = oeb_challenges[challenge_label]["_id"]
                     # Checking participant label on each challenge
                     idx_cha_p = agg_challenges.get(execution_challenge_id)
                     if idx_cha_p is None:
