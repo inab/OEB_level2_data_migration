@@ -238,9 +238,10 @@ class ParticipantBuilder():
             for challenge_label in min_challenge_labels:
                 try:
                     if challenge_label in oeb_challenges_by_id:
-                        execution_challenge_id = challenge_label
+                        execution_challenge = oeb_challenges_by_id[challenge_label]
                     else:
-                        execution_challenge_id = oeb_challenges[challenge_label]["_id"]
+                        execution_challenge = oeb_challenges[challenge_label]
+                    execution_challenge_id = execution_challenge["_id"]
                     # Checking participant label on each challenge
                     idx_cha_p = agg_challenges.get(execution_challenge_id)
                     if idx_cha_p is None:
@@ -264,7 +265,7 @@ class ParticipantBuilder():
                     challenge_pairs.append(
                         ChallengePair(
                             label=challenge_label,
-                            entry=oeb_challenges[challenge_label]
+                            entry=execution_challenge,
                         )
                     )
                 except:
