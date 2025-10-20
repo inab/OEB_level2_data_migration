@@ -214,7 +214,12 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
     guessed_metrics = []
     exact_match = False
     dataset_metrics_id_u = metrics_label.upper()
-    for metric in metrics_graphql:
+    # There should be a cleaner way to have this
+    preferred_id_prefix = "OEBM" + challenge_id[4:7]
+    
+    # This sort is to give some precedence to metrics from the same community as the challenge
+    # over all the other metrics
+    for metric in sorted(metrics_graphql, key=lambda e: e["_id"][0:7] != preferred_id_prefix):
         # Could the metrics label match the metrics id?
         if metric['_id'] == metrics_label:
             guessed_metrics = [ metric ]
@@ -224,9 +229,13 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
         # First guess
         if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
             if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
-                guessed_metrics = [ metric ]
-                exact_match = True
-                break
+                if metric["_id"].startswith(preferred_id_prefix):
+                    guessed_metrics = [ metric ]
+                    exact_match = True
+                    break
+                else:
+                    # Different community, we cannot assure
+                    guessed_metrics.append(metric)
         elif metric['orig_id'].startswith(community_prefix):
             # Second guess (it can introduce false crosses)
             if metric["orig_id"][len(community_prefix):].upper() == dataset_metrics_id_u:
