@@ -882,7 +882,11 @@ class AggregationBuilder():
         # For each indexed challenge
         ch_label_to = {}
         for idx_agg_v in agg_challenges.values():
+            # Add both the label
             ch_label_to[idx_agg_v.challenge_label_and_sep.label] = idx_agg_v.challenge_label_and_sep
+            # and the challenge id, as some people does not understand
+            # the concept of internal label
+            ch_label_to[idx_agg_v.challenge_id] = idx_agg_v.challenge_label_and_sep
             # index the future participant datasets involved in this challenge
             idx_agg_v.d_catalog.merge_datasets(
                 raw_datasets=map(lambda ass_t: ass_t.pt.participant_dataset, ass_c_dict.get(idx_agg_v.challenge_id, [])),
@@ -922,16 +926,19 @@ class AggregationBuilder():
 
             # replace dataset related challenges with oeb challenge ids
             execution_ch_to = []
+            erroneous_challenge_labels = []
             try:
                 for challenge_label in min_dataset["challenge_ids"]:
                     ch_label_and_sep = ch_label_to.get(challenge_label)
                     if ch_label_and_sep is None:
-                        raise KeyError(f"Unmatched challenge {challenge_label}")
-                    
-                    execution_ch_to.append(ch_label_and_sep)
+                        erroneous_challenge_labels.append(challenge_label)
+                    else:
+                        execution_ch_to.append(ch_label_and_sep)
+                if len(erroneous_challenge_labels) > 0:
+                    raise KeyError(f"Unmatched challenge labels: {' '.join(erroneous_challenge_labels)}")
             except:
                 self.logger.error(
-                    "Some of these challenges labels (" + ', '.join(min_dataset["challenge_ids"]) +
+                    "Next challenge labels (" + ', '.join(erroneous_challenge_labels) +
                     ") from dataset " + min_dataset["_id"] + 
                     "are not associated to OEB. Please contact OpenEBench support for information about how to open a new challenge"
                 )
