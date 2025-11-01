@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -507,8 +507,15 @@ class OpenEBenchUtils():
         the_metadata = dataset.get("_metadata")
         if the_metadata is not None:
             participant_label = the_metadata.get(PARTICIPANT_ID_KEY, participant_label)
-            metrics_label = the_metadata.get(METRIC_ID_KEY, metrics_label)
-        
+            possible_metrics_label: "Union[str, Sequence[str]]" = the_metadata.get(METRIC_ID_KEY, metrics_label)
+            if isinstance(possible_metrics_label, list):
+                # Only the first element is taken into account
+                if len(possible_metrics_label) > 0:
+                    metrics_label = possible_metrics_label[0]
+                else:
+                    self.logger.error(f"Ill-formed {METRIC_ID_KEY} in entry {dataset['_id']}. Please fix it in the database")
+            else:
+                metrics_label = cast("str", possible_metrics_label)
         try:
             dataset_type = OEBDatasetType(dataset["type"])
             the_suffix = DATASET_ORIG_ID_SUFFIX.get(dataset_type, "")
@@ -1843,9 +1850,12 @@ class OpenEBenchUtils():
         mmi_metadata = mmi.get("_metadata")
         
         if isinstance(mmi_metadata, dict) and (METRIC_ID_KEY in mmi_metadata):
-            proposed_label = cast("str", mmi_metadata[METRIC_ID_KEY])
-            if proposed_label is not None:
-                all_labels.append(proposed_label)
+            possible_proposed_label = cast("Optional[Union[str, Sequence[str]]]", mmi_metadata[METRIC_ID_KEY])
+            if possible_proposed_label is not None:
+                if isinstance(possible_proposed_label, list):
+                    all_labels.extend(possible_proposed_label)
+                else:
+                    all_labels.append(cast("str",possible_proposed_label))
         
         if mmi["orig_id"].startswith(community_prefix):
             proposed_label = cast("str", mmi["orig_id"][len(community_prefix):])

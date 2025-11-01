@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -227,16 +227,25 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
             break
         metric_metadata = metric.get("_metadata")
         # First guess
+        no_guess = True
         if isinstance(metric_metadata, dict) and METRIC_ID_KEY in metric_metadata:
-            if metric_metadata[METRIC_ID_KEY].upper() == dataset_metrics_id_u:
-                if metric["_id"].startswith(preferred_id_prefix):
-                    guessed_metrics = [ metric ]
-                    exact_match = True
-                    break
-                else:
-                    # Different community, we cannot assure
-                    guessed_metrics.append(metric)
-        elif metric['orig_id'].startswith(community_prefix):
+            possible_metric_labels = cast("Optional[Union[str, Sequence[str]]]", metric_metadata[METRIC_ID_KEY])
+            if possible_metric_labels is not None:
+                if isinstance(possible_metric_labels, str):
+                    possible_metric_labels = [ possible_metric_labels ]
+                for possible_metric_label in possible_metric_labels:
+                    if possible_metric_label.upper() == dataset_metrics_id_u:
+                        if metric["_id"].startswith(preferred_id_prefix):
+                            guessed_metrics = [ metric ]
+                            exact_match = True
+                            no_guess = False
+                            break
+                        else:
+                            # Different community, we cannot assure
+                            guessed_metrics.append(metric)
+                            no_guess = False
+        
+        if no_guess and metric['orig_id'].startswith(community_prefix):
             # Second guess (it can introduce false crosses)
             if metric["orig_id"][len(community_prefix):].upper() == dataset_metrics_id_u:
                 guessed_metrics = [ metric ]

@@ -111,6 +111,22 @@ and then should be followed by the challenge label.
     }
     ```
     
+    In order to support very sloppy benchmarking events where the
+    responsible people of the challenges are not coherent in the usage
+    of the metric labels, it is possible to declare more than one, where
+    the order does matter:
+    
+    ```json
+    {
+      "_metadata": {
+        "level_2:metric_id": [
+          "Negative_Predictive_Value",
+          "npv"
+        ]
+      }
+    }
+    ```
+
   - If the metrics entry has an `orig_id`, and the original id has as prefix the community prefix,
     then the metrics label is the result of removing the prefix.
   

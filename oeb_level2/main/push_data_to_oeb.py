@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 import json
 import argparse
 import datetime
+import hashlib
 import sys
 import os
 import os.path
@@ -359,7 +360,7 @@ def validate_transform_and_push(
     # Now, it is time to validate the fetched data
     # in inline mode
     if skip_min_validation:
-        logging.info("-> Skipped minimal dataset JSON validation (you are sure it's 100% correct, right?)")
+        logging.info("-> Skipped minimal dataset JSON validation (you are sure it's 100%% correct, right?)")
     else:
         validable_data: "ParsedContentEntry" = {
             "file": input_file if input_url is None else input_url,
@@ -377,8 +378,11 @@ def validate_transform_and_push(
     # sort out dataset depending on 'type' property
     logging.info("-> Sorting out minimal datasets to be processed based on their type")
     min_participant_dataset = []
+    min_participant_dataset_hashes = dict()
     min_assessment_datasets = []
+    min_assessment_dataset_hashes = dict()
     min_aggregation_datasets = []
+    min_aggregation_dataset_hashes = dict()
     # A two level dictionary to account for the
     # number of participant datasets in a given challenge
     participants_per_challenge: "MutableMapping[str, MutableMapping[str, int]]" = {}
@@ -386,42 +390,59 @@ def validate_transform_and_push(
     not_datasets = 0
     discarded_datasets = 0
     for i_dataset, dataset in enumerate(data):
+        dataset_hashable = json.dumps(dataset, sort_keys=True)
+        h = hashlib.new('sha256')
+        h.update(dataset_hashable.encode("utf-8"))
+        dataset_hash = h.digest()
         dataset_type = dataset.get("type")
         
         if dataset_type == OEBDatasetType.Participant.value:
-            min_participant_dataset.append(dataset)
-            
-            # Detecting 'old school' inconsistencies
-            participant_label = dataset["participant_id"]
-            participants_set.add(participant_label)
-            if tool_id is not None:
-                if len(participants_set) > 1:
-                    logging.warning(f"'Old school' configuration file and {len(participants_set)} participant datasets")
-                elif None in tool_mapping:
-                    # Fixed "old" default tool mapping
-                    tool_mapping[None].participant_label = participant_label
-                    tool_mapping[participant_label] = tool_mapping[None]
-                    del tool_mapping[None]
-            
-            # Detecting 'old school' inconsistencies in a finer grain
-            challenges = dataset["challenge_id"]
-            if not isinstance(challenges, list):
-                challenges = [ challenges ]
-            for challenge in challenges:
-                p_in_chall = participants_per_challenge.setdefault(challenge, {})
+            if dataset_hash not in min_participant_dataset_hashes:
+                min_participant_dataset.append(dataset)
+                min_participant_dataset_hashes[dataset_hash] = dataset
                 
-                if participant_label in p_in_chall:
-                    p_in_chall[participant_label] += 1
-                else:
-                    p_in_chall[participant_label] = 1
+                # Detecting 'old school' inconsistencies
+                participant_label = dataset["participant_id"]
+                participants_set.add(participant_label)
+                if tool_id is not None:
+                    if len(participants_set) > 1:
+                        logging.warning(f"'Old school' configuration file and {len(participants_set)} participant datasets")
+                    elif None in tool_mapping:
+                        # Fixed "old" default tool mapping
+                        tool_mapping[None].participant_label = participant_label
+                        tool_mapping[participant_label] = tool_mapping[None]
+                        del tool_mapping[None]
                 
-                if tool_id is not None and p_in_chall[participant_label] > 1:
-                    logging.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
+                # Detecting 'old school' inconsistencies in a finer grain
+                challenges = dataset["challenge_id"]
+                if not isinstance(challenges, list):
+                    challenges = [ challenges ]
+                for challenge in challenges:
+                    p_in_chall = participants_per_challenge.setdefault(challenge, {})
+                    
+                    if participant_label in p_in_chall:
+                        p_in_chall[participant_label] += 1
+                    else:
+                        p_in_chall[participant_label] = 1
+                    
+                    if tool_id is not None and p_in_chall[participant_label] > 1:
+                        logging.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
+            else:
+                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
+                
         elif dataset_type == OEBDatasetType.Assessment.value:
-            min_assessment_datasets.append(dataset)
+            if dataset_hash not in min_assessment_dataset_hashes:
+                min_assessment_datasets.append(dataset)
+                min_assessment_dataset_hashes[dataset_hash] = dataset
+            else:
+                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
             
         elif dataset_type == OEBDatasetType.Aggregation.value:
-            min_aggregation_datasets.append(dataset)
+            if dataset_hash not in min_aggregation_dataset_hashes:
+                min_aggregation_datasets.append(dataset)
+                min_aggregation_dataset_hashes[dataset_hash] = dataset
+            else:
+                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
         elif dataset_type is not None:
             logging.warning(f"Dataset {i_dataset} is of unknown type {dataset_type}. Skipping")
             discarded_datasets += 1
@@ -744,7 +765,7 @@ def main() -> "None":
     parser.add_argument("--val_output",
                         help="Save the JSON Schema validation output to a file", default="/dev/null")
     parser.add_argument("--skip-min-validation",
-                        help="If you are 100% sure the minimal dataset is valid, skip the early validation (useful for huge datasets)",
+                        help="If you are 100%% sure the minimal dataset is valid, skip the early validation (useful for huge datasets)",
                         action="store_true")
     parser.add_argument("-o",
                         dest="submit_output_file",
