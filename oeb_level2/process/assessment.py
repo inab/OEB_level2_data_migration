@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -186,15 +186,21 @@ class AssessmentBuilder():
             if matched_metric is None:
                 should_end.append((the_challenge['_id'], the_challenge['acronym']))
                 continue
+            
+            if do_fix_orig_ids:
+                # Assume the canonical label instead of the one
+                # which came with the minimal dataset
+                metrics_label = matched_metric.proposed_label
 
             existing_min_id: "Optional[str]" = None
             unique_assessment_label = gen_inline_data_label_from_assessment_and_participant_dataset(
                 min_dataset,
                 pvc.participant_dataset,
-                matched_metric.metrics_id,
+                proposed_metrics_label=matched_metric.proposed_label,
+                metrics_id=matched_metric.metrics_id,
             )
             possible_ass_label_pair = staged_label_map.get(unique_assessment_label.label["label"])
-            # Does it exist an already assessment with this label in this challenge?
+            # Does it already exist an assessment with this label in this challenge?
             if possible_ass_label_pair is not None:
                 ass_dataset_id = possible_ass_label_pair.dataset_id
                 staged_entries = idx_cha.d_catalog.get_dataset(ass_dataset_id)
@@ -386,6 +392,8 @@ class AssessmentBuilder():
             dataset = at.assessment_dataset
             pvc  = at.pt
             valid_participant_data = pvc.participant_dataset
+            assert "depends_on" in dataset, f"Anomalous dataset {dataset} without depends_on"
+            assert "tool_id" in dataset["depends_on"], f"Anomalous dataset {dataset} without tool_id within depends_on"
             tool_id = dataset["depends_on"]["tool_id"]
         
             event_id = OpenEBenchUtils.gen_metrics_event_original_id(dataset)

@@ -164,6 +164,7 @@ def gen_inline_data_label_from_participant_dataset(par_dataset: "Mapping[str, An
 def gen_inline_data_label_from_assessment_and_participant_dataset(
     ass_dataset: "Mapping[str, Any]",
     par_dataset: "Mapping[str, Any]",
+    proposed_metrics_label: "Optional[str]" = None,
     metrics_id: "Optional[str]" = None,
 ) -> "InlineDataLabelPair":
     # With this change, minimal assessment datasets also work
@@ -180,6 +181,8 @@ def gen_inline_data_label_from_assessment_and_participant_dataset(
             metrics_label = metrics_id
         else:
             metrics_label = ass_dataset.get("depends_on", {}).get("metrics_id", "")
+    elif proposed_metrics_label is not None:
+        metrics_label = proposed_metrics_label
     elif metrics_id is not None:
         metrics_label = metrics_id
     else:
