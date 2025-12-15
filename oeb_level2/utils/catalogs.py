@@ -215,7 +215,7 @@ def gen_inline_data_label(met_dataset: "Mapping[str, Any]", par_datasets: "Seque
 def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics_graphql: "Sequence[Mapping[str, Any]]", community_prefix: "str", metrics_label: "str", challenge_id: "str", challenge_acronym: "str", challenge_assessment_metrics_d: "Mapping[str, Mapping[str, str]]", dataset_id: "Optional[str]" = None) -> "Optional[MetricsTrio]":
     # Select the metrics just "guessing"
     guessed_metrics = []
-    exact_match = False
+    exact_match_metrics = []
     dataset_metrics_id_u = metrics_label.upper()
     # There should be a cleaner way to have this
     preferred_id_prefix = "OEBM" + challenge_id[4:7]
@@ -225,8 +225,7 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
     for metric in sorted(metrics_graphql, key=lambda e: e["_id"][0:7] != preferred_id_prefix):
         # Could the metrics label match the metrics id?
         if metric['_id'] == metrics_label:
-            guessed_metrics = [ metric ]
-            exact_match = True
+            exact_match_metrics = [ metric ]
             break
         metric_metadata = metric.get("_metadata")
         # First guess
@@ -239,8 +238,7 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
                 for possible_metric_label in possible_metric_labels:
                     if possible_metric_label.upper() == dataset_metrics_id_u:
                         if metric["_id"].startswith(preferred_id_prefix):
-                            guessed_metrics = [ metric ]
-                            exact_match = True
+                            exact_match_metrics.append(metric)
                             no_guess = False
                             break
                         else:
@@ -251,23 +249,27 @@ def match_metric_from_label(logger: "Union[logging.Logger, ModuleType]", metrics
         if no_guess and metric['orig_id'].startswith(community_prefix):
             # Second guess (it can introduce false crosses)
             if metric["orig_id"][len(community_prefix):].upper() == dataset_metrics_id_u:
-                guessed_metrics = [ metric ]
-                exact_match = True
-                break
+                exact_match_metrics.append(metric)
             elif metric["orig_id"][len(community_prefix):].upper().startswith(dataset_metrics_id_u):
                 guessed_metrics.append(metric)
     
-    if len(guessed_metrics) == 0:
+    if len(exact_match_metrics) == 0 and len(guessed_metrics) == 0:
         logger.critical(f"For {dataset_id}, unable to match in OEB a metric to label {metrics_label} . Please contact OpenEBench support for information about how to register your own metrics and link them to the challenge {challenge_id} (acronym {challenge_acronym})")
         return None
         #should_end.append((the_challenge['_id'], the_challenge['acronym']))
         #continue
     
     matched_metrics = []
-    for guessed_metric in guessed_metrics:
+    for guessed_metric in exact_match_metrics:
         cam = challenge_assessment_metrics_d.get(guessed_metric["_id"])
         if cam is not None:
             matched_metrics.append((cam, guessed_metric))
+    
+    if len(matched_metrics) == 0:
+        for guessed_metric in guessed_metrics:
+            cam = challenge_assessment_metrics_d.get(guessed_metric["_id"])
+            if cam is not None:
+                matched_metrics.append((cam, guessed_metric))
     
     metric_id: "Optional[str]" = None
     tool_id: "Optional[str]" = None
@@ -794,7 +796,8 @@ class DatasetsCatalog:
                     # Now detect exclusion cases
                     if d_type == OEBDatasetType.Assessment and len(d_on_datasets) > 0:
                         for d_on_dataset in d_on_datasets:
-                            if d_on_dataset.get("type") == OEBDatasetType.Participant.value and d_on_dataset.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False):
+                            the_metadata = d_on_dataset.get("_metadata", {})
+                            if the_metadata is not None and d_on_dataset.get("type") == OEBDatasetType.Participant.value and the_metadata.get(EXCLUDE_PARTICIPANT_KEY, False):
                                 do_exclude_from_m_dict = True
             
             if len(ambiguous_dataset_ids) > 0:
