@@ -748,6 +748,14 @@ class OpenEBenchUtils():
         datasets(datasetFilters: {type: "input"}) {
             _id
         }
+        metrics_categories {
+            category
+            metrics {
+                metrics_id
+                orig_id
+                tool_id
+            }
+        }
     }
     getContacts {
         _id

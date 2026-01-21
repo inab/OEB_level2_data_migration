@@ -518,18 +518,19 @@ def validate_transform_and_push(
     # First and foremost, validate the workflow_oeb_id against all the matched challenges
     # to discard faulty setups as soon as possible
     found_workflow_id = False
-    mismatched_workflow_id = []
+    mismatched_challenges = set()
     for challenge in input_query_response["data"]["getChallenges"]:
         for metrics_category in challenge.get("metrics_categories", []):
             for metrics in metrics_category.get("metrics", []):
+                # logging.info(f"{challenge['_id']} {workflow_id} {metrics_category.get('category')} {metrics.get('tool_id')}")
                 if metrics.get("tool_id") == workflow_id:
-                    if metrics.get("category") == "aggregation":
+                    if metrics_category.get("category") == "aggregation":
                         found_workflow_id = True
                     else:
-                        mismatched_workflow_id.append(challenge["_id"])
+                        mismatched_challenges.add(challenge["_id"])
     
-    if len(mismatched_workflow_id) > 0:
-        logging.warning(f"Tool workflow id {workflow_id} appears linked to assessment metrics in challenge(s) {mismatched_workflow_id}. Is this a challenge declaration mistake???")
+    if len(mismatched_challenges) > 0:
+        logging.warning(f"Tool workflow id {workflow_id} appears linked to assessment metrics in challenge(s) {mismatched_challenges}. Is this a challenge declaration mistake???")
 
     if not found_workflow_id:
         logging.fatal(f"Tool workflow id {workflow_id} does not appear related to aggregation metrics in any of the challenges from benchmarking event {bench_event_id}")
