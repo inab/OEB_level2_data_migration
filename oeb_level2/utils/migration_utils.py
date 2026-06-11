@@ -35,7 +35,7 @@ import urllib.parse
 try:
     from warnings import deprecated # type: ignore[attr-defined]
 except ImportError:
-    from deprecated import deprecated 
+    from deprecated import deprecated # type: ignore[no-redef,import-untyped]
 
 from typing import (
     cast,
