@@ -65,8 +65,14 @@
 					"minLength": 1,
 					"primary_key": {
 						"name": "participant_id_key",
+						"limit_scope": true,
 						"members": [ "." ]
 					}
+				},
+				"renamed_participant_id": {
+					"type": "string",
+					"title": "The id / name of the tool which generated this dataset, to be used on OEB storage",
+					"minLength": 1
 				},
 				"exclude": {
 					"title": "Should participant be excluded?",

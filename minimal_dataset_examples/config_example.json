@@ -2,11 +2,11 @@
     "consolidated_oeb_data": "results_example.json",
     "data_visibility": "public",
     "benchmarking_event_id": "OEBE9990000002",
-    "participant_file": "https://doi.org/10.1093/nar/gkaa308",
     "community_id": "OEBC999",
     "tool_mapping": [
         {
             "participant_id": "participant-17",
+            "participant_file": "https://doi.org/10.1093/nar/gkaa308",
             "tool_id": "OEBT9990000005",
             "data_version": 1,
             "data_contacts": ["first.contact@example.org"]
