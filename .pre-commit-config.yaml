@@ -16,7 +16,7 @@ repos:
         types: [file]
         files: \.(yaml|yml)$
   - repo: https://github.com/camptocamp/jsonschema-gentypes.git
-    rev: "2.3.0"
+    rev: "2.13.0"
     hooks:
       - id: jsonschema-gentypes
         stages: [manual]
