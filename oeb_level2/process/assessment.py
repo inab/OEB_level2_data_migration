@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2026 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -99,6 +99,7 @@ class AssessmentBuilder():
         valid_participants: "MutableMapping[str, MutableSequence[ParticipantTuple]]" = {}
         for valid_pvc in valid_participant_tuples:
             valid_participants.setdefault(valid_pvc.p_config.participant_label,[]).append(valid_pvc)
+            valid_participants.setdefault(valid_pvc.p_config.renamed_participant_label,[]).append(valid_pvc)
             
         self.logger.info("Indexing already stored assessment datasets")
         staged_challenge_label_map: "MutableMapping[str, MutableMapping[str, InlineDataLabelPair]]" = dict()
@@ -128,12 +129,15 @@ class AssessmentBuilder():
             if pvcs is None:
                 self.logger.warning(f"Assessment dataset {min_dataset['_id']} was not processed because participant {assessment_participant_label} was not declared, skipping to next assessment element...")
                 continue
-            
+
             min_challenge_id = min_dataset["challenge_id"]
             for pvc in pvcs:
                 got_challenge = False
                 for challenge_pair in pvc.challenge_pairs:
                     if challenge_pair.label == min_challenge_id:
+                        # We have to be sure we are using the right participant label
+                        assessment_participant_label = pvc.p_config.renamed_participant_label
+                        
                         got_challenge = True
                         break
                 if got_challenge:
@@ -225,7 +229,7 @@ class AssessmentBuilder():
                 else:
                     min_id = min_dataset["_id"]
             
-            participant_label = pvc.p_config.participant_label
+            participant_label = pvc.p_config.renamed_participant_label
             valid_participant_data = pvc.participant_dataset
             
             tool_id = valid_participant_data["depends_on"]["tool_id"]
@@ -256,14 +260,14 @@ class AssessmentBuilder():
             dataset_name = valid_data.get("name")
             if dataset_name is None:
                 dataset_name = "Metric '" + metrics_label + \
-                    "' in challenge '" + min_dataset["challenge_id"] + "' applied to participant '" + min_dataset["participant_id"] + "'"
+                    "' in challenge '" + min_dataset["challenge_id"] + "' applied to participant '" + participant_label + "'"
             valid_data["name"] = dataset_name
             
             dataset_description = min_dataset.get("description")
             if dataset_description is None:
                 dataset_description = "Assessment dataset of applying metric '" + \
                     metrics_label + "' in challenge '" + min_dataset["challenge_id"] + "' to '"\
-                     + min_dataset["participant_id"] + "' participant"
+                     + participant_label + "' participant"
             valid_data["description"] = dataset_description
 
             valid_data["challenge_ids"] = execution_challenge_ids

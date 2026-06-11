@@ -4,3 +4,4 @@ typing-extensions
 mypy-extensions
 types-mypy-extensions
 types-setuptools
+types-Deprecated;python_version < '3.13'

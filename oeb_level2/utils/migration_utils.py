@@ -32,6 +32,11 @@ import logging
 import json
 import urllib.parse
 
+try:
+    from warnings import deprecated # type: ignore[attr-defined]
+except ImportError:
+    from deprecated import deprecated 
+
 from typing import (
     cast,
     NamedTuple,
@@ -1228,6 +1233,7 @@ class OpenEBenchUtils():
             raise e
 
     # function that uploads the predictions file to a remote server for it long-term storage, and produces a DOI
+    @deprecated("If you see this message, please open an issue at https://github.com/inab/OEB_level2_data_migration") # type: ignore[misc]
     def upload_to_storage_service(self, participant_data: "Mapping[str, str]", file_location: "str", contact_email: "str", data_version: "str") -> "str":
         # First, check whether file_location is an URL
         file_location_parsed = urllib.parse.urlparse(file_location)

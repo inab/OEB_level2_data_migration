@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2025 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2026 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -156,11 +156,12 @@ def validate_transform_and_push(
         fmt=COLORED_LOGS_FMT_DEBUG if log_level < logging.INFO else COLORED_LOGS_FMT,
         level_styles=COLORED_LOGS_LEVEL_STYLES,
     )
-    logging.debug(f"Logging level set to {log_level}")
+    logger = logging.getLogger(__name__)
+    logger.debug(f"Logging level set to {log_level}")
     
     level2_min_validator, num_level2_schemas, expected_level2_schemas = level2_schemas.create_validator_for_oeb_level2()
     if num_level2_schemas < expected_level2_schemas:
-        logging.error(f"OEB level2 operational JSON Schemas not found ({num_level2_schemas} vs {expected_level2_schemas})")
+        logger.error(f"OEB level2 operational JSON Schemas not found ({num_level2_schemas} vs {expected_level2_schemas})")
         sys.exit(1)
     
     # This is to avoid too much verbosity
@@ -179,11 +180,11 @@ def validate_transform_and_push(
         config_json = config_val_block.get("json")
         if config_json is None:
             config_val_block_errors = config_val_block.get("errors", [])
-            logging.fatal(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
+            logger.fatal(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
             sys.exit(2)
         config_val_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.SUBMISSION_FORM_SCHEMA_ID, config_val_block.get("errors", [])))
         if len(config_val_block_errors) > 0:
-            logging.error(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
+            logger.error(f"Errors in configuration file {config_json_filename}\n{config_val_block_errors}")
             sys.exit(2)
             
         config_params = cast("ConfigParams", config_json)
@@ -194,7 +195,7 @@ def validate_transform_and_push(
         oeb_credentials_val_block = oeb_credentials_val_list[0]
         oeb_credentials_val_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.AUTH_CONFIG_SCHEMA_ID, oeb_credentials_val_block.get("errors", [])))
         if len(oeb_credentials_val_block_errors) > 0:
-            logging.error(f"Errors in configuration file {oeb_credentials_filename}\n{oeb_credentials_val_block_errors}")
+            logger.error(f"Errors in configuration file {oeb_credentials_filename}\n{oeb_credentials_val_block_errors}")
             sys.exit(2)
         
         oeb_credentials = oeb_credentials_val_block["json"]
@@ -211,7 +212,7 @@ def validate_transform_and_push(
             if not os.path.isabs(input_file):
                 input_file = os.path.normpath(os.path.join(config_json_dir,input_file))
             if not os.path.exists(input_file):
-                logging.error("File {}, referenced from {}, does not exist".format(input_file, config_json_filename))
+                logger.error("File {}, referenced from {}, does not exist".format(input_file, config_json_filename))
                 sys.exit(1)
         
         #Collect data
@@ -238,7 +239,7 @@ def validate_transform_and_push(
             assert old_file_location is not None
             valid = validate_url(old_file_location)
             if not valid:
-                logging.fatal(f"Participant file location {old_file_location} is invalid")
+                logger.fatal(f"Participant file location {old_file_location} is invalid")
                 sys.exit(1)
             
             tool_mapping[None] = ParticipantConfig(
@@ -246,6 +247,7 @@ def validate_transform_and_push(
                 data_version=str(tool_mapping_old["data_version"]),
                 data_contacts=tool_mapping_old["data_contacts"],
                 participant_label="TEMPORARY_LABEL",   # This one will be re-set later
+                renamed_participant_label="TEMPORARY_LABEL",   # This one will be re-set later
                 participant_file=old_file_location,
             )
         else:
@@ -254,20 +256,25 @@ def validate_transform_and_push(
             for tool_mapping_e in tool_mapping_list:
                 participant_label = tool_mapping_e["participant_id"]
                 assert participant_label is not None
+                
+                renamed_participant_label: "Optional[str]" = tool_mapping_e.get("renamed_participant_id")
+                if renamed_participant_label is None:
+                    renamed_participant_label = participant_label
 
                 participant_file = tool_mapping_e.get("participant_file", old_file_location)
                 assert participant_file is not None
                 
                 valid = validate_url(participant_file)
                 if not valid:
-                    logging.fatal(f"Participant file location {participant_file} is invalid")
+                    logger.fatal(f"Participant file location {participant_file} is invalid")
                     sys.exit(1)
 
-                tool_mapping[participant_label] = ParticipantConfig(
+                tool_mapping[participant_label] = tool_mapping[renamed_participant_label] = ParticipantConfig(
                     tool_id=tool_mapping_e["tool_id"],
                     data_version=str(tool_mapping_e["data_version"]),
                     data_contacts=tool_mapping_e["data_contacts"],
                     participant_label=participant_label,
+                    renamed_participant_label=renamed_participant_label,
                     participant_file=participant_file,
                     exclude=tool_mapping_e.get("exclude", False),
                 )
@@ -292,12 +299,12 @@ def validate_transform_and_push(
 
     except Exception as e:
 
-        logging.exception("config file " + config_json_filename +
+        logger.exception("config file " + config_json_filename +
                       " is missing or has incorrect format")
         sys.exit(1)
     
     if input_url is not None:
-        logging.info(f"-> Fetching and reading minimal dataset to be processed from {input_url}")
+        logger.info(f"-> Fetching and reading minimal dataset to be processed from {input_url}")
         
         tfile = tempfile.NamedTemporaryFile()
         try:
@@ -305,13 +312,13 @@ def validate_transform_and_push(
                 shutil.copyfileobj(response, tfile, length=1024*1024)
             input_file_to_open = tfile.name
         except urllib.error.HTTPError as he:
-            logging.exception(f"{he.code} HTTP error. Input url {input_url} is either missing or has incorrect format. Reason: {he.reason}")
+            logger.exception(f"{he.code} HTTP error. Input url {input_url} is either missing or has incorrect format. Reason: {he.reason}")
             sys.exit(1)
         except Exception as e:
-            logging.exception(f"Input url {input_url} is either missing or has incorrect format.")
+            logger.exception(f"Input url {input_url} is either missing or has incorrect format.")
             sys.exit(1)
     else:
-        logging.info(f"-> Opening and reading minimal dataset file {input_file}")
+        logger.info(f"-> Opening and reading minimal dataset file {input_file}")
         input_file_to_open = input_file
 
     try:
@@ -331,11 +338,11 @@ def validate_transform_and_push(
             if not isinstance(data, list):
                 data = [ data ]
     except Exception as e:
-        logging.exception("Input file " + input_file +
+        logger.exception("Input file " + input_file +
                       " is missing or has incorrect format")
         sys.exit(1)
 
-    logging.info("-> Validating minimal dataset to be processed")
+    logger.info("-> Validating minimal dataset to be processed")
     # Some data have incomplete timestamps (hence, incorrect)
     for data_i, data_entry in enumerate(data):
         if data_entry.get("type") == OEBDatasetType.Participant.value:
@@ -346,21 +353,21 @@ def validate_transform_and_push(
                     # Guessing the problem is incomplete timestamp
                     new_val_date = val_date + 'Z'
                     if validate_rfc3339(new_val_date):
-                        logging.warning(f"Patching date in entry {data_i} from {input_file}")
+                        logger.warning(f"Patching date in entry {data_i} from {input_file}")
                         val_date_b["validation_date"] = new_val_date
         elif "id" in data_entry:
             partenum = data_entry.get("participants")
             if isinstance(partenum, list):
                 uniqpartenum = set(partenum)
                 if len(uniqpartenum) < len(partenum):
-                    logging.warning(f"Patching participants list in entry {data_i} from {input_file}")
+                    logger.warning(f"Patching participants list in entry {data_i} from {input_file}")
                     data_entry["participants"] = list(uniqpartenum)
                     
     
     # Now, it is time to validate the fetched data
     # in inline mode
     if skip_min_validation:
-        logging.info("-> Skipped minimal dataset JSON validation (you are sure it's 100%% correct, right?)")
+        logger.info("-> Skipped minimal dataset JSON validation (you are sure it's 100%% correct, right?)")
     else:
         validable_data: "ParsedContentEntry" = {
             "file": input_file if input_url is None else input_url,
@@ -372,11 +379,11 @@ def validate_transform_and_push(
         validated_data_block = validated_data[0]
         validated_data_block_errors = list(filter(lambda ve: ve.get("schema_id") == level2_schemas.MINIMAL_DATA_BLOCK_SCHEMA_ID, validated_data_block.get("errors", [])))
         if len(validated_data_block_errors) > 0:
-            logging.error(f"Errors in data file {validated_data_block['file']}\n{json.dumps(validated_data_block_errors, indent=4)}")
+            logger.error(f"Errors in data file {validated_data_block['file']}\n{json.dumps(validated_data_block_errors, indent=4)}")
             sys.exit(2)
     
     # sort out dataset depending on 'type' property
-    logging.info("-> Sorting out minimal datasets to be processed based on their type")
+    logger.info("-> Sorting out minimal datasets to be processed based on their type")
     min_participant_dataset = []
     min_participant_dataset_hashes = dict()
     min_assessment_datasets = []
@@ -406,7 +413,7 @@ def validate_transform_and_push(
                 participants_set.add(participant_label)
                 if tool_id is not None:
                     if len(participants_set) > 1:
-                        logging.warning(f"'Old school' configuration file and {len(participants_set)} participant datasets")
+                        logger.warning(f"'Old school' configuration file and {len(participants_set)} participant datasets")
                     elif None in tool_mapping:
                         # Fixed "old" default tool mapping
                         tool_mapping[None].participant_label = participant_label
@@ -426,37 +433,37 @@ def validate_transform_and_push(
                         p_in_chall[participant_label] = 1
                     
                     if tool_id is not None and p_in_chall[participant_label] > 1:
-                        logging.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
+                        logger.warning(f"'Old school' configuration file and {p_in_chall[participant_label]} participant datasets in challenge {challenge}")
             else:
-                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
+                logger.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
                 
         elif dataset_type == OEBDatasetType.Assessment.value:
             if dataset_hash not in min_assessment_dataset_hashes:
                 min_assessment_datasets.append(dataset)
                 min_assessment_dataset_hashes[dataset_hash] = dataset
             else:
-                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
+                logger.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
             
         elif dataset_type == OEBDatasetType.Aggregation.value:
             if dataset_hash not in min_aggregation_dataset_hashes:
                 min_aggregation_datasets.append(dataset)
                 min_aggregation_dataset_hashes[dataset_hash] = dataset
             else:
-                logging.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
+                logger.warning(f"Dataset {i_dataset} of type {dataset_type} was duplicated. Skipping")
         elif dataset_type is not None:
-            logging.warning(f"Dataset {i_dataset} is of unknown type {dataset_type}. Skipping")
+            logger.warning(f"Dataset {i_dataset} is of unknown type {dataset_type}. Skipping")
             discarded_datasets += 1
         else:
             not_datasets += 1
     
-    logging.info(f"   Stats: {len(participants_per_challenge)} challenges, {len(min_participant_dataset)} participant, {len(min_assessment_datasets)} assessment, {len(min_aggregation_datasets)} aggregation, {discarded_datasets} unknown, {not_datasets} not datasets")
+    logger.info(f"   Stats: {len(participants_per_challenge)} challenges, {len(min_participant_dataset)} participant, {len(min_assessment_datasets)} assessment, {len(min_aggregation_datasets)} aggregation, {discarded_datasets} unknown, {not_datasets} not datasets")
     
     if discarded_datasets > 0:
-        logging.warning(f"{discarded_datasets} minimal datasets of unknown type. Please fix it")
+        logger.warning(f"{discarded_datasets} minimal datasets of unknown type. Please fix it")
         sys.exit(2)
     
     if len(min_participant_dataset) == 0:
-        logging.error(f"No dataset of type participant was available. There must be at least one. Fix it")
+        logger.error(f"No dataset of type participant was available. There must be at least one. Fix it")
         sys.exit(2)
         
     
@@ -471,14 +478,15 @@ def validate_transform_and_push(
     )
 
     # Early check over the tools
-    logging.info("-> Fetching the list of recorded tools")
+    logger.info("-> Fetching the list of recorded tools")
     allTools = list(migration_utils.fetchStagedAndSandboxData('Tool'))
-    logging.info("-> Early checking in the participant tools")
+    logger.info(json.dumps(allTools, indent=4))
+    logger.info("-> Early checking in the participant tools")
     unique_participant_tool_ids = set(map(lambda pc: pc.tool_id, tool_mapping.values()))
     participant_tools = list(OEBFetcher.filter_by(allTools, {"_id": unique_participant_tool_ids}))
     participant_tool_ids = set(map(lambda pt: cast("str", pt["_id"]), participant_tools))
     if participant_tool_ids < unique_participant_tool_ids:
-        logging.fatal(
+        logger.fatal(
             f"Tool ids {', '.join(unique_participant_tool_ids.difference(participant_tool_ids))} could not be found in OEB. Maybe you are using the wrong instance (development instead of production) or the tool ids have a typo. Otherwise, please contact OpenEBench support for information about how to register these tools")
         sys.exit(2)
 
@@ -500,7 +508,7 @@ def validate_transform_and_push(
             pass
 
     # Early checks over the minimal input datasets
-    #logging.info("-> Prefetching the list of datasets")
+    #logger.info("-> Prefetching the list of datasets")
     #for _ in migration_utils.fetchStagedAndSandboxData('Dataset'):
     #    break
     
@@ -509,7 +517,7 @@ def validate_transform_and_push(
     community_prefix = OpenEBenchUtils.gen_community_prefix(stagedCommunity)
     
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    logging.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
+    logger.info(f"-> Query challenges related to benchmarking event {bench_event_id}")
     input_query_response = migration_utils.graphql_query_OEB_DB(
         GraphQLQueryLabel.Input,
         bench_event_id,
@@ -522,7 +530,7 @@ def validate_transform_and_push(
     for challenge in input_query_response["data"]["getChallenges"]:
         for metrics_category in challenge.get("metrics_categories", []):
             for metrics in metrics_category.get("metrics", []):
-                # logging.info(f"{challenge['_id']} {workflow_id} {metrics_category.get('category')} {metrics.get('tool_id')}")
+                # logger.info(f"{challenge['_id']} {workflow_id} {metrics_category.get('category')} {metrics.get('tool_id')}")
                 if metrics.get("tool_id") == workflow_id:
                     if metrics_category.get("category") == "aggregation":
                         found_workflow_id = True
@@ -530,10 +538,10 @@ def validate_transform_and_push(
                         mismatched_challenges.add(challenge["_id"])
     
     if len(mismatched_challenges) > 0:
-        logging.warning(f"Tool workflow id {workflow_id} appears linked to assessment metrics in challenge(s) {mismatched_challenges}. Is this a challenge declaration mistake???")
+        logger.warning(f"Tool workflow id {workflow_id} appears linked to assessment metrics in challenge(s) {mismatched_challenges}. Is this a challenge declaration mistake???")
 
     if not found_workflow_id:
-        logging.fatal(f"Tool workflow id {workflow_id} does not appear related to aggregation metrics in any of the challenges from benchmarking event {bench_event_id}")
+        logger.fatal(f"Tool workflow id {workflow_id} does not appear related to aggregation metrics in any of the challenges from benchmarking event {bench_event_id}")
         sys.exit(2)
 
     bench_event = input_query_response["data"]["getBenchmarkingEvents"][0]
@@ -545,20 +553,20 @@ def validate_transform_and_push(
         community_prefix,
     )
     
-    logging.info("-> Early minimal participant datasets check")
+    logger.info("-> Early minimal participant datasets check")
     m_p_collisions = migration_utils.check_min_dataset_collisions(min_participant_dataset, ch_id_to_label_and_sep)
     if len(m_p_collisions) > 0:
         sys.exit(5)
-    logging.info("-> Early minimal assessment datasets check")
+    logger.info("-> Early minimal assessment datasets check")
     m_a_collisions = migration_utils.check_min_dataset_collisions(min_assessment_datasets, ch_id_to_label_and_sep)
     if len(m_a_collisions) > 0:
         sys.exit(5)
     
     if use_server_schemas or (data_model_repo is None) or (data_model_tag is None):
-        logging.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
+        logger.info(f"-> Fetching and using schemas from the server {migration_utils.oeb_api_base}")
         schemaMappings = migration_utils.load_schemas_from_server()
     else:
-        logging.info(f"-> Fetching and using schemas from the repository {data_model_repo} (tag {data_model_tag})")
+        logger.info(f"-> Fetching and using schemas from the repository {data_model_repo} (tag {data_model_tag})")
         data_model_repo_dir = migration_utils.doMaterializeRepo(data_model_repo, data_model_tag)
         data_model_dir = os.path.abspath(os.path.join(data_model_repo_dir, data_model_reldir))
         schemaMappings = migration_utils.load_schemas_from_repo(data_model_dir)
@@ -571,13 +579,13 @@ def validate_transform_and_push(
         p_config.process_contact_ids(input_query_response["data"]["getContacts"])
     
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    logging.info("-> Querying graphql about aggregations")
+    logger.info("-> Querying graphql about aggregations")
     aggregation_query_response = migration_utils.graphql_query_OEB_DB(
         GraphQLQueryLabel.Aggregation,
         bench_event_id,
     )
     
-    logging.info(f"-> Validating Benchmarking Event {bench_event_id}")
+    logger.info(f"-> Validating Benchmarking Event {bench_event_id}")
     process_aggregations = AggregationValidator(schemaMappings, migration_utils)
     
     # Check and index challenges and their main components
@@ -590,7 +598,7 @@ def validate_transform_and_push(
 
     ### GENENERATE ALL VALID DATASETS AND TEST ACTIONS
     #PARTICIPANT DATASETS
-    logging.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
+    logger.info(f"-> Processing {len(min_participant_dataset)} minimal participant datasets")
     process_participant = ParticipantBuilder(schemaMappings, migration_utils)
     community_id = bench_event["community_id"]
     #stagedParticipantDatasets = list(migration_utils.fetchStagedAndSandboxData('Dataset', {"community_ids": [ community_id ], "type": [ OEBDatasetType.Participant.value ]}))
@@ -611,12 +619,12 @@ def validate_transform_and_push(
     # We start storing here the participant entries to be validated and (hopefully) sent to the database
     final_data = list(map(lambda pt: pt.participant_dataset, valid_participant_tuples))
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL participant data at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL participant data at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
 
     # Now it is time to check anomalous collisions
-    logging.info(f"-> Check collisions on {len(valid_participant_tuples)} generated participant datasets")
+    logger.info(f"-> Check collisions on {len(valid_participant_tuples)} generated participant datasets")
     p_d_collisions = migration_utils.check_dataset_collisions(
         list(map(lambda pvc: pvc.participant_dataset, valid_participant_tuples)),
         default_schema_url=False,
@@ -625,7 +633,7 @@ def validate_transform_and_push(
         sys.exit(5)
     
     #TEST EVENT
-    logging.info(f"-> Generating {len(valid_participant_tuples)} TestEvent test actions")
+    logger.info(f"-> Generating {len(valid_participant_tuples)} TestEvent test actions")
     valid_test_events = process_participant.build_test_events(
         valid_participant_tuples,
         agg_challenges
@@ -634,12 +642,12 @@ def validate_transform_and_push(
     # Now the test events relating input datasets to participant ones
     final_data.extend(valid_test_events)
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
 
     # query remote OEB database to get offical ids from associated challenges, tools and contacts
-    logging.info("-> Querying graphql about metrics reference and assessments")
+    logger.info("-> Querying graphql about metrics reference and assessments")
     metrics_reference_query_response = migration_utils.graphql_query_OEB_DB(
         GraphQLQueryLabel.MetricsReference,
         bench_event_id,
@@ -653,11 +661,11 @@ def validate_transform_and_push(
         community_ids_set.update(pvc.participant_dataset["community_ids"])
         challenge_ids_set.update(map(lambda chp: cast("str", chp.entry["_id"]), pvc.challenge_pairs))
         
-    #logging.info("-> Querying related TestActions")
+    #logger.info("-> Querying related TestActions")
     #stagedEvents = list(migration_utils.fetchStagedAndSandboxData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     #stagedEvents = list(migration_utils.fetchSandboxAndGraphQLStagedData('TestAction', {"challenge_id": list(challenge_ids_set)}))
     
-    logging.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
+    logger.info(f"-> Processing {len(min_assessment_datasets)} minimal assessment datasets")
     process_assessments = AssessmentBuilder(schemaMappings, migration_utils)
     valid_assessment_tuples = process_assessments.build_assessment_datasets(
         metrics_reference_query_response["data"]["getMetrics"],
@@ -670,14 +678,14 @@ def validate_transform_and_push(
         do_fix_orig_ids,
     )
 
-    logging.info(f"-> Generated {len(valid_assessment_tuples)} minimal assessment datasets")
+    logger.info(f"-> Generated {len(valid_assessment_tuples)} minimal assessment datasets")
     final_data.extend(map(lambda at: at.assessment_dataset, valid_assessment_tuples))
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL assessment data, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL assessment data, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
-    logging.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
+    logger.info(f"-> Check collisions on {len(valid_assessment_tuples)} generated assessment datasets")
     a_d_collisions = migration_utils.check_dataset_collisions(
         list(map(lambda at: at.assessment_dataset, valid_assessment_tuples)),
         default_schema_url=[
@@ -687,7 +695,7 @@ def validate_transform_and_push(
     if len(a_d_collisions) > 0:
         sys.exit(5)
 
-    logging.info(f"-> Generating {len(valid_assessment_tuples)} MetricsEvent test actions")
+    logger.info(f"-> Generating {len(valid_assessment_tuples)} MetricsEvent test actions")
     valid_metrics_events = process_assessments.build_metrics_events(
         valid_assessment_tuples,
         agg_challenges
@@ -695,13 +703,13 @@ def validate_transform_and_push(
     
     final_data.extend(valid_metrics_events)
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
     #AGGREGATION DATASETS & AGGREGATION EVENT
     
-    logging.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
+    logger.info(f"-> Processing {len(min_aggregation_datasets)} minimal aggregation datasets")
     
     aggregations_builder = AggregationBuilder(schemaMappings, migration_utils)
     # Now, build the aggregation datasets
@@ -720,11 +728,11 @@ def validate_transform_and_push(
 
     final_data.extend(map(lambda ag: ag.aggregation_dataset, valid_aggregation_tuples))
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL aggregation data, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL aggregation data, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
-    logging.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
+    logger.info(f"-> Check collisions on {len(valid_aggregation_tuples)} generated aggregation datasets")
     agg_d_collisions = migration_utils.check_dataset_collisions(
         list(map(lambda agt: agt.aggregation_dataset, valid_aggregation_tuples)),
         default_schema_url=[
@@ -742,7 +750,7 @@ def validate_transform_and_push(
 
     final_data.extend(valid_aggregation_events)
     if output_filename is not None:
-        logging.info(f"Storing PARTIAL aggregation data and events, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
+        logger.info(f"Storing PARTIAL aggregation data and events, PARTIAL assessment data and events, PARTIAL participant data and events at {output_filename} (to inspect in case of breakage)")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
             json.dump(final_data, wb)
     
@@ -760,18 +768,19 @@ def validate_transform_and_push(
     final_data.append(umbrella)
     
     if output_filename is not None:
-        logging.info(f"Storing DEFINITIVE output before validation at {output_filename}")
+        logger.info(f"Storing DEFINITIVE output before validation at {output_filename}")
         with open(output_filename, mode="w", encoding="utf-8") as wb:
-            json.dump(final_data, wb)
+            indent: "Optional[int]" = 4 if logger.getEffectiveLevel() < logging.INFO else None
+            json.dump(final_data, wb, indent=indent)
     
     if dry_run:
         migration_utils.schemas_validation(final_data, val_result_filename)
-        logging.info("Data was stored at {} (submission was skipped)".format(output_filename))
+        logger.info("Data was stored at {} (submission was skipped)".format(output_filename))
     else:
-        logging.info("Validating and submitting...")
+        logger.info("Validating and submitting...")
         migration_utils.validate_and_submit_oeb_buffer(community_id, final_data, val_result_filename, payload_mode=payload_mode)
-        logging.info("If the validation and submission worked, uplifted data is in the sandbox. So, you have to run next command to finish the submission")
-        logging.info(f"oeb-sandbox.py --base_url {migration_utils.oeb_api_base} -cr {oeb_credentials_filename} stage")
+        logger.info("If the validation and submission worked, uplifted data is in the sandbox. So, you have to run next command to finish the submission")
+        logger.info(f"oeb-sandbox.py --base_url {migration_utils.oeb_api_base} -cr {oeb_credentials_filename} stage")
 
 def main() -> "None":
     parser = argparse.ArgumentParser(description='OEB Level 2 push_data_to_oeb', formatter_class=argparse.ArgumentDefaultsHelpFormatter)

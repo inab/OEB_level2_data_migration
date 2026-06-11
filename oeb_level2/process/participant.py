@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2020 Barcelona Supercomputing Center, Javier Garrayo Ventas
 # Copyright (C) 2020-2022 Barcelona Supercomputing Center, Meritxell Ferret
-# Copyright (C) 2020-2023 Barcelona Supercomputing Center, José M. Fernández
+# Copyright (C) 2020-2026 Barcelona Supercomputing Center, José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -81,6 +81,7 @@ class ParticipantConfig:
     data_version: "str"
     data_contacts: "Sequence[str]"
     participant_label: "str"
+    renamed_participant_label: "str"
     participant_file: "str"
     exclude: "bool" = False
     
@@ -94,6 +95,7 @@ class ParticipantConfig:
             data_version=participant_ql["version"],
             data_contacts=participant_ql["dataset_contact_ids"],
             participant_label=gen_inline_data_label_from_participant_dataset(participant_ql).label["label"],
+            renamed_participant_label=gen_inline_data_label_from_participant_dataset(participant_ql).label["label"],
             participant_file=participant_file,
             exclude=participant_ql.get("_metadata", {}).get(EXCLUDE_PARTICIPANT_KEY, False),
         )
@@ -251,14 +253,14 @@ class ParticipantBuilder():
                     participant_data_labels_pairs = idx_cha_p.d_catalog.get_participant_labels()
                     existing_min_id: "Optional[str]" = None
                     for participant_data_label, p_dataset_id in participant_data_labels_pairs:
-                        if participant_data_label["label"] == p_config.participant_label:
+                        if participant_data_label["label"] == p_config.renamed_participant_label:
                             existing_min_id = participant_data_label["dataset_orig_id"]
 
                     if existing_min_id is not None:
                         if min_id is None:
                             min_id = existing_min_id
                         elif min_id != existing_min_id:
-                            self.logger.fatal(f"Different challenges for participant dataset label {p_config.participant_label} have different original dataset ids {min_id} and {existing_min_id}")
+                            self.logger.fatal(f"Different challenges for participant dataset label {p_config.participant_label} => {p_config.renamed_participant_label} have different original dataset ids {min_id} and {existing_min_id}")
                             should_exit = True
 
                     execution_challenge_ids.append(execution_challenge_id)
@@ -313,14 +315,14 @@ class ParticipantBuilder():
             # add name and description, if workflow did not provide them
             min_participant_data_name = min_participant_data.get("name")
             if min_participant_data_name is None:
-                min_participant_data_name = "Predictions made by " + \
-                    min_participant_data["participant_id"] + " participant"
+                min_participant_data_name = "Predictions made by '" + \
+                    p_config.renamed_participant_label + "' participant"
             valid_participant_data["name"] = min_participant_data_name
             
             min_participant_data_description = min_participant_data.get("description")
             if min_participant_data_description is None:
-                min_participant_data_description = "Predictions made by " + \
-                    min_participant_data["participant_id"] + " participant"
+                min_participant_data_description = "Predictions made by '" + \
+                    p_config.renamed_participant_label + "' participant"
             valid_participant_data["description"] = min_participant_data_description
             
             if stagedEntry is not None:
@@ -379,7 +381,7 @@ class ParticipantBuilder():
             
             # Breadcrumbs about the participant id to ease the discovery
             new_metadata = {
-                PARTICIPANT_ID_KEY: min_participant_data["participant_id"],
+                PARTICIPANT_ID_KEY: p_config.renamed_participant_label,
                 EXCLUDE_PARTICIPANT_KEY: p_config.exclude,
             }
             if stagedEntry is not None:
@@ -392,12 +394,13 @@ class ParticipantBuilder():
 
             self.logger.info(f'Processed "{min_id}" (was {str(min_participant_data["_id"])})...')
             
+            self.logger.debug(f"Participant {p_config.participant_label} => {p_config.renamed_participant_label}")
             # It is really a check through comparison of what was generated
             fixed_entry = self.migration_utils.fix_participant_original_id(
                 valid_participant_data,
                 community_prefix,
                 bench_event_prefix_et_al,
-                p_config.participant_label,
+                p_config.renamed_participant_label,
                 do_fix_orig_ids,
             )
             
@@ -429,7 +432,7 @@ class ParticipantBuilder():
 
         # an  new event object will be created for each of the challenge where the participants has taken part in
         for pt in valid_participant_tuples:
-            participant_label = pt.p_config.participant_label
+            participant_label = pt.p_config.renamed_participant_label
             for challenge_pair in pt.challenge_pairs:
                 indexed_challenge = indexed_challenges[challenge_pair.entry["_id"]]
                 the_id = OpenEBenchUtils.gen_test_event_original_id(indexed_challenge.challenge, participant_label)

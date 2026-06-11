@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # SPDX-License-Identifier: GPL-3.0-only
-# Copyright (C) 2024 José M. Fernández
+# Copyright (C) 2024-2026 José M. Fernández
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -223,7 +223,7 @@ def process_challenges(
             for challenge_pair in empty_challenge_pairs:
                 challenge_participants = list()
                 for template_p_tuple in new_challenges_participants:
-                    new_id = template_p_tuple.p_config.participant_label
+                    new_id = template_p_tuple.p_config.renamed_participant_label
                     the_uri = template_p_tuple.participant_dataset["datalink"].get("uri")
                     assert isinstance(the_uri, str)
 
@@ -239,6 +239,7 @@ def process_challenges(
                         community_acronym=community_label,
                     )
                     # Recording it
+                    p_tuple = participants.setdefault(template_p_tuple.p_config.renamed_participant_label, p_tuple)
                     p_tuple = participants.setdefault(template_p_tuple.p_config.participant_label, p_tuple)
                     # Recording the challenge on it
                     p_tuple.challenge_pairs.append(challenge_pair)
@@ -369,7 +370,7 @@ def prepare_participants_reanalysis(
             #    shutil.rmtree(job_dir)
             os.makedirs(job_dir, exist_ok=True)
 
-            p_label = p_tuple.p_config.participant_label
+            p_label = p_tuple.p_config.renamed_participant_label
             challenge_labels_spc = " ".join(map(lambda cp: cp.label, challenge_pairs_to_run))
 
             input_files_dict = cast("Mapping[str, MutableMapping[str, str]]", copy.deepcopy(template_input_files_dict))
@@ -747,7 +748,7 @@ def reanalyse_challenges(
     logging.info(f"{len(jobs_to_perform)} jobs will be run (please be patient)")
 
     for job_i, job_to_perform in enumerate(jobs_to_perform, 1):
-        logging.info(f"* Job {job_i} of {len(jobs_to_perform)}: {job_to_perform.p_tuple.p_config.participant_label} challenges {' '.join(map(lambda cp: cp.label, job_to_perform.challenge_pairs))}")
+        logging.info(f"* Job {job_i} of {len(jobs_to_perform)}: {job_to_perform.p_tuple.p_config.renamed_participant_label} challenges {' '.join(map(lambda cp: cp.label, job_to_perform.challenge_pairs))}")
         retval , vre_out_metadata_json_path = run_vre_runner_job(vre_runner_path, job_to_perform)
         if retval is None:
             logging.info("\t\tAlready done. Skipping.")
@@ -786,6 +787,7 @@ def reanalyse_challenges(
             "tool_mapping": [
                 {
                     "participant_id": job_to_perform.p_tuple.p_config.participant_label,
+                    "renamed_participant_id": job_to_perform.p_tuple.p_config.renamed_participant_label,
                     "tool_id": job_to_perform.p_tuple.p_config.tool_id,
                     "data_version": 1,
                     "data_contacts": job_to_perform.p_tuple.p_config.data_contacts,
