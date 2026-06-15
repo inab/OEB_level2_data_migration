@@ -480,7 +480,6 @@ def validate_transform_and_push(
     # Early check over the tools
     logger.info("-> Fetching the list of recorded tools")
     allTools = list(migration_utils.fetchStagedAndSandboxData('Tool'))
-    logger.info(json.dumps(allTools, indent=4))
     logger.info("-> Early checking in the participant tools")
     unique_participant_tool_ids = set(map(lambda pc: pc.tool_id, tool_mapping.values()))
     participant_tools = list(OEBFetcher.filter_by(allTools, {"_id": unique_participant_tool_ids}))
